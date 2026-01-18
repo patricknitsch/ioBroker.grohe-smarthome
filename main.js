@@ -19,7 +19,7 @@ class GroheSmarthome extends utils.Adapter {
 	constructor(options) {
 		super({
 			...options,
-			name: 'grohe_smarthome',
+			name: 'grohe-smarthome',
 		});
 
 		this.api = null;
@@ -28,7 +28,12 @@ class GroheSmarthome extends utils.Adapter {
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
+		this.log.info('Constructor aufgerufen');
 	}
+
+	/* =====================================================
+	 * READY
+	 * ===================================================== */
 
 	async onReady() {
 		this.log.info('onReady gestartet');
@@ -41,7 +46,7 @@ class GroheSmarthome extends utils.Adapter {
 		try {
 			this.api = new GroheApi(this);
 
-			await this.api.login(this.config.email, this.decrypt(this.config.password.replace(/^enc:/, '')));
+			await this.api.login(this.config.email, this.config.password);
 
 			this.setState('info.connection', true, true);
 
@@ -206,7 +211,12 @@ class GroheSmarthome extends utils.Adapter {
 		}
 	}
 
+	/* =====================================================
+	 * UNLOAD
+	 * ===================================================== */
+
 	onUnload(callback) {
+		this.log.info('onUnload: Adapter wird gestoppt');
 		try {
 			if (this.pollTimer) {
 				clearInterval(this.pollTimer);
@@ -214,11 +224,19 @@ class GroheSmarthome extends utils.Adapter {
 			}
 			this.api = null;
 			callback();
-		} catch (err) {
-			this.log.error(`Aktion fehlgeschlagen für ${err.message}`);
-			callback && callback();
+		} catch (e) {
+			this.log.error(`onUnload: Fehler beim Stoppen: ${e.message}`);
+			callback();
 		}
 	}
 }
 
-module.exports = options => new GroheSmarthome(options);
+/* =====================================================
+ * START
+ * ===================================================== */
+
+if (require.main !== module) {
+	module.exports = options => new GroheSmarthome(options);
+} else {
+	(() => new GroheSmarthome())();
+}
