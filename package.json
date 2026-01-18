@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "openid-client": "^6.8.1"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^5.0.0",
