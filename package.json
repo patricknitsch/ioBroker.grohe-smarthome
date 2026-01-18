@@ -1,5 +1,5 @@
 {
-  "name": "iobroker.grohe_smarthome",
+  "name": "iobroker.grohe-smarthome",
   "version": "0.0.1",
   "description": "Connect to Grohe Guard / Sense / Blue Systems",
   "author": {
@@ -7,16 +7,16 @@
     "email": "patricknitsch@web.de"
   },
   "contributors": [],
-  "homepage": "https://github.com/patricknitsch/ioBroker.grohe_smarthome",
+  "homepage": "https://github.com/patricknitsch/ioBroker.grohe-smarthome",
   "license": "MIT",
   "keywords": [
     "grohe",
-    "iobroker",
+    "ioBroker",
     "water"
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:patricknitsch/ioBroker.grohe_smarthome.git"
+    "url": "git@github.com:patricknitsch/ioBroker.grohe-smarthome.git"
   },
   "engines": {
     "node": ">= 20"

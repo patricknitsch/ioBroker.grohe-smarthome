@@ -11,14 +11,24 @@
       "help": {
         "en": "E-Mail address used to log in to the Grohe app",
         "de": "E-Mail-Adresse für den Login in der Grohe App"
-      }
+      },
+	  "xs": 12,
+  	  "sm": 6,
+  	  "md": 4,
+  	  "lg": 3,
+  	  "xl": 2
     },
     "password": {
       "type": "password",
       "label": {
         "en": "Password",
         "de": "Passwort"
-      }
+      },
+	  "xs": 12,
+      "sm": 6,
+      "md": 4,
+      "lg": 3,
+      "xl": 2
     },
     "pollInterval": {
       "type": "number",
@@ -28,7 +38,12 @@
       },
       "min": 60,
       "max": 3600,
-      "default": 300
+      "default": 300,
+	  "xs": 12,
+      "sm": 6,
+      "md": 4,
+      "lg": 3,
+      "xl": 2
     }
   }
 }
