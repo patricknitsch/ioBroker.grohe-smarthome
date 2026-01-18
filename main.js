@@ -45,8 +45,8 @@ class GroheSmarthome extends utils.Adapter {
 			this.setState('info.connection', true, true);
 
 			await this.pollDevices();
-
-			this.pollTimer = setInterval(() => this.pollDevices(), (this.config.pollInterval || 300) * 1000);
+			const interval = Math.max(60, this.config.pollInterval || 300);
+			this.pollTimer = setInterval(() => this.pollDevices(), interval * 1000);
 		} catch (err) {
 			this.log.error(`Login fehlgeschlagen: ${err.message}`);
 			this.setState('info.connection', false, true);
@@ -178,39 +178,45 @@ class GroheSmarthome extends utils.Adapter {
 			return;
 		}
 
-		if (id.endsWith('.setValve')) {
-			const deviceId = id.split('.').slice(-2, -1)[0];
-			await this.api.request({
-				method: 'POST',
-				url: `https://api.grohe-iot.com/v1/devices/${deviceId}/actions/valve`,
-				data: { open: state.val },
-			});
-			this.setState(id, { ack: true });
-		}
-
-		if (id.endsWith('.dispenseWater')) {
-			const deviceId = id.split('.').slice(-2, -1)[0];
-			const [type, amount] = state.val.split(':');
-
-			await this.api.request({
-				method: 'POST',
-				url: `https://api.grohe-iot.com/v1/devices/${deviceId}/actions/dispense`,
-				data: {
-					type: Number(type),
-					amountMl: Number(amount),
-				},
-			});
-
-			this.setState(id, { ack: true });
+		try {
+			if (id.endsWith('.setValve')) {
+				const deviceId = id.split('.').slice(-2, -1)[0];
+				await this.api.request({
+					method: 'POST',
+					url: `https://api.grohe-iot.com/v1/devices/${deviceId}/actions/valve`,
+					data: { open: state.val },
+				});
+				this.setState(id, { ack: true });
+			} else if (id.endsWith('.dispenseWater')) {
+				const deviceId = id.split('.').slice(-2, -1)[0];
+				const [type, amount] = state.val.split(':');
+				await this.api.request({
+					method: 'POST',
+					url: `https://api.grohe-iot.com/v1/devices/${deviceId}/actions/dispense`,
+					data: {
+						type: Number(type),
+						amountMl: Number(amount),
+					},
+				});
+				this.setState(id, { ack: true });
+			}
+		} catch (err) {
+			this.log.error(`Aktion fehlgeschlagen für ${id}: ${err.message}`);
 		}
 	}
 
 	onUnload(callback) {
-		this.api = null;
-		if (this.pollTimer) {
-			clearInterval(this.pollTimer);
+		try {
+			if (this.pollTimer) {
+				clearInterval(this.pollTimer);
+				this.pollTimer = null;
+			}
+			this.api = null;
+			callback();
+		} catch (err) {
+			this.log.error(`Aktion fehlgeschlagen für ${err.message}`);
+			callback && callback();
 		}
-		callback();
 	}
 }
 
