@@ -35,27 +35,42 @@ class GroheSmarthome extends utils.Adapter {
 	 * ===================================================== */
 
 	async onReady() {
-		this.log.info('onReady gestartet');
-		if (!this.config.email || !this.config.password) {
-			this.log.error('Bitte Grohe Cloud Zugangsdaten konfigurieren!');
+		this.log.info('Adapter gestartet');
+
+		this.api = new GroheApi(this);
+
+		if (!this.config.email) {
+			this.log.error('Bitte E-Mail in den Adaptereinstellungen angeben!');
+			this.setState('info.connection', false, true);
 			return;
 		}
 
-		this.setState('info.connection', false, true);
-		try {
-			this.api = new GroheApi(this);
+		// 1. Auth URL generieren (Browser öffnen und Login machen)
+		const authUrl = await this.api.generateAuthUrl(this.config.email);
 
-			await this.api.login(this.config.email, this.config.password);
+		this.log.info(`Öffne URL im Browser, melde dich an und hole den Code aus der Redirect-URL:\n${authUrl}`);
 
-			this.setState('info.connection', true, true);
-
-			await this.pollDevices();
-			const interval = Math.max(60, this.config.pollInterval || 300);
-			this.pollTimer = setInterval(() => this.pollDevices(), interval * 1000);
-		} catch (err) {
-			this.log.error(`Login fehlgeschlagen: ${err.message}`);
+		// Hier müsste der Benutzer den Code eingeben (z.B. in Admin-UI)
+		const code = this.config.authCode;
+		if (!code) {
+			this.log.error('Bitte Authorization Code in Adapter-Konfiguration hinterlegen (authCode)!');
 			this.setState('info.connection', false, true);
+			return;
 		}
+
+		// 2. Authorization Code gegen Token tauschen
+		try {
+			await this.api.exchangeCodeForToken(code);
+			this.setState('info.connection', true, true);
+		} catch (err) {
+			this.log.error(`Token-Tausch fehlgeschlagen: ${err.message}`);
+			this.setState('info.connection', false, true);
+			return;
+		}
+
+		await this.pollDevices();
+
+		this.pollTimer = setInterval(() => this.pollDevices(), (this.config.pollInterval || 300) * 1000);
 	}
 
 	async pollDevices() {

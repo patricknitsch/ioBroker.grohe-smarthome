@@ -82,11 +82,11 @@
 	},
 	"native": {
 		"email": "",
-		"password": "",
+		"authCode": "",
 		"pollInterval": 300
 	},
 	"protectedNative": [
-		"password"
+		"authCode"
 	],
 	"objects": [],
 	"instanceObjects": [

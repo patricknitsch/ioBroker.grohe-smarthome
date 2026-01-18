@@ -18,11 +18,11 @@
   	  "lg": 3,
   	  "xl": 2
     },
-    "password": {
+    "authCode": {
       "type": "password",
       "label": {
-        "en": "Password",
-        "de": "Passwort"
+        "en": "authCode",
+        "de": "authCode"
       },
 	  "xs": 12,
       "sm": 6,
