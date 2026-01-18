@@ -85,7 +85,7 @@
 		"password": "",
 		"pollInterval": 300
 	},
-	"encryptedNative": [
+	"protectedNative": [
 		"password"
 	],
 	"objects": [],

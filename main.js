@@ -31,6 +31,7 @@ class GroheSmarthome extends utils.Adapter {
 	}
 
 	async onReady() {
+		this.log.info('onReady gestartet');
 		if (!this.config.email || !this.config.password) {
 			this.log.error('Bitte Grohe Cloud Zugangsdaten konfigurieren!');
 			return;
