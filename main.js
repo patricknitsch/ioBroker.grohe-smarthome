@@ -35,42 +35,42 @@ class GroheSmarthome extends utils.Adapter {
 	 * ===================================================== */
 
 	async onReady() {
-		this.log.info('Adapter gestartet');
+		this.log.info('Grohe Adapter startet (Hybrid-Modus)');
+		this.setState('info.connection', false, true);
 
 		this.api = new GroheApi(this);
 
-		if (!this.config.email) {
-			this.log.error('Bitte E-Mail in den Adaptereinstellungen angeben!');
-			this.setState('info.connection', false, true);
-			return;
-		}
-
-		// 1. Auth URL generieren (Browser öffnen und Login machen)
-		const authUrl = await this.api.generateAuthUrl(this.config.email);
-
-		this.log.info(`Öffne URL im Browser, melde dich an und hole den Code aus der Redirect-URL:\n${authUrl}`);
-
-		// Hier müsste der Benutzer den Code eingeben (z.B. in Admin-UI)
-		const code = this.config.authCode;
-		if (!code) {
-			this.log.error('Bitte Authorization Code in Adapter-Konfiguration hinterlegen (authCode)!');
-			this.setState('info.connection', false, true);
-			return;
-		}
-
-		// 2. Authorization Code gegen Token tauschen
 		try {
-			await this.api.exchangeCodeForToken(code);
+			// 1️⃣ Refresh Token vorhanden?
+			if (this.config.refreshToken) {
+				const rt = this.decrypt(this.config.refreshToken.replace(/^enc:/, ''));
+				this.api.refreshToken = rt;
+				await this.api.refresh();
+				this.log.info('Login via Refresh Token');
+				// 2️⃣ sonst Login mit Passwort
+			} else if (this.config.email && this.config.password) {
+				const pw = this.decrypt(this.config.password.replace(/^enc:/, ''));
+				await this.api.login(this.config.email, pw);
+
+				// Refresh Token speichern
+				await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
+					native: {
+						...this.config,
+						refreshToken: this.encrypt(this.api.refreshToken),
+					},
+				});
+
+				this.log.info('Refresh Token gespeichert');
+			} else {
+				throw new Error('Keine Anmeldedaten vorhanden');
+			}
+
 			this.setState('info.connection', true, true);
+			await this.pollDevices();
 		} catch (err) {
-			this.log.error(`Token-Tausch fehlgeschlagen: ${err.message}`);
+			this.log.error(`Initialisierung fehlgeschlagen: ${err.message}`);
 			this.setState('info.connection', false, true);
-			return;
 		}
-
-		await this.pollDevices();
-
-		this.pollTimer = setInterval(() => this.pollDevices(), (this.config.pollInterval || 300) * 1000);
 	}
 
 	async pollDevices() {

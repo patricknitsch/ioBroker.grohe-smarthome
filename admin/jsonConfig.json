@@ -4,42 +4,25 @@
   "items": {
     "email": {
       "type": "text",
-      "label": {
-        "en": "Grohe Cloud E-Mail",
-        "de": "Grohe Cloud E-Mail"
-      },
-      "help": {
-        "en": "E-Mail address used to log in to the Grohe app",
-        "de": "E-Mail-Adresse für den Login in der Grohe App"
-      },
-	  "xs": 12,
-  	  "sm": 6,
-  	  "md": 4,
-  	  "lg": 3,
-  	  "xl": 2
+      "label": "Grohe E-Mail",
+      "sm": 12
     },
-    "authCode": {
+    "password": {
       "type": "password",
-      "label": {
-        "en": "authCode",
-        "de": "authCode"
-      },
-	  "xs": 12,
-      "sm": 6,
-      "md": 4,
-      "lg": 3,
-      "xl": 2
+      "label": "Grohe Passwort (nur beim ersten Login nötig)",
+      "sm": 12
+    },
+    "refreshToken": {
+      "type": "password",
+      "label": "Refresh Token (automatisch gesetzt)",
+      "sm": 12,
+      "readOnly": true
     },
     "pollInterval": {
       "type": "number",
-      "label": {
-        "en": "Polling interval (seconds)",
-        "de": "Polling-Intervall (Sekunden)"
-      },
+      "label": "Abfrageintervall (Sekunden)",
       "min": 60,
-      "max": 3600,
-      "default": 300,
-	  "xs": 12,
+      "xs": 12,
       "sm": 6,
       "md": 4,
       "lg": 3,
