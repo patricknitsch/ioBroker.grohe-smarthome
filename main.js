@@ -17,7 +17,7 @@ class GroheSmarthome extends utils.Adapter {
 	 * @param {Partial<utils.AdapterOptions>} [options] adapter options
 	 */
 	constructor(options) {
-		super({ ...options, name: 'grohe_smarthome' });
+		super({ ...options, name: 'grohe-smarthome' });
 
 		this.api = null;
 
