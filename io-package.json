@@ -83,8 +83,6 @@
 	"native": {
 		"email": "",
 		"password": "",
-		"keepPassword": false,
-		"debugLogin": false,
 		"refreshToken": "",
 		"pollInterval": 300
 	},

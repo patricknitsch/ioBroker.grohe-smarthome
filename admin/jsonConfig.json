@@ -3,7 +3,7 @@
   "items": {
     "email": {
       "type": "text",
-      "label": { "de": "Grohe E-Mail", "en": "Grohe email" },
+      "label": { "de": "Grohe E-Mail / Benutzername", "en": "Grohe email / username" },
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -12,17 +12,7 @@
     },
     "password": {
       "type": "password",
-      "label": { "de": "Grohe Passwort (für automatischen Login)", "en": "Grohe password (auto login)" },
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "keepPassword": {
-      "type": "checkbox",
-      "label": { "de": "Passwort nach erfolgreichem Login behalten", "en": "Keep password after successful login" },
-      "default": false,
+      "label": { "de": "Grohe Passwort", "en": "Grohe password" },
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -38,16 +28,6 @@
       "md": 12,
       "lg": 12,
       "xl": 12
-    },
-    "debugLogin": {
-      "type": "checkbox",
-      "label": { "de": "Login Debug-Logging aktivieren", "en": "Enable login debug logging" },
-      "default": false,
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
     },
     "pollInterval": {
       "type": "number",
