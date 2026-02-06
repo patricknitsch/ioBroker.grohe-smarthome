@@ -36,23 +36,36 @@ class GroheSmarthome extends utils.Adapter {
 	async onReady() {
 		await this.setState('info.connection', { val: false, ack: true });
 
+		// Ensure the refresh token state exists (stored here to avoid adapter restarts)
+		await this.setObjectNotExistsAsync('auth.refreshToken', {
+			type: 'state',
+			common: { name: 'Refresh Token', type: 'string', role: 'text', read: true, write: false },
+			native: {},
+		});
+
 		try {
 			this.client = new GroheClient(this.log);
 
 			const email = (this.config.email || '').trim();
 			const password = this.config.password || '';
-			const savedRefresh = String(this.config.refreshToken || '').trim();
+
+			// Read refresh token from state (not config – writing config triggers restart!)
+			const savedRefreshState = await this.getStateAsync('auth.refreshToken');
+			const savedRefresh = String(savedRefreshState?.val || '').trim();
 
 			// 1) Try refresh token if present
 			if (savedRefresh) {
-				this.log.debug('Trying saved refresh token');
+				this.log.debug('Versuche gespeicherten Refresh-Token');
 				this.client.setRefreshToken(savedRefresh);
 				try {
-					const { refresh_token: rt } = await this.client.refresh();
-					await this._persistRefreshToken(rt || savedRefresh);
+					await this.client.refresh();
+					this.log.info('Refresh-Token erfolgreich verwendet');
+					// Persist possibly updated refresh token
+					await this._persistRefreshToken(this.client.refreshToken);
 				} catch (err) {
 					this.log.warn(`Refresh mit gespeichertem Token fehlgeschlagen: ${err.message}`);
 					this.client.auth.accessToken = null;
+					this.client.auth.refreshToken = null;
 				}
 			}
 
@@ -306,15 +319,13 @@ class GroheSmarthome extends utils.Adapter {
 		if (!nt) {
 			return;
 		}
-		const current = String(this.config.refreshToken || '').trim();
-		if (current === nt) {
+		// Read current value to avoid unnecessary writes
+		const current = await this.getStateAsync('auth.refreshToken');
+		if (String(current?.val || '') === nt) {
 			return;
 		}
-
-		await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
-			native: { ...this.config, refreshToken: nt },
-		});
-		this.log.info('Refresh Token gespeichert/aktualisiert');
+		await this.setState('auth.refreshToken', { val: nt, ack: true });
+		this.log.debug('Refresh Token gespeichert');
 	}
 
 	/* ================================================================== */

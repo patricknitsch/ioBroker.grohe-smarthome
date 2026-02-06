@@ -19,16 +19,6 @@
       "lg": 6,
       "xl": 6
     },
-    "refreshToken": {
-      "type": "password",
-      "label": { "de": "Refresh Token (wird automatisch gesetzt)", "en": "Refresh token (set automatically)" },
-      "readOnly": true,
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
     "pollInterval": {
       "type": "number",
       "label": { "de": "Abfrageintervall (Sekunden)", "en": "Polling interval (seconds)" },

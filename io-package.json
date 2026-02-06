@@ -83,10 +83,9 @@
 	"native": {
 		"email": "",
 		"password": "",
-		"refreshToken": "",
 		"pollInterval": 300
 	},
-	"encryptedNative": ["email", "password", "refreshToken"],
+	"encryptedNative": ["email", "password"],
 	"objects": [],
 	"instanceObjects": [
 		{
