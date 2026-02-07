@@ -3,7 +3,7 @@
   "items": {
     "email": {
       "type": "text",
-      "label": { "de": "Grohe E-Mail / Benutzername", "en": "Grohe email / username" },
+      "label": { "en": "Grohe email / username", "de": "Grohe E-Mail / Benutzername" },
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -12,7 +12,7 @@
     },
     "password": {
       "type": "password",
-      "label": { "de": "Grohe Passwort", "en": "Grohe password" },
+      "label": { "en": "Grohe password", "de": "Grohe Passwort" },
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -21,9 +21,19 @@
     },
     "pollInterval": {
       "type": "number",
-      "label": { "de": "Abfrageintervall (Sekunden)", "en": "Polling interval (seconds)" },
-      "min": 60,
+      "label": { "en": "Polling interval (seconds)", "de": "Abfrageintervall (Sekunden)" },
+      "min": 30,
       "default": 300,
+      "xs": 12,
+      "sm": 6,
+      "md": 4,
+      "lg": 3,
+      "xl": 2
+    },
+    "rawStates": {
+      "type": "checkbox",
+      "label": { "en": "Create raw measurement states", "de": "Rohdaten-States erstellen" },
+      "default": false,
       "xs": 12,
       "sm": 6,
       "md": 4,

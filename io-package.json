@@ -83,7 +83,8 @@
 	"native": {
 		"email": "",
 		"password": "",
-		"pollInterval": 300
+		"pollInterval": 300,
+		"rawStates": false
 	},
 	"encryptedNative": ["password"],
 	"objects": [],
