@@ -28,6 +28,15 @@ class GroheSmarthome extends utils.Adapter {
 		/** Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name } */
 		this.devices = new Map();
 
+		/**
+		 * Poll cycle counter – used to reduce API calls for slowly changing data.
+		 * - Dashboard: every poll (core sensor data)
+		 * - Status (online/wifi/update): every 5th poll
+		 * - Command (valve state): every 3rd poll
+		 * - Pressure measurement: every 10th poll
+		 */
+		this.pollCount = 0;
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -114,6 +123,15 @@ class GroheSmarthome extends utils.Adapter {
 			return;
 		}
 
+		this.pollCount++;
+		// Determine which extra endpoints to fetch this cycle
+		const isFirstPoll = this.pollCount === 1;
+		const fetchStatus = isFirstPoll || (this.pollCount % 5 === 0);
+		const fetchCommand = isFirstPoll || (this.pollCount % 3 === 0);
+		const fetchPressure = isFirstPoll || (this.pollCount % 10 === 0);
+
+		this.log.debug(`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, pressure=${fetchPressure})`);
+
 		try {
 			const dashboard = await this.client.getDashboard();
 			await this.setState('info.connection', { val: true, ack: true });
@@ -132,16 +150,14 @@ class GroheSmarthome extends utils.Adapter {
 							this.log.debug(`Appliance ${appliance.appliance_id} not registered – skipped`);
 							continue;
 						}
-						await this._processAppliance(locationId, roomId, appliance);
+						await this._processAppliance(locationId, roomId, appliance, { fetchStatus, fetchCommand, fetchPressure });
 					}
 				}
 			}
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
 			if (err?.response?.status === 403) {
-				this.log.error(
-					'Polling failed: HTTP 403 (Forbidden). Please check if the Grohe app is working correctly and your account is still active.',
-				);
+				this.log.error('Polling failed: HTTP 403 (Forbidden). This may be caused by too frequent polling. Please increase the polling interval or check if the Grohe app is working correctly.');
 			} else {
 				this.log.error(`pollDevices failed: ${err.message}`);
 			}
@@ -152,20 +168,22 @@ class GroheSmarthome extends utils.Adapter {
 	/*  Process individual appliance from dashboard                       */
 	/* ================================================================== */
 
-	async _processAppliance(locationId, roomId, appliance) {
+	async _processAppliance(locationId, roomId, appliance, flags) {
 		const id = appliance.appliance_id;
 		const type = appliance.type;
 		const name = appliance.name || 'Grohe Device';
 
 		this.devices.set(id, { locationId, roomId, applianceId: id, type, name });
 
-		// Fetch status (online, update available, wifi quality)
+		// Fetch status only every 5th poll (online/wifi/update change slowly)
 		let status = null;
-		try {
-			const statusArr = await this.client.getApplianceStatus(locationId, roomId, id);
-			status = this._parseStatusArray(statusArr);
-		} catch (err) {
-			this.log.debug(`Status query for ${id} failed: ${err.message}`);
+		if (flags.fetchStatus) {
+			try {
+				const statusArr = await this.client.getApplianceStatus(locationId, roomId, id);
+				status = this._parseStatusArray(statusArr);
+			} catch (err) {
+				this.log.debug(`Status query for ${id} failed: ${err.message}`);
+			}
 		}
 
 		switch (type) {
@@ -173,7 +191,7 @@ class GroheSmarthome extends utils.Adapter {
 				await this._updateSense(id, name, appliance, status);
 				break;
 			case GROHE_SENSE_GUARD:
-				await this._updateSenseGuard(id, name, appliance, locationId, roomId, status);
+				await this._updateSenseGuard(id, name, appliance, locationId, roomId, status, flags);
 				break;
 			case GROHE_BLUE_HOME:
 			case GROHE_BLUE_PROFESSIONAL:
@@ -239,19 +257,19 @@ class GroheSmarthome extends utils.Adapter {
 	/*  Sense Guard (type 103)                                            */
 	/* ================================================================== */
 
-	async _updateSenseGuard(id, name, appliance, locationId, roomId, status) {
+	async _updateSenseGuard(id, name, appliance, locationId, roomId, status, flags) {
 		await this._ensureDevice(id, `${name} (Sense Guard)`, 'SENSE_GUARD');
 
 		const m = appliance.data_latest?.measurement || {};
 		const dl = appliance.data_latest || {};
 
-		// Temperature, flow, pressure
+		// Temperature, flow, pressure (from dashboard – always available)
 		await this._setNum(id, 'temperature', 'Water temperature', '°C', 'value.temperature', m.temperature_guard);
 		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value.flow', m.flowrate);
 		await this._setNum(id, 'pressure', 'Current pressure', 'bar', 'value.pressure', m.pressure);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
 
-		// Consumption channel
+		// Consumption channel (from dashboard – always available)
 		await this._ensureChannel(`${id}.consumption`, 'Consumption');
 		await this._setNum(`${id}.consumption`, 'daily', 'Daily consumption', 'l', 'value', dl.daily_consumption);
 		await this._setNum(
@@ -279,7 +297,7 @@ class GroheSmarthome extends utils.Adapter {
 			dl.total_water_consumption ?? dl.water_consumption,
 		);
 
-		// Withdrawals (latest)
+		// Withdrawals (from dashboard – always available)
 		const w = dl.withdrawals || {};
 		await this._setNum(
 			`${id}.consumption`,
@@ -291,52 +309,36 @@ class GroheSmarthome extends utils.Adapter {
 		);
 		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Last max flow rate', 'l/h', 'value', w.maxflowrate);
 
-		// Valve state from command endpoint
-		let valveOpen = undefined;
-		try {
-			const cmd = await this.client.getApplianceCommand(locationId, roomId, id);
-			valveOpen = cmd?.command?.valve_open;
-		} catch (err) {
-			this.log.debug(`Command query for ${id} failed: ${err.message}`);
-		}
-		await this._setBool(id, 'valveOpen', 'Valve open', 'indicator', valveOpen);
-
-		// Pressure measurement results (may return 404 if never executed)
-		try {
-			const pm = await this.client.getAppliancePressureMeasurement(locationId, roomId, id);
-			const items = Array.isArray(pm) ? pm : pm?.items || pm?.data || [];
-			if (items.length > 0) {
-				const latest = items[0];
-				await this._ensureChannel(`${id}.pressureMeasurement`, 'Pressure measurement');
-				await this._setNum(
-					`${id}.pressureMeasurement`,
-					'dropOfPressure',
-					'Pressure drop',
-					'bar',
-					'value',
-					latest.drop_of_pressure,
-				);
-				await this._setBool(
-					`${id}.pressureMeasurement`,
-					'isLeakage',
-					'Leakage detected',
-					'indicator',
-					latest.leakage,
-				);
-				await this._setStr(`${id}.pressureMeasurement`, 'leakageLevel', 'Leakage level', 'text', latest.level);
-				await this._setStr(
-					`${id}.pressureMeasurement`,
-					'startTime',
-					'Measurement time',
-					'date',
-					latest.start_time,
-				);
+		// Valve state from command endpoint (every 3rd poll – rarely changes)
+		if (flags.fetchCommand) {
+			try {
+				const cmd = await this.client.getApplianceCommand(locationId, roomId, id);
+				const valveOpen = cmd?.command?.valve_open;
+				await this._setBool(id, 'valveOpen', 'Valve open', 'indicator', valveOpen);
+			} catch (err) {
+				this.log.debug(`Command query for ${id} failed: ${err.message}`);
 			}
-		} catch (err) {
-			if (err?.response?.status === 404) {
-				this.log.debug(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
-			} else {
-				this.log.debug(`Pressure measurement for ${id} failed: ${err.message}`);
+		}
+
+		// Pressure measurement results (every 10th poll – only changes after manual trigger)
+		if (flags.fetchPressure) {
+			try {
+				const pm = await this.client.getAppliancePressureMeasurement(locationId, roomId, id);
+				const items = Array.isArray(pm) ? pm : (pm?.items || pm?.data || []);
+				if (items.length > 0) {
+					const latest = items[0];
+					await this._ensureChannel(`${id}.pressureMeasurement`, 'Pressure measurement');
+					await this._setNum(`${id}.pressureMeasurement`, 'dropOfPressure', 'Pressure drop', 'bar', 'value', latest.drop_of_pressure);
+					await this._setBool(`${id}.pressureMeasurement`, 'isLeakage', 'Leakage detected', 'indicator', latest.leakage);
+					await this._setStr(`${id}.pressureMeasurement`, 'leakageLevel', 'Leakage level', 'text', latest.level);
+					await this._setStr(`${id}.pressureMeasurement`, 'startTime', 'Measurement time', 'date', latest.start_time);
+				}
+			} catch (err) {
+				if (err?.response?.status === 404) {
+					this.log.debug(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
+				} else {
+					this.log.debug(`Pressure measurement for ${id} failed: ${err.message}`);
+				}
 			}
 		}
 
@@ -533,6 +535,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Opening valve for ${applianceId}`);
 				await this.client.setValve(locationId, roomId, applianceId, true);
 				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this._readbackCommand(applianceId, locationId, roomId);
 				return;
 			}
 			// Sense Guard: valve close
@@ -540,6 +543,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Closing valve for ${applianceId}`);
 				await this.client.setValve(locationId, roomId, applianceId, false);
 				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this._readbackCommand(applianceId, locationId, roomId);
 				return;
 			}
 			// Sense Guard: pressure measurement
@@ -577,6 +581,25 @@ class GroheSmarthome extends utils.Adapter {
 			}
 		} catch (err) {
 			this.log.error(`Action failed (${stateId}): ${err.message}`);
+		}
+	}
+
+	/* ================================================================== */
+	/*  Immediate readback after commands                                 */
+	/* ================================================================== */
+
+	/**
+	 * Re-read the command endpoint after a valve command to update the
+	 * valveOpen state immediately instead of waiting for the next poll.
+	 */
+	async _readbackCommand(applianceId, locationId, roomId) {
+		try {
+			const cmd = await this.client.getApplianceCommand(locationId, roomId, applianceId);
+			const valveOpen = cmd?.command?.valve_open;
+			await this._setBool(applianceId, 'valveOpen', 'Valve open', 'indicator', valveOpen);
+			this.log.debug(`Readback after command: valveOpen=${valveOpen} for ${applianceId}`);
+		} catch (err) {
+			this.log.debug(`Readback command for ${applianceId} failed: ${err.message}`);
 		}
 	}
 
