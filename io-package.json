@@ -83,12 +83,10 @@
 	"native": {
 		"email": "",
 		"password": "",
-		"keepPassword": false,
-		"debugLogin": false,
-		"refreshToken": "",
-		"pollInterval": 300
+		"pollInterval": 300,
+		"rawStates": false
 	},
-	"encryptedNative": ["email", "password", "refreshToken"],
+	"encryptedNative": ["password"],
 	"objects": [],
 	"instanceObjects": [
 		{

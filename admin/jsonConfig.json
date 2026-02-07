@@ -3,7 +3,7 @@
   "items": {
     "email": {
       "type": "text",
-      "label": { "de": "Grohe E-Mail", "en": "Grohe email" },
+      "label": { "en": "Grohe email / username", "de": "Grohe E-Mail / Benutzername" },
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -12,37 +12,7 @@
     },
     "password": {
       "type": "password",
-      "label": { "de": "Grohe Passwort (für automatischen Login)", "en": "Grohe password (auto login)" },
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "keepPassword": {
-      "type": "checkbox",
-      "label": { "de": "Passwort nach erfolgreichem Login behalten", "en": "Keep password after successful login" },
-      "default": false,
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "refreshToken": {
-      "type": "password",
-      "label": { "de": "Refresh Token (wird automatisch gesetzt)", "en": "Refresh token (set automatically)" },
-      "readOnly": true,
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "debugLogin": {
-      "type": "checkbox",
-      "label": { "de": "Login Debug-Logging aktivieren", "en": "Enable login debug logging" },
-      "default": false,
+      "label": { "en": "Grohe password", "de": "Grohe Passwort" },
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -51,9 +21,19 @@
     },
     "pollInterval": {
       "type": "number",
-      "label": { "de": "Abfrageintervall (Sekunden)", "en": "Polling interval (seconds)" },
-      "min": 60,
+      "label": { "en": "Polling interval (seconds)", "de": "Abfrageintervall (Sekunden)" },
+      "min": 30,
       "default": 300,
+      "xs": 12,
+      "sm": 6,
+      "md": 4,
+      "lg": 3,
+      "xl": 2
+    },
+    "rawStates": {
+      "type": "checkbox",
+      "label": { "en": "Create raw measurement states", "de": "Rohdaten-States erstellen" },
+      "default": false,
       "xs": 12,
       "sm": 6,
       "md": 4,
