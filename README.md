@@ -253,8 +253,7 @@ Core modules:
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS** 
+### 0.1.1 (2026-02-07) 
 * (claude)Rate limiting awareness (HTTP 403 handling)
 * (claude)Immediate state readback after commands
 * (claude)Optimized polling with tiered API call frequency

@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "news": {
+      "0.1.1": {
+        "en": "Rate limiting awareness (HTTP 403 handling)\nImmediate state readback after commands\nOptimized polling with tiered API call frequency",
+        "de": "Geschwindigkeitsbegrenzungsbewusstsein (HTTP 403 Handling)\nSofortige Staatslese nach Befehlen\nOptimierte Abstimmung mit gebundener API Anruffrequenz",
+        "ru": "Ограничение скорости (HTTP 403)\nНемедленное восстановление состояния после команд\nОптимизированный опрос с многоуровневой частотой вызовов API",
+        "pt": "Consciência de limitação de taxa (handling HTTP 403)\nLeitura imediata do estado após comandos\nPesquisa otimizada com frequência de chamada API em camadas",
+        "nl": "Bewustmakingsgraad (HTTP 403)\nOnmiddellijke terugblik na commando's\nGeoptimaliseerde polling met gelaagde API oproepfrequentie",
+        "fr": "Sensibilisation à la limitation des taux (manipulation du PTTP 403)\nReprise immédiate après les commandes\nSondage optimisé avec fréquence d'appel API à niveaux",
+        "it": "Tasso di riduzione della sensibilizzazione (gestione HTTPTP 403)\nRipristino immediato dello stato dopo i comandi\nInquinamento ottimizzato con frequenza di chiamata API tiered",
+        "es": "Tasa de reducción de la conciencia (HTTP 403 manipulación)\nRegreso inmediato del estado después de órdenes\nVotación optimizada con frecuencia de llamada de API empatada",
+        "pl": "Szybkość ograniczania świadomości (obsługa HTTP 403)\nNatychmiastowy odczyt stanu po poleceniu\nZoptymalizowane sondaże z wielowarstwową częstotliwością wywołania API",
+        "uk": "Поінформованість процентів (HTTP 403)\nІммедіате стан читання після команд\nОптимізоване опитування з частотою виклику стягнутого API",
+        "zh-cn": "费率限制意识(HTTP 403处理)\n命令后立即恢复状态\n以分级API呼叫频率优化投票"
+      },
       "0.1.0": {
         "en": "initial release\nfirst functional version\na lot of debug to see where the problems are",
         "de": "erstausstrahlung\nerste funktionsversion\nviel debug zu sehen, wo die probleme sind",
