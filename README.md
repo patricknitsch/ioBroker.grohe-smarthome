@@ -253,8 +253,7 @@ Core modules:
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.1.0 (2026-02-07)
 * (patricknitsch) initial release
 * (patricknitsch) first functional version
 * (patricknitsch) a lot of debug to see where the problems are
