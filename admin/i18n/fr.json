@@ -1,3 +1,7 @@
 {
-	"grohe_smarthome adapter settings": "Paramètres de l'adaptateur Grohe Smarthome"
+	"Create raw measurement states": "Créer des états de mesure bruts",
+	"Grohe email / username": "E-mail / nom d'utilisateur Grohe",
+	"Grohe password": "Mot de passe Grohe",
+	"Polling interval (seconds)": "Intervalle d'interrogation (secondes)",
+	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "Des interrogations trop fréquentes peuvent provoquer des erreurs HTTP 403 de la part de l'API Grohe. Recommandé : 300 s ou plus."
 }

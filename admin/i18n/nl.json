@@ -1,3 +1,7 @@
 {
-	"grohe_smarthome adapter settings": "Grohe Smarthome adapterinstellingen"
+	"Create raw measurement states": "Creëer onbewerkte meetstatussen",
+	"Grohe email / username": "Grohe e-mailadres / gebruikersnaam",
+	"Grohe password": "Grohe-wachtwoord",
+	"Polling interval (seconds)": "Polling-interval (seconden)",
+	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "Te frequent pollen kan HTTP 403-fouten van de Grohe API veroorzaken. Aanbevolen: 300s of hoger."
 }

@@ -1,3 +1,7 @@
 {
-	"grohe_smarthome adapter settings": "Налаштування адаптера Grohe Smarthome"
+	"Create raw measurement states": "Створення необроблених станів вимірювання",
+	"Grohe email / username": "Електронна адреса/ім’я користувача Grohe",
+	"Grohe password": "Пароль Grohe",
+	"Polling interval (seconds)": "Інтервал опитування (секунди)",
+	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "Надто часте опитування може спричинити помилки HTTP 403 від Grohe API. Recommended: 300s or higher."
 }

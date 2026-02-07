@@ -1,3 +1,7 @@
 {
-	"grohe_smarthome adapter settings": "Grohe Smarthome 适配器设置"
+	"Create raw measurement states": "创建原始测量状态",
+	"Grohe email / username": "高仪电子邮件/用户名",
+	"Grohe password": "高仪密码",
+	"Polling interval (seconds)": "轮询间隔（秒）",
+	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "过于频繁的轮询可能会导致 Grohe API 出现 HTTP 403 错误。建议：300s 或更高。"
 }
