@@ -9,19 +9,23 @@ const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
 
+// Notification categories
+const NOTIFICATION_CATEGORIES = {
+	10: 'Information',
+	20: 'Warning',
+	30: 'Alarm',
+	40: 'WebURL',
+};
+
 class GroheSmarthome extends utils.Adapter {
 	/** @param {Partial<utils.AdapterOptions>} [options] */
 	constructor(options) {
 		super({ ...options, name: 'grohe-smarthome' });
 
 		this.client = null;
-
 		this.pollTimer = null;
 
-		/**
-		 * Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name }
-		 *
-		 */
+		/** Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name } */
 		this.devices = new Map();
 
 		this.on('ready', this.onReady.bind(this));
@@ -36,7 +40,6 @@ class GroheSmarthome extends utils.Adapter {
 	async onReady() {
 		await this.setState('info.connection', { val: false, ack: true });
 
-		// Ensure the refresh token state exists (stored here to avoid adapter restarts)
 		await this.setObjectNotExistsAsync('auth.refreshToken', {
 			type: 'state',
 			common: { name: 'Refresh Token', type: 'string', role: 'text', read: true, write: false },
@@ -49,7 +52,6 @@ class GroheSmarthome extends utils.Adapter {
 			const email = (this.config.email || '').trim();
 			const password = this.config.password || '';
 
-			// Debug: show email being used (helps diagnose encryption mismatches)
 			if (email) {
 				const parts = email.split('@');
 				const masked = parts.length === 2
@@ -70,7 +72,6 @@ class GroheSmarthome extends utils.Adapter {
 				try {
 					await this.client.refresh();
 					this.log.info('Refresh-Token erfolgreich verwendet');
-					// Persist possibly updated refresh token
 					await this._persistRefreshToken(this.client.refreshToken);
 				} catch (err) {
 					this.log.warn(`Refresh mit gespeichertem Token fehlgeschlagen: ${err.message}`);
@@ -107,7 +108,7 @@ class GroheSmarthome extends utils.Adapter {
 	}
 
 	/* ================================================================== */
-	/*  Polling – Dashboard based (like HA integration)                   */
+	/*  Polling – Dashboard + Status + Command per device                 */
 	/* ================================================================== */
 
 	async pollDevices() {
@@ -152,19 +153,27 @@ class GroheSmarthome extends utils.Adapter {
 		const type = appliance.type;
 		const name = appliance.name || 'Grohe Device';
 
-		// Store routing info for commands
 		this.devices.set(id, { locationId, roomId, applianceId: id, type, name });
+
+		// Fetch status (online, update available, wifi quality)
+		let status = null;
+		try {
+			const statusArr = await this.client.getApplianceStatus(locationId, roomId, id);
+			status = this._parseStatusArray(statusArr);
+		} catch (err) {
+			this.log.debug(`Status-Abfrage für ${id} fehlgeschlagen: ${err.message}`);
+		}
 
 		switch (type) {
 			case GROHE_SENSE:
-				await this._updateSense(id, name, appliance);
+				await this._updateSense(id, name, appliance, status);
 				break;
 			case GROHE_SENSE_GUARD:
-				await this._updateSenseGuard(id, name, appliance);
+				await this._updateSenseGuard(id, name, appliance, locationId, roomId, status);
 				break;
 			case GROHE_BLUE_HOME:
 			case GROHE_BLUE_PROFESSIONAL:
-				await this._updateBlue(id, name, appliance, type);
+				await this._updateBlue(id, name, appliance, type, status);
 				break;
 			default:
 				await this._ensureDevice(id, name, `UNKNOWN_${type}`);
@@ -172,98 +181,212 @@ class GroheSmarthome extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * Parse the status array from the API into a usable object.
+	 * Status API returns: [{type: "update_available", value: false}, {type: "connection", value: true}, ...]
+	 */
+	_parseStatusArray(statusArr) {
+		const result = {};
+		if (!Array.isArray(statusArr)) {
+			return result;
+		}
+		for (const entry of statusArr) {
+			if (entry && entry.type) {
+				result[entry.type] = entry.value;
+			}
+		}
+		return result;
+	}
+
 	/* ================================================================== */
-	/*  Sense                                                             */
+	/*  Sense (type 101)                                                  */
 	/* ================================================================== */
 
-	async _updateSense(id, name, appliance) {
+	async _updateSense(id, name, appliance, status) {
 		await this._ensureDevice(id, `${name} (Sense)`, 'SENSE');
 
 		const m = appliance.data_latest?.measurement || {};
-		await this._setNum(id, 'temperature', 'Temperatur', 'value.temperature', m.temperature);
-		await this._setNum(id, 'humidity', 'Luftfeuchte', 'value.humidity', m.humidity);
-		await this._setBool(
-			id,
-			'battery',
-			'Batterie niedrig',
-			'indicator.lowbat',
-			Array.isArray(appliance.status)
-				? appliance.status.some(s => s.type === 'battery' && s.value === 'low')
-				: undefined,
-		);
-		await this._setNum(
-			id,
-			'batteryLevel',
-			'Batterie',
-			'value.battery',
-			typeof m.battery === 'number' ? m.battery : undefined,
-		);
 
+		// Sensors from HA config.yaml: GroheSense
+		await this._setNum(id, 'temperature', 'Temperatur', '°C', 'value.temperature', m.temperature);
+		await this._setNum(id, 'humidity', 'Luftfeuchte', '%', 'value.humidity', m.humidity);
+		await this._setNum(id, 'battery', 'Batterie', '%', 'value.battery', m.battery);
+		await this._setStr(id, 'lastMeasurement', 'Letzte Messung', 'date', m.timestamp);
+
+		// Status channel (from status API)
+		await this._updateStatusChannel(id, status);
+
+		// Notifications
+		await this._updateLatestNotification(id, appliance);
+
+		// Raw measurement data
 		await this._writeRaw(id, m);
 	}
 
 	/* ================================================================== */
-	/*  Sense Guard                                                       */
+	/*  Sense Guard (type 103)                                            */
 	/* ================================================================== */
 
-	async _updateSenseGuard(id, name, appliance) {
+	async _updateSenseGuard(id, name, appliance, locationId, roomId, status) {
 		await this._ensureDevice(id, `${name} (Sense Guard)`, 'SENSE_GUARD');
 
 		const m = appliance.data_latest?.measurement || {};
-		await this._setNum(id, 'flowRate', 'Durchfluss (l/h)', 'value.flow', m.flowrate);
-		await this._setNum(id, 'pressure', 'Druck (bar)', 'value.pressure', m.pressure);
-		await this._setNum(id, 'waterTemperature', 'Wassertemperatur', 'value.temperature', m.temperature_guard);
+		const dl = appliance.data_latest || {};
 
-		// Valve state from status array
-		const valveStatus = Array.isArray(appliance.status) ? appliance.status.find(s => s.type === 'open') : null;
-		if (valveStatus) {
-			await this._setBool(
-				id,
-				'valveOpen',
-				'Ventil offen',
-				'indicator.open',
-				valveStatus.value === true || valveStatus.value === 'open',
-			);
+		// Temperature, flow, pressure
+		await this._setNum(id, 'temperature', 'Wassertemperatur', '°C', 'value.temperature', m.temperature_guard);
+		await this._setNum(id, 'flowRate', 'Aktueller Durchfluss', 'l/h', 'value.flow', m.flowrate);
+		await this._setNum(id, 'pressure', 'Aktueller Druck', 'bar', 'value.pressure', m.pressure);
+		await this._setStr(id, 'lastMeasurement', 'Letzte Messung', 'date', m.timestamp);
+
+		// Consumption channel
+		await this._ensureChannel(`${id}.consumption`, 'Verbrauch');
+		await this._setNum(`${id}.consumption`, 'daily', 'Tagesverbrauch', 'l', 'value', dl.daily_consumption);
+		await this._setNum(`${id}.consumption`, 'averageDaily', 'Durchschn. Tagesverbrauch', 'l', 'value', dl.average_daily_consumption);
+		await this._setNum(`${id}.consumption`, 'averageMonthly', 'Durchschn. Monatsverbrauch', 'l', 'value', dl.average_monthly_consumption);
+
+		// Withdrawals (latest)
+		const w = dl.withdrawals || {};
+		await this._setNum(`${id}.consumption`, 'lastWaterConsumption', 'Letzter Verbrauch', 'l', 'value', w.waterconsumption);
+		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Letzte max. Durchflussmenge', 'l/h', 'value', w.maxflowrate);
+
+		// Valve state from command endpoint
+		let valveOpen = undefined;
+		try {
+			const cmd = await this.client.getApplianceCommand(locationId, roomId, id);
+			valveOpen = cmd?.command?.valve_open;
+		} catch (err) {
+			this.log.debug(`Command-Abfrage für ${id} fehlgeschlagen: ${err.message}`);
 		}
+		await this._setBool(id, 'valveOpen', 'Ventil offen', 'indicator', valveOpen);
+
+		// Pressure measurement results
+		try {
+			const pm = await this.client.getAppliancePressureMeasurement(locationId, roomId, id);
+			const items = Array.isArray(pm) ? pm : (pm?.items || pm?.data || []);
+			if (items.length > 0) {
+				const latest = items[0];
+				await this._ensureChannel(`${id}.pressureMeasurement`, 'Druckmessung');
+				await this._setNum(`${id}.pressureMeasurement`, 'dropOfPressure', 'Druckabfall', 'bar', 'value', latest.drop_of_pressure);
+				await this._setBool(`${id}.pressureMeasurement`, 'isLeakage', 'Leckage erkannt', 'indicator', latest.leakage);
+				await this._setStr(`${id}.pressureMeasurement`, 'leakageLevel', 'Leckage-Level', 'text', latest.level);
+				await this._setStr(`${id}.pressureMeasurement`, 'startTime', 'Messzeit', 'date', latest.start_time);
+			}
+		} catch (err) {
+			this.log.debug(`Druckmessung für ${id} fehlgeschlagen: ${err.message}`);
+		}
+
+		// Status channel
+		await this._updateStatusChannel(id, status);
+
+		// Notifications
+		await this._updateLatestNotification(id, appliance);
 
 		// Controls
 		await this._ensureChannel(`${id}.controls`, 'Steuerung');
 		await this._ensureWritableBool(`${id}.controls`, 'valveOpen', 'Ventil öffnen', 'button');
 		await this._ensureWritableBool(`${id}.controls`, 'valveClose', 'Ventil schließen', 'button');
+		await this._ensureWritableBool(`${id}.controls`, 'startPressureMeasurement', 'Druckmessung starten', 'button');
 
+		// Raw measurement data
 		await this._writeRaw(id, m);
 	}
 
 	/* ================================================================== */
-	/*  Blue Home / Professional                                          */
+	/*  Blue Home / Professional (type 104/105)                           */
 	/* ================================================================== */
 
-	async _updateBlue(id, name, appliance, type) {
+	async _updateBlue(id, name, appliance, type, status) {
 		const typeStr = type === GROHE_BLUE_HOME ? 'Blue Home' : 'Blue Professional';
 		await this._ensureDevice(id, `${name} (${typeStr})`, typeStr.toUpperCase().replace(' ', '_'));
 
 		const m = appliance.data_latest?.measurement || {};
-		await this._setNum(id, 'remainingCo2', 'CO₂ Füllstand (%)', 'value.percent', m.remaining_co2);
-		await this._setNum(id, 'remainingFilter', 'Filter Restlaufzeit (%)', 'value.percent', m.remaining_filter);
-		await this._setNum(id, 'remainingCo2Liters', 'CO₂ Rest (Liter)', 'value', m.remaining_co2_liters);
-		await this._setNum(id, 'remainingFilterLiters', 'Filter Rest (Liter)', 'value', m.remaining_filter_liters);
-		await this._setNum(id, 'cleaningCount', 'Reinigungen', 'value', m.cleaning_count);
-		await this._setNum(id, 'pumpCount', 'Pump-Zyklen', 'value', m.pump_count);
-		await this._setNum(id, 'operatingTime', 'Betriebszeit (min)', 'value', m.operating_time);
+
+		// CO2 & Filter
+		await this._setNum(id, 'remainingCo2', 'CO₂ Restmenge', '%', 'value.percent', m.remaining_co2);
+		await this._setNum(id, 'remainingFilter', 'Filter Restlaufzeit', '%', 'value.percent', m.remaining_filter);
+		await this._setNum(id, 'remainingCo2Liters', 'CO₂ Rest (Liter)', 'l', 'value', m.remaining_co2_liters);
+		await this._setNum(id, 'remainingFilterLiters', 'Filter Rest (Liter)', 'l', 'value', m.remaining_filter_liters);
+
+		// Cycles
+		await this._setNum(id, 'cyclesCarbonated', 'Zyklen Sprudel', '', 'value', m.open_close_cycles_carbonated);
+		await this._setNum(id, 'cyclesStill', 'Zyklen Still', '', 'value', m.open_close_cycles_still);
+
+		// Times
+		await this._setNum(id, 'operatingTime', 'Betriebszeit (min)', 'min', 'value', m.operating_time);
+		await this._setNum(id, 'pumpRunningTime', 'Pumpenlaufzeit (min)', 'min', 'value', m.pump_running_time);
+		await this._setNum(id, 'maxIdleTime', 'Max Leerlaufzeit (min)', 'min', 'value', m.max_idle_time);
+		await this._setNum(id, 'timeSinceRestart', 'Zeit seit Neustart (min)', 'min', 'value', m.time_since_restart);
+
+		// Water running times
+		await this._setNum(id, 'waterRunningCarbonated', 'Wasser Sprudel (min)', 'min', 'value', m.water_running_time_carbonated);
+		await this._setNum(id, 'waterRunningMedium', 'Wasser Medium (min)', 'min', 'value', m.water_running_time_medium);
+		await this._setNum(id, 'waterRunningStill', 'Wasser Still (min)', 'min', 'value', m.water_running_time_still);
+
+		// Dates
+		await this._setStr(id, 'dateCleaning', 'Letzte Reinigung', 'date', m.date_of_cleaning);
+		await this._setStr(id, 'dateCo2Replacement', 'Letzter CO₂-Wechsel', 'date', m.date_of_co2_replacement);
+		await this._setStr(id, 'dateFilterReplacement', 'Letzter Filterwechsel', 'date', m.date_of_filter_replacement);
+		await this._setStr(id, 'lastMeasurement', 'Letzte Messung', 'date', m.timestamp);
+
+		// Counts
+		await this._setNum(id, 'cleaningCount', 'Reinigungen', '', 'value', m.cleaning_count);
+		await this._setNum(id, 'filterChangeCount', 'Filterwechsel', '', 'value', m.filter_change_count);
+		await this._setNum(id, 'powerCutCount', 'Stromausfälle', '', 'value', m.power_cut_count);
+		await this._setNum(id, 'pumpCount', 'Pump-Zyklen', '', 'value', m.pump_count);
+
+		// Status channel
+		await this._updateStatusChannel(id, status);
+
+		// Notifications
+		await this._updateLatestNotification(id, appliance);
 
 		// Controls
 		await this._ensureChannel(`${id}.controls`, 'Steuerung');
-		await this._ensureWritableNum(
-			`${id}.controls`,
-			'tapType',
-			'Zapf-Typ (1=still, 2=medium, 3=sprudel)',
-			'level',
-			1,
-		);
+		await this._ensureWritableNum(`${id}.controls`, 'tapType', 'Zapf-Typ (1=still, 2=medium, 3=sprudel)', 'level', 1);
 		await this._ensureWritableNum(`${id}.controls`, 'tapAmount', 'Menge (ml, Vielfaches von 50)', 'level', 250);
 		await this._ensureWritableBool(`${id}.controls`, 'dispenseTrigger', 'Zapfen auslösen', 'button');
+		await this._ensureWritableBool(`${id}.controls`, 'resetCo2', 'CO₂ Reset', 'button');
+		await this._ensureWritableBool(`${id}.controls`, 'resetFilter', 'Filter Reset', 'button');
 
+		// Raw measurement data
 		await this._writeRaw(id, m);
+	}
+
+	/* ================================================================== */
+	/*  Status channel (all devices)                                      */
+	/* ================================================================== */
+
+	async _updateStatusChannel(id, status) {
+		await this._ensureChannel(`${id}.status`, 'Status');
+
+		if (status) {
+			await this._setBool(`${id}.status`, 'online', 'Online', 'indicator.reachable', status.connection);
+			await this._setBool(`${id}.status`, 'updateAvailable', 'Update verfügbar', 'indicator', status.update_available);
+
+			if (status.wifi_quality !== undefined) {
+				await this._setNum(`${id}.status`, 'wifiQuality', 'WLAN-Qualität', '', 'value', status.wifi_quality);
+			}
+		}
+	}
+
+	/* ================================================================== */
+	/*  Latest notification (all devices)                                 */
+	/* ================================================================== */
+
+	async _updateLatestNotification(id, appliance) {
+		const notifications = appliance.notifications || [];
+		if (notifications.length > 0) {
+			const latest = notifications[0];
+			const catName = NOTIFICATION_CATEGORIES[latest.category] || `Kategorie ${latest.category}`;
+			const text = `[${catName}] ${latest.timestamp || ''}: Typ ${latest.type || latest.notification_type || '?'}`;
+
+			await this._ensureChannel(`${id}.notifications`, 'Benachrichtigungen');
+			await this._setStr(`${id}.notifications`, 'latest', 'Letzte Benachrichtigung', 'text', text);
+			await this._setStr(`${id}.notifications`, 'latestTimestamp', 'Zeitpunkt', 'date', latest.timestamp);
+			await this._setNum(`${id}.notifications`, 'latestCategory', 'Kategorie', '', 'value', latest.category);
+			await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Kategorie-Name', 'text', catName);
+		}
 	}
 
 	/* ================================================================== */
@@ -276,9 +399,7 @@ class GroheSmarthome extends utils.Adapter {
 		}
 
 		try {
-			// Find device from state id: grohe-smarthome.0.<applianceId>...
 			const parts = stateId.split('.');
-			// parts: [adapter, instance, applianceId, ...]
 			const applianceId = parts[2];
 			const dev = this.devices.get(applianceId);
 			if (!dev) {
@@ -303,6 +424,13 @@ class GroheSmarthome extends utils.Adapter {
 				await this.setStateAsync(stateId, { val: false, ack: true });
 				return;
 			}
+			// Sense Guard: pressure measurement
+			if (tail === 'controls.startPressureMeasurement' && state.val) {
+				this.log.info(`Druckmessung starten für ${applianceId}`);
+				await this.client.startPressureMeasurement(locationId, roomId, applianceId);
+				await this.setStateAsync(stateId, { val: false, ack: true });
+				return;
+			}
 			// Blue: dispense trigger
 			if (tail === 'controls.dispenseTrigger' && state.val) {
 				const typeState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.tapType`);
@@ -315,13 +443,27 @@ class GroheSmarthome extends utils.Adapter {
 				await this.setStateAsync(stateId, { val: false, ack: true });
 				return;
 			}
+			// Blue: reset CO2
+			if (tail === 'controls.resetCo2' && state.val) {
+				this.log.info(`CO₂ Reset für ${applianceId}`);
+				await this.client.resetCo2(locationId, roomId, applianceId);
+				await this.setStateAsync(stateId, { val: false, ack: true });
+				return;
+			}
+			// Blue: reset Filter
+			if (tail === 'controls.resetFilter' && state.val) {
+				this.log.info(`Filter Reset für ${applianceId}`);
+				await this.client.resetFilter(locationId, roomId, applianceId);
+				await this.setStateAsync(stateId, { val: false, ack: true });
+				return;
+			}
 		} catch (err) {
 			this.log.error(`Aktion fehlgeschlagen (${stateId}): ${err.message}`);
 		}
 	}
 
 	/* ================================================================== */
-	/*  Persist refresh token to adapter config                           */
+	/*  Persist refresh token                                             */
 	/* ================================================================== */
 
 	async _persistRefreshToken(newToken) {
@@ -329,7 +471,6 @@ class GroheSmarthome extends utils.Adapter {
 		if (!nt) {
 			return;
 		}
-		// Read current value to avoid unnecessary writes
 		const current = await this.getStateAsync('auth.refreshToken');
 		if (String(current?.val || '') === nt) {
 			return;
@@ -367,9 +508,13 @@ class GroheSmarthome extends utils.Adapter {
 		}
 	}
 
-	async _setNum(devId, name, label, role, value) {
+	async _setNum(devId, name, label, unit, role, value) {
 		const sid = `${devId}.${name}`;
-		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: false });
+		const common = { name: label, type: 'number', role, read: true, write: false };
+		if (unit) {
+			common.unit = unit;
+		}
+		await this._ensureState(sid, common);
 		if (value !== undefined && value !== null) {
 			await this.setState(sid, { val: value, ack: true });
 		}
@@ -380,6 +525,14 @@ class GroheSmarthome extends utils.Adapter {
 		await this._ensureState(sid, { name: label, type: 'boolean', role, read: true, write: false });
 		if (value !== undefined && value !== null) {
 			await this.setState(sid, { val: !!value, ack: true });
+		}
+	}
+
+	async _setStr(devId, name, label, role, value) {
+		const sid = `${devId}.${name}`;
+		await this._ensureState(sid, { name: label, type: 'string', role, read: true, write: false });
+		if (value !== undefined && value !== null) {
+			await this.setState(sid, { val: String(value), ack: true });
 		}
 	}
 
