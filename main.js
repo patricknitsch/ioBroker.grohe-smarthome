@@ -126,11 +126,13 @@ class GroheSmarthome extends utils.Adapter {
 		this.pollCount++;
 		// Determine which extra endpoints to fetch this cycle
 		const isFirstPoll = this.pollCount === 1;
-		const fetchStatus = isFirstPoll || (this.pollCount % 5 === 0);
-		const fetchCommand = isFirstPoll || (this.pollCount % 3 === 0);
-		const fetchPressure = isFirstPoll || (this.pollCount % 10 === 0);
+		const fetchStatus = isFirstPoll || this.pollCount % 5 === 0;
+		const fetchCommand = isFirstPoll || this.pollCount % 3 === 0;
+		const fetchPressure = isFirstPoll || this.pollCount % 10 === 0;
 
-		this.log.debug(`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, pressure=${fetchPressure})`);
+		this.log.debug(
+			`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, pressure=${fetchPressure})`,
+		);
 
 		try {
 			const dashboard = await this.client.getDashboard();
@@ -150,14 +152,20 @@ class GroheSmarthome extends utils.Adapter {
 							this.log.debug(`Appliance ${appliance.appliance_id} not registered – skipped`);
 							continue;
 						}
-						await this._processAppliance(locationId, roomId, appliance, { fetchStatus, fetchCommand, fetchPressure });
+						await this._processAppliance(locationId, roomId, appliance, {
+							fetchStatus,
+							fetchCommand,
+							fetchPressure,
+						});
 					}
 				}
 			}
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
 			if (err?.response?.status === 403) {
-				this.log.error('Polling failed: HTTP 403 (Forbidden). This may be caused by too frequent polling. Please increase the polling interval or check if the Grohe app is working correctly.');
+				this.log.error(
+					'Polling failed: HTTP 403 (Forbidden). This may be caused by too frequent polling. Please increase the polling interval or check if the Grohe app is working correctly.',
+				);
 			} else {
 				this.log.error(`pollDevices failed: ${err.message}`);
 			}
@@ -177,7 +185,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Fetch status only every 5th poll (online/wifi/update change slowly)
 		let status = null;
-		if (flags.fetchStatus) {
+		if (flags.fetchStatus && this.client) {
 			try {
 				const statusArr = await this.client.getApplianceStatus(locationId, roomId, id);
 				status = this._parseStatusArray(statusArr);
@@ -310,7 +318,7 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Last max flow rate', 'l/h', 'value', w.maxflowrate);
 
 		// Valve state from command endpoint (every 3rd poll – rarely changes)
-		if (flags.fetchCommand) {
+		if (flags.fetchCommand && this.client) {
 			try {
 				const cmd = await this.client.getApplianceCommand(locationId, roomId, id);
 				const valveOpen = cmd?.command?.valve_open;
@@ -321,17 +329,42 @@ class GroheSmarthome extends utils.Adapter {
 		}
 
 		// Pressure measurement results (every 10th poll – only changes after manual trigger)
-		if (flags.fetchPressure) {
+		if (flags.fetchPressure && this.client) {
 			try {
 				const pm = await this.client.getAppliancePressureMeasurement(locationId, roomId, id);
-				const items = Array.isArray(pm) ? pm : (pm?.items || pm?.data || []);
+				const items = Array.isArray(pm) ? pm : pm?.items || pm?.data || [];
 				if (items.length > 0) {
 					const latest = items[0];
 					await this._ensureChannel(`${id}.pressureMeasurement`, 'Pressure measurement');
-					await this._setNum(`${id}.pressureMeasurement`, 'dropOfPressure', 'Pressure drop', 'bar', 'value', latest.drop_of_pressure);
-					await this._setBool(`${id}.pressureMeasurement`, 'isLeakage', 'Leakage detected', 'indicator', latest.leakage);
-					await this._setStr(`${id}.pressureMeasurement`, 'leakageLevel', 'Leakage level', 'text', latest.level);
-					await this._setStr(`${id}.pressureMeasurement`, 'startTime', 'Measurement time', 'date', latest.start_time);
+					await this._setNum(
+						`${id}.pressureMeasurement`,
+						'dropOfPressure',
+						'Pressure drop',
+						'bar',
+						'value',
+						latest.drop_of_pressure,
+					);
+					await this._setBool(
+						`${id}.pressureMeasurement`,
+						'isLeakage',
+						'Leakage detected',
+						'indicator',
+						latest.leakage,
+					);
+					await this._setStr(
+						`${id}.pressureMeasurement`,
+						'leakageLevel',
+						'Leakage level',
+						'text',
+						latest.level,
+					);
+					await this._setStr(
+						`${id}.pressureMeasurement`,
+						'startTime',
+						'Measurement time',
+						'date',
+						latest.start_time,
+					);
 				}
 			} catch (err) {
 				if (err?.response?.status === 404) {
@@ -534,7 +567,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.valveOpen' && state.val) {
 				this.log.info(`Opening valve for ${applianceId}`);
 				await this.client.setValve(locationId, roomId, applianceId, true);
-				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this.setState(stateId, { val: false, ack: true });
 				await this._readbackCommand(applianceId, locationId, roomId);
 				return;
 			}
@@ -542,7 +575,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.valveClose' && state.val) {
 				this.log.info(`Closing valve for ${applianceId}`);
 				await this.client.setValve(locationId, roomId, applianceId, false);
-				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this.setState(stateId, { val: false, ack: true });
 				await this._readbackCommand(applianceId, locationId, roomId);
 				return;
 			}
@@ -550,7 +583,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.startPressureMeasurement' && state.val) {
 				this.log.info(`Starting pressure measurement for ${applianceId}`);
 				await this.client.startPressureMeasurement(locationId, roomId, applianceId);
-				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
 			// Blue: dispense trigger
@@ -562,21 +595,21 @@ class GroheSmarthome extends utils.Adapter {
 
 				this.log.info(`Dispensing: type=${tapType} amount=${tapAmount}ml for ${applianceId}`);
 				await this.client.tapWater(locationId, roomId, applianceId, tapType, tapAmount);
-				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
 			// Blue: reset CO2
 			if (tail === 'controls.resetCo2' && state.val) {
 				this.log.info(`Resetting CO₂ for ${applianceId}`);
 				await this.client.resetCo2(locationId, roomId, applianceId);
-				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
 			// Blue: reset Filter
 			if (tail === 'controls.resetFilter' && state.val) {
 				this.log.info(`Resetting filter for ${applianceId}`);
 				await this.client.resetFilter(locationId, roomId, applianceId);
-				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
 		} catch (err) {
@@ -594,10 +627,12 @@ class GroheSmarthome extends utils.Adapter {
 	 */
 	async _readbackCommand(applianceId, locationId, roomId) {
 		try {
-			const cmd = await this.client.getApplianceCommand(locationId, roomId, applianceId);
-			const valveOpen = cmd?.command?.valve_open;
-			await this._setBool(applianceId, 'valveOpen', 'Valve open', 'indicator', valveOpen);
-			this.log.debug(`Readback after command: valveOpen=${valveOpen} for ${applianceId}`);
+			if (this.client) {
+				const cmd = await this.client.getApplianceCommand(locationId, roomId, applianceId);
+				const valveOpen = cmd?.command?.valve_open;
+				await this._setBool(applianceId, 'valveOpen', 'Valve open', 'indicator', valveOpen);
+				this.log.debug(`Readback after command: valveOpen=${valveOpen} for ${applianceId}`);
+			}
 		} catch (err) {
 			this.log.debug(`Readback command for ${applianceId} failed: ${err.message}`);
 		}

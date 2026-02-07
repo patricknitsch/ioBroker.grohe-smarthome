@@ -253,15 +253,18 @@ Core modules:
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS** 
+* (claude)Rate limiting awareness (HTTP 403 handling)
+* (claude)Immediate state readback after commands
+* (claude)Optimized polling with tiered API call frequency
+
 ### 0.1.0 (2026-02-07)
 * (patricknitsch) initial release
 * (claude)OAuth login via Grohe Keycloak with automatic token refresh
 * (claude)Support for Sense, Sense Guard, Blue Home, Blue Professional
 * (claude)Encrypted refresh token storage
-* (claude)Optimized polling with tiered API call frequency
-* (claude)Immediate state readback after commands
 * (claude)Optional raw measurement data states
-* (claude)Rate limiting awareness (HTTP 403 handling)
 * (claude)i18n support (EN/DE) for admin UI
 
 ## License
