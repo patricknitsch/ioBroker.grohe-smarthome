@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "news": {
+      "0.1.2": {
+        "en": "Update Readme and Translations",
+        "de": "Readme und Übersetzungen aktualisieren",
+        "ru": "Обновление Readme и переводов",
+        "pt": "Atualizar Readme e traduções",
+        "nl": "Readme en vertalingen bijwerken",
+        "fr": "Mettre à jour le texte et les traductions",
+        "it": "Aggiornamento Readme e Traduzioni",
+        "es": "Actualizar Readme y Traducciones",
+        "pl": "Aktualizacja Readme i tłumaczenia",
+        "uk": "Оновлення перекладу",
+        "zh-cn": "更新阅读和翻译"
+      },
       "0.1.1": {
         "en": "Rate limiting awareness (HTTP 403 handling)\nImmediate state readback after commands\nOptimized polling with tiered API call frequency",
         "de": "Geschwindigkeitsbegrenzungsbewusstsein (HTTP 403 Handling)\nSofortige Staatslese nach Befehlen\nOptimierte Abstimmung mit gebundener API Anruffrequenz",
