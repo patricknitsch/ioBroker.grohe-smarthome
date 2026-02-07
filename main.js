@@ -452,6 +452,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Opening valve for ${applianceId}`);
 				await this.client.setValve(locationId, roomId, applianceId, true);
 				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this._readbackCommand(applianceId, locationId, roomId);
 				return;
 			}
 			// Sense Guard: valve close
@@ -459,6 +460,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Closing valve for ${applianceId}`);
 				await this.client.setValve(locationId, roomId, applianceId, false);
 				await this.setStateAsync(stateId, { val: false, ack: true });
+				await this._readbackCommand(applianceId, locationId, roomId);
 				return;
 			}
 			// Sense Guard: pressure measurement
@@ -496,6 +498,25 @@ class GroheSmarthome extends utils.Adapter {
 			}
 		} catch (err) {
 			this.log.error(`Action failed (${stateId}): ${err.message}`);
+		}
+	}
+
+	/* ================================================================== */
+	/*  Immediate readback after commands                                 */
+	/* ================================================================== */
+
+	/**
+	 * Re-read the command endpoint after a valve command to update the
+	 * valveOpen state immediately instead of waiting for the next poll.
+	 */
+	async _readbackCommand(applianceId, locationId, roomId) {
+		try {
+			const cmd = await this.client.getApplianceCommand(locationId, roomId, applianceId);
+			const valveOpen = cmd?.command?.valve_open;
+			await this._setBool(applianceId, 'valveOpen', 'Valve open', 'indicator', valveOpen);
+			this.log.debug(`Readback after command: valveOpen=${valveOpen} for ${applianceId}`);
+		} catch (err) {
+			this.log.debug(`Readback command for ${applianceId} failed: ${err.message}`);
 		}
 	}
 

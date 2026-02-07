@@ -1,109 +1,126 @@
 ![Logo](admin/grohe_smarthome.png)
-# ioBroker.grohe_smarthome
+# ioBroker.grohe-smarthome
 
-[![NPM version](https://img.shields.io/npm/v/iobroker.grohe_smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe_smarthome)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.grohe_smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe_smarthome)
-![Number of Installations](https://iobroker.live/badges/grohe_smarthome-installed.svg)
-![Current version in stable repository](https://iobroker.live/badges/grohe_smarthome-stable.svg)
+[![NPM version](https://img.shields.io/npm/v/iobroker.grohe-smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe-smarthome)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.grohe-smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe-smarthome)
+![Number of Installations](https://iobroker.live/badges/grohe-smarthome-installed.svg)
+![Current version in stable repository](https://iobroker.live/badges/grohe-smarthome-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobroker.grohe_smarthome.png?downloads=true)](https://nodei.co/npm/iobroker.grohe_smarthome/)
+[![NPM](https://nodei.co/npm/iobroker.grohe-smarthome.png?downloads=true)](https://nodei.co/npm/iobroker.grohe-smarthome/)
 
-**Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe_smarthome/workflows/Test%20and%20Release/badge.svg)
+**Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe-smarthome/workflows/Test%20and%20Release/badge.svg)
 
-## grohe_smarthome adapter for ioBroker
+## Grohe Smarthome adapter for ioBroker
 
-Connect to Grohe Guard / Sense / Blue Systems
+Connect to Grohe Sense / Sense Guard / Blue Home / Blue Professional systems via the Grohe cloud API.
 
-## Developer manual
-This section is intended for the developer. It can be deleted later.
+## Supported devices
 
-### DISCLAIMER
+| Device | Type | Data points |
+|--------|------|-------------|
+| **Grohe Sense** | Water sensor (101) | Temperature, humidity, battery, notifications |
+| **Grohe Sense Guard** | Water controller (103) | Temperature, flow rate, pressure, consumption (daily / avg / total), valve state, pressure measurement, notifications, controls |
+| **Grohe Blue Home** | Water system (104) | CO2/filter remaining, cycles, operating times, water dispensing, cleaning/replacement dates, counters, notifications, controls |
+| **Grohe Blue Professional** | Water system (105) | Same as Blue Home |
 
-Please make sure that you consider copyrights and trademarks when you use names or logos of a company and add a disclaimer to your README.
-You can check other adapters for examples or ask in the developer community. Using a name or logo of a company without permission may cause legal problems for you.
+## Features
 
-### Getting started
+- **OAuth login** via Grohe Keycloak with automatic token refresh
+- **Encrypted token storage** – refresh token is stored encrypted in ioBroker state
+- **Dashboard-based polling** – single API call returns all device data (measurements, consumption, notifications)
+- **Optimized API usage** – extra endpoints (status, command, pressure measurement) are fetched at reduced frequency to avoid rate limiting
+- **Immediate command readback** – after sending commands (e.g. valve open/close), the current state is re-read from the API immediately
+- **Optional raw data states** – enable via adapter settings to see all measurement fields as-is from the API
+- **Controls** – valve open/close, start pressure measurement, water dispensing (Blue), CO2/filter reset (Blue)
 
-You are almost done, only a few steps left:
-1. Create a new repository on GitHub with the name `ioBroker.grohe_smarthome`
-1. Initialize the current folder as a new git repository:  
-	```bash
-	git init -b main
-	git add .
-	git commit -m "Initial commit"
-	```
-1. Link your local repository with the one on GitHub:  
-	```bash
-	git remote add origin https://github.com/patricknitsch/ioBroker.grohe_smarthome
-	```
+## Installation
 
-1. Push all files to the GitHub repo:  
-	```bash
-	git push origin main
-	```
-1. Add a new secret under https://github.com/patricknitsch/ioBroker.grohe_smarthome/settings/secrets. It must be named `AUTO_MERGE_TOKEN` and contain a personal access token with push access to the repository, e.g. yours. You can create a new token under https://github.com/settings/tokens.
+1. Install the adapter via the ioBroker admin interface
+2. Enter your Grohe account email and password in the adapter settings
+3. Start the adapter
 
-1. Head over to [main.js](main.js) and start programming!
+## Configuration
 
-### Best Practices
-We've collected some [best practices](https://github.com/ioBroker/ioBroker.repositories#development-and-coding-best-practices) regarding ioBroker development and coding in general. If you're new to ioBroker or Node.js, you should
-check them out. If you're already experienced, you should also take a look at them - you might learn something new :)
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Email** | Grohe account email address | – |
+| **Password** | Grohe account password (stored encrypted) | – |
+| **Polling interval** | Interval in seconds between data refreshes | 300 |
+| **Raw states** | Create raw measurement data points for debugging | off |
 
-### State Roles
-When creating state objects, it is important to use the correct role for the state. The role defines how the state should be interpreted by visualizations and other adapters. For a list of available roles and their meanings, please refer to the [state roles documentation](https://www.iobroker.net/#en/documentation/dev/stateroles.md).
+### Polling interval and rate limiting
 
-**Important:** Do not invent your own custom role names. If you need a role that is not part of the official list, please contact the ioBroker developer community for guidance and discussion about adding new roles.
+The Grohe cloud API uses HTTP 403 responses for rate limiting (see [ha-grohe_smarthome#30](https://github.com/Flo-Schilli/ha-grohe_smarthome/issues/30)). To minimize API calls, this adapter uses a tiered polling strategy:
 
-### Scripts in `package.json`
-Several npm scripts are predefined for your convenience. You can run them using `npm run <scriptname>`
-| Script name | Description |
-|-------------|-------------|
-| `test:js` | Executes the tests you defined in `*.test.js` files. |
-| `test:package` | Ensures your `package.json` and `io-package.json` are valid. |
-| `test:integration` | Tests the adapter startup with an actual instance of ioBroker. |
-| `test` | Performs a minimal test run on package files and your tests. |
-| `check` | Performs a type-check on your code (without compiling anything). |
-| `lint` | Runs `ESLint` to check your code for formatting errors and potential bugs. |
-| `translate` | Translates texts in your adapter to all required languages, see [`@iobroker/adapter-dev`](https://github.com/ioBroker/adapter-dev#manage-translations) for more details. |
-| `release` | Creates a new release, see [`@alcalzone/release-script`](https://github.com/AlCalzone/release-script#usage) for more details. |
+| Data | Source | Frequency |
+|------|--------|-----------|
+| Sensor values, consumption, notifications | Dashboard API | Every poll |
+| Online status, WiFi quality, updates | Status API | Every 5th poll |
+| Valve state (Guard) | Command API | Every 3rd poll |
+| Pressure measurement (Guard) | Pressure API | Every 10th poll |
 
-### Writing tests
-When done right, testing code is invaluable, because it gives you the 
-confidence to change your code while knowing exactly if and when 
-something breaks. A good read on the topic of test-driven development 
-is https://hackernoon.com/introduction-to-test-driven-development-tdd-61a13bc92d92. 
-Although writing tests before the code might seem strange at first, but it has very 
-clear upsides.
+**Recommendation:** Keep the polling interval at **300 seconds or higher** to avoid 403 errors. If you see 403 errors, increase the interval. The Grohe app may also be affected – check if it is working correctly.
 
-The template provides you with basic tests for the adapter startup and package files.
-It is recommended that you add your own tests into the mix.
+## Data points
 
-### Publishing the adapter
-Using GitHub Actions, you can enable automatic releases on npm whenever you push a new git tag that matches the form 
-`v<major>.<minor>.<patch>`. We **strongly recommend** that you do. The necessary steps are described in `.github/workflows/test-and-release.yml`.
+### Grohe Sense
 
-Since you installed the release script, you can create a new
-release simply by calling:
-```bash
-npm run release
-```
-Additional command line options for the release script are explained in the
-[release-script documentation](https://github.com/AlCalzone/release-script#command-line).
+| State | Description | Unit |
+|-------|-------------|------|
+| `temperature` | Ambient temperature | °C |
+| `humidity` | Ambient humidity | % |
+| `battery` | Battery level | % |
+| `lastMeasurement` | Timestamp of last measurement | – |
+| `status.online` | Device online | – |
+| `status.updateAvailable` | Firmware update available | – |
+| `status.wifiQuality` | WiFi signal quality | – |
+| `notifications.*` | Latest notification (message, timestamp, category) | – |
 
-To get your adapter released in ioBroker, please refer to the documentation 
-of [ioBroker.repositories](https://github.com/ioBroker/ioBroker.repositories#requirements-for-adapter-to-get-added-to-the-latest-repository).
+### Grohe Sense Guard
 
-### Test the adapter manually with dev-server
-Since you set up `dev-server`, you can use it to run, test and debug your adapter.
+| State | Description | Unit |
+|-------|-------------|------|
+| `temperature` | Water temperature | °C |
+| `flowRate` | Current water flow rate | l/h |
+| `pressure` | Current water pressure | bar |
+| `valveOpen` | Valve open state (from command endpoint) | – |
+| `consumption.daily` | Daily water consumption | l |
+| `consumption.averageDaily` | Average daily consumption | l |
+| `consumption.averageMonthly` | Average monthly consumption | l |
+| `consumption.totalWaterConsumption` | Total water consumption | l |
+| `consumption.lastWaterConsumption` | Last withdrawal amount | l |
+| `consumption.lastMaxFlowRate` | Last max flow rate | l/h |
+| `pressureMeasurement.dropOfPressure` | Pressure drop during test | bar |
+| `pressureMeasurement.isLeakage` | Leakage detected | – |
+| `pressureMeasurement.leakageLevel` | Leakage severity level | – |
+| `pressureMeasurement.startTime` | Measurement timestamp | – |
+| `controls.valveOpen` | Open valve (button) | – |
+| `controls.valveClose` | Close valve (button) | – |
+| `controls.startPressureMeasurement` | Start pressure test (button) | – |
 
-You may start `dev-server` by calling from your dev directory:
-```bash
-dev-server watch
-```
+### Grohe Blue Home / Professional
 
-The ioBroker.admin interface will then be available at http://localhost:undefined/
+| State | Description | Unit |
+|-------|-------------|------|
+| `remainingCo2` | Remaining CO2 | % |
+| `remainingFilter` | Remaining filter | % |
+| `remainingCo2Liters` / `remainingFilterLiters` | Remaining in liters | l |
+| `cyclesCarbonated` / `cyclesStill` | Open/close cycles | – |
+| `operatingTime` | Total operating time | min |
+| `pumpRunningTime` | Pump running time | min |
+| `waterRunningCarbonated` / `Medium` / `Still` | Water running time per type | min |
+| `dateCleaning` | Last cleaning date | – |
+| `dateCo2Replacement` / `dateFilterReplacement` | Last replacement dates | – |
+| `cleaningCount` / `filterChangeCount` / `powerCutCount` / `pumpCount` | Counters | – |
+| `controls.tapType` | Water type (1=still, 2=medium, 3=carbonated) | – |
+| `controls.tapAmount` | Dispense amount (ml, multiples of 50) | – |
+| `controls.dispenseTrigger` | Start dispensing (button) | – |
+| `controls.resetCo2` / `controls.resetFilter` | Reset counters (button) | – |
 
-Please refer to the [`dev-server` documentation](https://github.com/ioBroker/dev-server#command-line) for more details.
+## Known issues
+
+- **HTTP 403 errors** – The Grohe API uses 403 for rate limiting, not just permission errors. If you see this error, increase the polling interval. The same issue affects the Grohe mobile app ([reference](https://github.com/Flo-Schilli/ha-grohe_smarthome/issues/30)).
+- **Pressure measurement 404** – Returns HTTP 404 if no pressure test has been executed yet. This is normal and handled gracefully.
 
 ## Changelog
 <!--
@@ -113,6 +130,14 @@ Please refer to the [`dev-server` documentation](https://github.com/ioBroker/dev
 
 ### **WORK IN PROGRESS**
 * (patricknitsch) initial release
+* OAuth login via Grohe Keycloak with automatic token refresh
+* Support for Sense, Sense Guard, Blue Home, Blue Professional
+* Encrypted refresh token storage
+* Optimized polling with tiered API call frequency
+* Immediate state readback after commands
+* Optional raw measurement data states
+* Rate limiting awareness (HTTP 403 handling)
+* i18n support (EN/DE) for admin UI
 
 ## License
 MIT License
