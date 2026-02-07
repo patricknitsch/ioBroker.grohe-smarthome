@@ -16,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:patricknitsch/ioBroker.grohe-smarthome.git"
+    "url": "https://github.com/patricknitsch/ioBroker.grohe-smarthome"
   },
   "engines": {
     "node": ">= 20"
