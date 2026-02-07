@@ -41,19 +41,6 @@
         "pl": "początkowe zwolnienie\npierwsza wersja funkcjonalna\ndużo debug, aby zobaczyć, gdzie są problemy",
         "uk": "початковий реліз\nперший функціонал\nбагато абвуг, щоб побачити, де проблеми є",
         "zh-cn": "初步释放\n第一个功能版本\n很多调试,看看问题在哪里"
-      },
-      "0.0.1": {
-        "en": "initial release",
-        "de": "Erstveröffentlichung",
-        "ru": "Начальная версия",
-        "pt": "lançamento inicial",
-        "nl": "Eerste uitgave",
-        "fr": "Première version",
-        "it": "Versione iniziale",
-        "es": "Versión inicial",
-        "pl": "Pierwsze wydanie",
-        "uk": "Початкова версія",
-        "zh-cn": "首次出版"
       }
     },
     "titleLang": {
@@ -125,6 +112,9 @@
     "pollInterval": 300,
     "rawStates": false
   },
+  "protectedNative": [
+    "password"
+  ],
   "encryptedNative": [
     "password"
   ],
