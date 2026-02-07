@@ -85,7 +85,7 @@
 		"password": "",
 		"pollInterval": 300
 	},
-	"encryptedNative": ["email", "password"],
+	"encryptedNative": ["password"],
 	"objects": [],
 	"instanceObjects": [
 		{

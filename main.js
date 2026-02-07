@@ -49,6 +49,16 @@ class GroheSmarthome extends utils.Adapter {
 			const email = (this.config.email || '').trim();
 			const password = this.config.password || '';
 
+			// Debug: show email being used (helps diagnose encryption mismatches)
+			if (email) {
+				const parts = email.split('@');
+				const masked = parts.length === 2
+					? `${parts[0].substring(0, 2)}***@${parts[1]}`
+					: `${email.substring(0, 3)}***`;
+				this.log.debug(`Verwende E-Mail: ${masked} (Länge: ${email.length})`);
+			}
+			this.log.debug(`Passwort vorhanden: ${password.length > 0}, Länge: ${password.length}`);
+
 			// Read refresh token from state (not config – writing config triggers restart!)
 			const savedRefreshState = await this.getStateAsync('auth.refreshToken');
 			const savedRefresh = String(savedRefreshState?.val || '').trim();
