@@ -1,14 +1,14 @@
-![Logo](admin/grohe_smarthome.png)
+![Logo](admin/grohe-smarthome.png)
 # ioBroker.grohe-smarthome
 
-[![NPM version](https://img.shields.io/npm/v/iobroker.grohe_smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe_smarthome)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.grohe_smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe_smarthome)
-![Number of Installations](https://iobroker.live/badges/grohe_smarthome-installed.svg)
-![Current version in stable repository](https://iobroker.live/badges/grohe_smarthome-stable.svg)
+[![NPM version](https://img.shields.io/npm/v/iobroker.grohe-smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe-smarthome)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.grohe-smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe-smarthome)
+![Number of Installations](https://iobroker.live/badges/grohe-smarthome-installed.svg)
+![Current version in stable repository](https://iobroker.live/badges/grohe-smarthome-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobroker.grohe_smarthome.png?downloads=true)](https://nodei.co/npm/iobroker.grohe_smarthome/)
+[![NPM](https://nodei.co/npm/iobroker.grohe-smarthome.png?downloads=true)](https://nodei.co/npm/iobroker.grohe-smarthome/)
 
-**Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe_smarthome/workflows/Test%20and%20Release/badge.svg)
+**Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe-smarthome/workflows/Test%20and%20Release/badge.svg)
 
 # ioBroker Grohe Smarthome Adapter
 
