@@ -10,134 +10,259 @@
 
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe-smarthome/workflows/Test%20and%20Release/badge.svg)
 
-## Grohe Smarthome adapter for ioBroker
+# ioBroker Grohe Smarthome Adapter
 
-Connect to Grohe Sense / Sense Guard / Blue Home / Blue Professional systems via the Grohe cloud API.
+This adapter connects ioBroker to the **Grohe Smarthome / Ondus** cloud and exposes Grohe devices as states (and some controls) inside ioBroker.
 
-## Supported devices
+It supports:
 
-| Device | Type | Data points |
-|--------|------|-------------|
-| **Grohe Sense** | Water sensor (101) | Temperature, humidity, battery, notifications |
-| **Grohe Sense Guard** | Water controller (103) | Temperature, flow rate, pressure, consumption (daily / avg / total), valve state, pressure measurement, notifications, controls |
-| **Grohe Blue Home** | Water system (104) | CO2/filter remaining, cycles, operating times, water dispensing, cleaning/replacement dates, counters, notifications, controls |
-| **Grohe Blue Professional** | Water system (105) | Same as Blue Home |
+- **Grohe Sense** (type `101`)
+- **Grohe Sense Guard** (type `103`)
+- **Grohe Blue Home** (type `104`)
+- **Grohe Blue Professional** (type `105`)
+
+The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token encrypted** in a state, and polls the Grohe cloud API on a configurable interval.
+
+---
 
 ## Features
 
-- **OAuth login** via Grohe Keycloak with automatic token refresh
-- **Encrypted token storage** – refresh token is stored encrypted in ioBroker state
-- **Dashboard-based polling** – single API call returns all device data (measurements, consumption, notifications)
-- **Optimized API usage** – extra endpoints (status, command, pressure measurement) are fetched at reduced frequency to avoid rate limiting
-- **Immediate command readback** – after sending commands (e.g. valve open/close), the current state is re-read from the API immediately
-- **Optional raw data states** – enable via adapter settings to see all measurement fields as-is from the API
-- **Controls** – valve open/close, start pressure measurement, water dispensing (Blue), CO2/filter reset (Blue)
+- Cloud login with **email/password** (initial) and automatic **token refresh**
+- Refresh token is persisted **encrypted** in `grohe-smarthome.0.auth.refreshToken`
+- Periodic polling of the Grohe dashboard:
+  - discovers locations → rooms → appliances
+  - creates ioBroker devices/channels/states automatically
+- Device data exposed as readable states (measurements, status, notifications)
+- **Controls** (writable states) for:
+  - Sense Guard valve open/close
+  - Sense Guard start pressure measurement
+  - Grohe Blue dispensing + CO₂/filter resets
+- Optional creation of a `.raw` channel with all raw measurement fields
 
-## Installation
-
-1. Install the adapter via the ioBroker admin interface
-2. Enter your Grohe account email and password in the adapter settings
-3. Start the adapter
+---
 
 ## Configuration
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| **Email** | Grohe account email address | – |
-| **Password** | Grohe account password (stored encrypted) | – |
-| **Polling interval** | Interval in seconds between data refreshes | 300 |
-| **Raw states** | Create raw measurement data points for debugging | off |
+In the adapter instance settings:
 
-### Polling interval and rate limiting
+- **Email**: your Grohe/Ondus account email
+- **Password**: your Grohe/Ondus account password
+- **Poll interval (seconds)**: polling interval in seconds  
+  - minimum is **30 seconds**
+  - default fallback is **300 seconds**
+- **Raw states** (`rawStates`): if enabled, the adapter writes all measurement fields to `<device>.raw.*`
 
-The Grohe cloud API uses HTTP 403 responses for rate limiting (see [ha-grohe_smarthome#30](https://github.com/Flo-Schilli/ha-grohe_smarthome/issues/30)). To minimize API calls, this adapter uses a tiered polling strategy:
+> Note: The adapter does **not** store the refresh token in the config because writing the config triggers an instance restart. Instead it is stored in a state (`auth.refreshToken`) and encrypted using ioBroker’s built-in encryption helpers.
 
-| Data | Source | Frequency |
-|------|--------|-----------|
-| Sensor values, consumption, notifications | Dashboard API | Every poll |
-| Online status, WiFi quality, updates | Status API | Every 5th poll |
-| Valve state (Guard) | Command API | Every 3rd poll |
-| Pressure measurement (Guard) | Pressure API | Every 10th poll |
+---
 
-**Recommendation:** Keep the polling interval at **300 seconds or higher** to avoid 403 errors. If you see 403 errors, increase the interval. The Grohe app may also be affected – check if it is working correctly.
+## Authentication and Token Handling
 
-## Data points
+On startup:
 
-### Grohe Sense
+1. The adapter reads the stored refresh token from `auth.refreshToken`.
+2. If available, it tries to refresh tokens.
+3. If refresh fails or no token exists, it performs a full login with email/password.
+4. The obtained refresh token is stored **encrypted** (`enc:<...>`) in `auth.refreshToken`.
 
-| State | Description | Unit |
-|-------|-------------|------|
-| `temperature` | Ambient temperature | °C |
-| `humidity` | Ambient humidity | % |
-| `battery` | Battery level | % |
-| `lastMeasurement` | Timestamp of last measurement | – |
-| `status.online` | Device online | – |
-| `status.updateAvailable` | Firmware update available | – |
-| `status.wifiQuality` | WiFi signal quality | – |
-| `notifications.*` | Latest notification (message, timestamp, category) | – |
+If an old (unencrypted) token is found, the adapter automatically migrates it to encrypted storage.
 
-### Grohe Sense Guard
+The HTTP client automatically retries requests once if it receives **401 Unauthorized** (refresh + retry).
 
-| State | Description | Unit |
-|-------|-------------|------|
-| `temperature` | Water temperature | °C |
-| `flowRate` | Current water flow rate | l/h |
-| `pressure` | Current water pressure | bar |
-| `valveOpen` | Valve open state (from command endpoint) | – |
-| `consumption.daily` | Daily water consumption | l |
-| `consumption.averageDaily` | Average daily consumption | l |
-| `consumption.averageMonthly` | Average monthly consumption | l |
-| `consumption.totalWaterConsumption` | Total water consumption | l |
-| `consumption.lastWaterConsumption` | Last withdrawal amount | l |
-| `consumption.lastMaxFlowRate` | Last max flow rate | l/h |
-| `pressureMeasurement.dropOfPressure` | Pressure drop during test | bar |
-| `pressureMeasurement.isLeakage` | Leakage detected | – |
-| `pressureMeasurement.leakageLevel` | Leakage severity level | – |
-| `pressureMeasurement.startTime` | Measurement timestamp | – |
-| `controls.valveOpen` | Open valve (button) | – |
-| `controls.valveClose` | Close valve (button) | – |
-| `controls.startPressureMeasurement` | Start pressure test (button) | – |
+---
 
-### Grohe Blue Home / Professional
+## Device Structure in ioBroker
 
-| State | Description | Unit |
-|-------|-------------|------|
-| `remainingCo2` | Remaining CO2 | % |
-| `remainingFilter` | Remaining filter | % |
-| `remainingCo2Liters` / `remainingFilterLiters` | Remaining in liters | l |
-| `cyclesCarbonated` / `cyclesStill` | Open/close cycles | – |
-| `operatingTime` | Total operating time | min |
-| `pumpRunningTime` | Pump running time | min |
-| `waterRunningCarbonated` / `Medium` / `Still` | Water running time per type | min |
-| `dateCleaning` | Last cleaning date | – |
-| `dateCo2Replacement` / `dateFilterReplacement` | Last replacement dates | – |
-| `cleaningCount` / `filterChangeCount` / `powerCutCount` / `pumpCount` | Counters | – |
-| `controls.tapType` | Water type (1=still, 2=medium, 3=carbonated) | – |
-| `controls.tapAmount` | Dispense amount (ml, multiples of 50) | – |
-| `controls.dispenseTrigger` | Start dispensing (button) | – |
-| `controls.resetCo2` / `controls.resetFilter` | Reset counters (button) | – |
+Devices are created under the adapter namespace:
 
-## Known issues
+```
+grohe-smarthome.0.<applianceId>.*
+```
 
-- **HTTP 403 errors** – The Grohe API uses 403 for rate limiting, not just permission errors. If you see this error, increase the polling interval. The same issue affects the Grohe mobile app ([reference](https://github.com/Flo-Schilli/ha-grohe_smarthome/issues/30)).
-- **Pressure measurement 404** – Returns HTTP 404 if no pressure test has been executed yet. This is normal and handled gracefully.
+Each appliance becomes a **device object**, with additional channels depending on type.
+
+### Common states for all devices
+
+#### Status channel
+
+```
+<applianceId>.status.online                (boolean)
+<applianceId>.status.updateAvailable       (boolean)
+<applianceId>.status.wifiQuality           (number, if available)
+```
+
+#### Notifications channel (latest entry)
+
+```
+<applianceId>.notifications.latestMessage       (string)
+<applianceId>.notifications.latestTimestamp     (string/date)
+<applianceId>.notifications.latestCategory      (number)
+<applianceId>.notifications.latestCategoryName  (string)
+```
+
+Notification categories are mapped like:
+
+- `10` Information
+- `20` Warning
+- `30` Alarm
+- `40` WebURL
+
+---
+
+## Grohe Sense (type 101)
+
+States:
+
+```
+<applianceId>.temperature        (°C)
+<applianceId>.humidity           (%)
+<applianceId>.battery            (%)
+<applianceId>.lastMeasurement    (date string)
+```
+
+Optional raw data (if enabled):
+
+```
+<applianceId>.raw.*
+```
+
+---
+
+## Grohe Sense Guard (type 103)
+
+States:
+
+```
+<applianceId>.temperature        (°C, water temp)
+<applianceId>.flowRate           (l/h)
+<applianceId>.pressure           (bar)
+<applianceId>.lastMeasurement    (date string)
+<applianceId>.valveOpen          (boolean indicator)
+```
+
+Consumption channel:
+
+```
+<applianceId>.consumption.daily
+<applianceId>.consumption.averageDaily
+<applianceId>.consumption.averageMonthly
+<applianceId>.consumption.totalWaterConsumption
+<applianceId>.consumption.lastWaterConsumption
+<applianceId>.consumption.lastMaxFlowRate
+```
+
+Pressure measurement channel (only if the API provides data; may be missing initially):
+
+```
+<applianceId>.pressureMeasurement.dropOfPressure   (bar)
+<applianceId>.pressureMeasurement.isLeakage        (boolean)
+<applianceId>.pressureMeasurement.leakageLevel     (string)
+<applianceId>.pressureMeasurement.startTime        (date string)
+```
+
+Controls (writable “button” states, auto-reset back to `false` after execution):
+
+```
+<applianceId>.controls.valveOpen                  (boolean button)
+<applianceId>.controls.valveClose                 (boolean button)
+<applianceId>.controls.startPressureMeasurement   (boolean button)
+```
+
+---
+
+## Grohe Blue Home / Professional (type 104 / 105)
+
+States:
+
+```
+<applianceId>.remainingCo2                (%)
+<applianceId>.remainingFilter             (%)
+<applianceId>.remainingCo2Liters          (l)
+<applianceId>.remainingFilterLiters       (l)
+
+<applianceId>.cyclesCarbonated
+<applianceId>.cyclesStill
+
+<applianceId>.operatingTime               (min)
+<applianceId>.pumpRunningTime             (min)
+<applianceId>.maxIdleTime                 (min)
+<applianceId>.timeSinceRestart            (min)
+
+<applianceId>.waterRunningCarbonated      (min)
+<applianceId>.waterRunningMedium          (min)
+<applianceId>.waterRunningStill           (min)
+
+<applianceId>.dateCleaning                (date string)
+<applianceId>.dateCo2Replacement          (date string)
+<applianceId>.dateFilterReplacement       (date string)
+<applianceId>.lastMeasurement             (date string)
+
+<applianceId>.cleaningCount
+<applianceId>.filterChangeCount
+<applianceId>.powerCutCount
+<applianceId>.pumpCount
+```
+
+Controls:
+
+```
+<applianceId>.controls.tapType            (number)  1=still, 2=medium, 3=carbonated
+<applianceId>.controls.tapAmount          (number)  amount in ml (multiples of 50 recommended)
+<applianceId>.controls.dispenseTrigger    (boolean button)
+
+<applianceId>.controls.resetCo2           (boolean button)
+<applianceId>.controls.resetFilter        (boolean button)
+```
+
+When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`.
+
+---
+
+## Polling and Discovery
+
+- The adapter polls the endpoint `/dashboard` and iterates:
+  - `locations[] → rooms[] → appliances[]`
+- Appliances with `registration_complete === false` are skipped.
+- For each appliance it also tries to fetch:
+  - `/status` (online/update/wifi)
+  - `/command` (used for Sense Guard `valve_open`)
+  - `/pressuremeasurement` (Sense Guard; may return HTTP 404 if never executed)
+
+---
+
+## Error Handling Notes
+
+- If polling fails, `info.connection` is set to `false`.
+- Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active.
+- Token refresh is automatic on **401** and then the request is retried once.
+
+---
+
+## Development Notes
+
+Core modules:
+
+- `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling)
+- `lib/groheClient.js`: Grohe API wrapper with authenticated requests
+- `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
+
+---
 
 ## Changelog
 <!--
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.1.0 (2026-02-07)
 * (patricknitsch) initial release
-* OAuth login via Grohe Keycloak with automatic token refresh
-* Support for Sense, Sense Guard, Blue Home, Blue Professional
-* Encrypted refresh token storage
-* Optimized polling with tiered API call frequency
-* Immediate state readback after commands
-* Optional raw measurement data states
-* Rate limiting awareness (HTTP 403 handling)
-* i18n support (EN/DE) for admin UI
+* (claude)OAuth login via Grohe Keycloak with automatic token refresh
+* (claude)Support for Sense, Sense Guard, Blue Home, Blue Professional
+* (claude)Encrypted refresh token storage
+* (claude)Optimized polling with tiered API call frequency
+* (claude)Immediate state readback after commands
+* (claude)Optional raw measurement data states
+* (claude)Rate limiting awareness (HTTP 403 handling)
+* (claude)i18n support (EN/DE) for admin UI
 
 ## License
 MIT License

@@ -1,6 +1,6 @@
 {
   "name": "iobroker.grohe-smarthome",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Connect to Grohe Guard / Sense / Blue Systems",
   "author": {
     "name": "patricknitsch",
@@ -16,14 +16,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:patricknitsch/ioBroker.grohe-smarthome.git"
+    "url": "https://github.com/patricknitsch/ioBroker.grohe-smarthome"
   },
   "engines": {
     "node": ">= 20"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
-    "axios": "^1.6.0",
+    "axios": "^1.5.0",
     "cheerio": "^1.1.2",
     "tough-cookie": "^4.1.3"
   },
