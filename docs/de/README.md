@@ -134,10 +134,12 @@ Verbrauchs-Kanal:
 <applianceId>.consumption.daily
 <applianceId>.consumption.averageDaily
 <applianceId>.consumption.averageMonthly
-<applianceId>.consumption.totalWaterConsumption
+<applianceId>.consumption.totalWaterConsumption   (berechnet, siehe unten)
 <applianceId>.consumption.lastWaterConsumption
 <applianceId>.consumption.lastMaxFlowRate
 ```
+
+> **Hinweis zu `totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn daher über den Endpunkt `/data/aggregated` – analog zur [HA Grohe-Integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, gruppiert nach Jahr) abgerufen; bei jedem Polling wird der aktuelle Tagesverbrauch hinzuaddiert.
 
 Druckmessungs-Kanal (nur wenn die API Daten liefert; kann anfangs fehlen):
 
@@ -211,10 +213,21 @@ Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und 
 - Der Adapter fragt den Endpunkt `/dashboard` ab und durchläuft:
   - `locations[] → rooms[] → appliances[]`
 - Geräte mit `registration_complete === false` werden übersprungen.
-- Für jedes Gerät wird zusätzlich versucht abzurufen:
-  - `/status` (Online-Status / Update / WLAN)
-  - `/command` (u. a. für Sense Guard `valve_open`)
-  - `/pressuremeasurement` (Sense Guard; kann HTTP 404 liefern, wenn noch nie ausgeführt)
+
+### Gestaffeltes Polling
+
+Um die Anzahl der API-Aufrufe zu minimieren und HTTP-403-Fehler durch Rate-Limiting zu vermeiden, wird nicht bei jedem Polling-Zyklus jeder Endpunkt abgefragt. Der Adapter verwendet einen **Poll-Zähler** und ruft zusätzliche Daten in unterschiedlichen Intervallen ab:
+
+| Endpunkt | Häufigkeit | Grund |
+|---|---|---|
+| `/dashboard` | **jeder** Poll | Kern-Sensordaten (Temperatur, Durchfluss, Druck, …) |
+| `/data/aggregated` (heute) | **jeder** Poll | Tagesverbrauch für totalWaterConsumption |
+| `/data/aggregated` (historisch) | **einmal pro Tag** | Historische Basis für totalWaterConsumption |
+| `/status` | jeder **5.** Poll | Online-/WLAN-/Update-Status ändert sich selten |
+| `/command` | jeder **3.** Poll | Ventilzustand (wird nach Befehlen sofort zurückgelesen) |
+| `/pressuremeasurement` | jeder **10.** Poll | Ändert sich nur nach manueller Druckmessung |
+
+> **Tipp:** Falls weiterhin HTTP-403-Fehler auftreten, erhöhe das Polling-Intervall in den Adapter-Einstellungen. Die Grohe-API hat Rate-Limits.
 
 ---
 

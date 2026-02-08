@@ -37,6 +37,14 @@ class GroheSmarthome extends utils.Adapter {
 		 */
 		this.pollCount = 0;
 
+		/**
+		 * Total consumption cache per Sense Guard.
+		 * Maps applianceId -> { base: number, lastDay: string }
+		 * base = cumulative from installation_date to yesterday (refreshed once/day).
+		 * Mirrors HA guard_coordinator.py logic.
+		 */
+		this.totalConsumptionCache = new Map();
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -296,14 +304,8 @@ class GroheSmarthome extends utils.Adapter {
 			'value',
 			dl.average_monthly_consumption,
 		);
-		await this._setNum(
-			`${id}.consumption`,
-			'totalWaterConsumption',
-			'Total water consumption',
-			'l',
-			'value',
-			dl.total_water_consumption ?? dl.water_consumption,
-		);
+		// Total water consumption (calculated from /data/aggregated, like HA integration)
+		await this._updateTotalConsumption(id, locationId, roomId, appliance);
 
 		// Withdrawals (from dashboard – always available)
 		const w = dl.withdrawals || {};
@@ -636,6 +638,76 @@ class GroheSmarthome extends utils.Adapter {
 		} catch (err) {
 			this.log.debug(`Readback command for ${applianceId} failed: ${err.message}`);
 		}
+	}
+
+	/* ================================================================== */
+	/*  Total water consumption (via /data/aggregated)                    */
+	/* ================================================================== */
+
+	/**
+	 * Calculate total water consumption from the aggregated data API.
+	 * The dashboard API does NOT provide total_water_consumption reliably.
+	 * This mirrors the HA guard_coordinator.py approach:
+	 * - Once per day: fetch historical sum (installation_date → today, groupBy=year)
+	 * - Every poll: fetch today's consumption (groupBy=day)
+	 * - Total = historical base + today's live value
+	 */
+	async _updateTotalConsumption(applianceId, locationId, roomId, appliance) {
+		try {
+			const todayStr = new Date().toISOString().split('T')[0];
+
+			// Fetch today's consumption
+			const todayData = await this.client.getApplianceData(
+				locationId, roomId, applianceId, todayStr, todayStr, 'day',
+			);
+			const todayConsumption = this._sumWithdrawals(todayData);
+
+			// Refresh historical base once per day
+			let cache = this.totalConsumptionCache.get(applianceId);
+			if (!cache || cache.lastDay !== todayStr) {
+				const installDate = appliance.installation_date || appliance.register_date;
+				if (installDate) {
+					const fromStr = new Date(installDate).toISOString().split('T')[0];
+					const histData = await this.client.getApplianceData(
+						locationId, roomId, applianceId, fromStr, todayStr, 'year',
+					);
+					const histTotal = this._sumWithdrawals(histData);
+					cache = {
+						base: Math.max(0, Math.round((histTotal - todayConsumption) * 100) / 100),
+						lastDay: todayStr,
+					};
+					this.totalConsumptionCache.set(applianceId, cache);
+					this.log.debug(`Total consumption base for ${applianceId}: ${cache.base}l (from ${fromStr})`);
+				} else {
+					this.log.debug(`No installation_date for ${applianceId}, cannot calculate total consumption`);
+					cache = { base: 0, lastDay: todayStr };
+					this.totalConsumptionCache.set(applianceId, cache);
+				}
+			}
+
+			const total = Math.round((cache.base + todayConsumption) * 100) / 100;
+			await this._setNum(
+				`${applianceId}.consumption`, 'totalWaterConsumption',
+				'Total water consumption', 'l', 'value', total,
+			);
+		} catch (err) {
+			this.log.debug(`Total consumption for ${applianceId} failed: ${err.message}`);
+		}
+	}
+
+	/**
+	 * Sum all waterconsumption values from an aggregated data response.
+	 */
+	_sumWithdrawals(aggData) {
+		const withdrawals = aggData?.data?.withdrawals;
+		if (!Array.isArray(withdrawals)) {
+			return 0;
+		}
+		let sum = 0;
+		for (const w of withdrawals) {
+			sum += w.waterconsumption || 0;
+		}
+		return sum;
 	}
 
 	/* ================================================================== */

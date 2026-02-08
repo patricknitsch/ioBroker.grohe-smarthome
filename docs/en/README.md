@@ -134,10 +134,12 @@ Consumption channel:
 <applianceId>.consumption.daily
 <applianceId>.consumption.averageDaily
 <applianceId>.consumption.averageMonthly
-<applianceId>.consumption.totalWaterConsumption
+<applianceId>.consumption.totalWaterConsumption   (calculated, see below)
 <applianceId>.consumption.lastWaterConsumption
 <applianceId>.consumption.lastMaxFlowRate
 ```
+
+> **Note on `totalWaterConsumption`:** The Grohe dashboard API does not reliably provide total water consumption. The adapter therefore calculates it from the `/data/aggregated` endpoint – similar to the [HA Grohe integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Once per day the historical total (from installation date, grouped by year) is fetched; every poll the current day's consumption is added on top.
 
 Pressure measurement channel (only if the API provides data; may be missing initially):
 
@@ -211,10 +213,21 @@ When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmo
 - The adapter polls the endpoint `/dashboard` and iterates:
   - `locations[] → rooms[] → appliances[]`
 - Appliances with `registration_complete === false` are skipped.
-- For each appliance it also tries to fetch:
-  - `/status` (online/update/wifi)
-  - `/command` (used for Sense Guard `valve_open`)
-  - `/pressuremeasurement` (Sense Guard; may return HTTP 404 if never executed)
+
+### Tiered polling strategy
+
+To minimize API calls and avoid HTTP 403 rate-limiting errors, not every endpoint is called on every poll cycle. The adapter uses a **poll counter** and fetches additional data at different intervals:
+
+| Endpoint | Frequency | Reason |
+|---|---|---|
+| `/dashboard` | **every** poll | Core sensor data (temperature, flow, pressure, …) |
+| `/data/aggregated` (today) | **every** poll | Current day's water consumption for totalWaterConsumption |
+| `/data/aggregated` (historical) | **once per day** | Historical base for totalWaterConsumption |
+| `/status` | every **5th** poll | Online/WiFi/update status changes slowly |
+| `/command` | every **3rd** poll | Valve state (also read back immediately after commands) |
+| `/pressuremeasurement` | every **10th** poll | Only changes after a manual pressure test |
+
+> **Tip:** If you still encounter HTTP 403 errors, increase the polling interval in the adapter settings. The Grohe API has rate limits.
 
 ---
 
