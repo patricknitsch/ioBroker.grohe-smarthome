@@ -37,22 +37,28 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+* (claude) Fix null of Total Consumption
+* (claude) Update Readme
+
 ### 0.1.2 (2026-02-07)
 
 * (patricknitsch) Update Readme and Translations
 
 ### 0.1.1 (2026-02-07) 
-* (claude)Rate limiting awareness (HTTP 403 handling)
-* (claude)Immediate state readback after commands
-* (claude)Optimized polling with tiered API call frequency
+* (claude) Rate limiting awareness (HTTP 403 handling)
+* (claude) Immediate state readback after commands
+* (claude) Optimized polling with tiered API call frequency
 
 ### 0.1.0 (2026-02-07)
 * (patricknitsch) initial release
-* (claude)OAuth login via Grohe Keycloak with automatic token refresh
-* (claude)Support for Sense, Sense Guard, Blue Home, Blue Professional
-* (claude)Encrypted refresh token storage
-* (claude)Optional raw measurement data states
-* (claude)i18n support (EN/DE) for admin UI
+* (claude) OAuth login via Grohe Keycloak with automatic token refresh
+* (claude) Support for Sense, Sense Guard, Blue Home, Blue Professional
+* (claude) Encrypted refresh token storage
+* (claude) Optional raw measurement data states
+* (claude) i18n support (EN/DE) for admin UI
 
 ## License
 MIT License

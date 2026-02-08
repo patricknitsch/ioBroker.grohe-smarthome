@@ -18,7 +18,7 @@ const NOTIFICATION_CATEGORIES = {
 };
 
 class GroheSmarthome extends utils.Adapter {
-	/** @param {Partial<utils.AdapterOptions>} [options] */
+	/** @param {Partial<utils.AdapterOptions>} [options] Adapter options */
 	constructor(options) {
 		super({ ...options, name: 'grohe-smarthome' });
 
@@ -654,11 +654,20 @@ class GroheSmarthome extends utils.Adapter {
 	 */
 	async _updateTotalConsumption(applianceId, locationId, roomId, appliance) {
 		try {
+			if (!this.client) {
+				this.log.debug(`Skipping total consumption for ${applianceId}: client not initialized`);
+				return;
+			}
 			const todayStr = new Date().toISOString().split('T')[0];
 
 			// Fetch today's consumption
 			const todayData = await this.client.getApplianceData(
-				locationId, roomId, applianceId, todayStr, todayStr, 'day',
+				locationId,
+				roomId,
+				applianceId,
+				todayStr,
+				todayStr,
+				'day',
 			);
 			const todayConsumption = this._sumWithdrawals(todayData);
 
@@ -669,7 +678,12 @@ class GroheSmarthome extends utils.Adapter {
 				if (installDate) {
 					const fromStr = new Date(installDate).toISOString().split('T')[0];
 					const histData = await this.client.getApplianceData(
-						locationId, roomId, applianceId, fromStr, todayStr, 'year',
+						locationId,
+						roomId,
+						applianceId,
+						fromStr,
+						todayStr,
+						'year',
 					);
 					const histTotal = this._sumWithdrawals(histData);
 					cache = {
@@ -687,8 +701,12 @@ class GroheSmarthome extends utils.Adapter {
 
 			const total = Math.round((cache.base + todayConsumption) * 100) / 100;
 			await this._setNum(
-				`${applianceId}.consumption`, 'totalWaterConsumption',
-				'Total water consumption', 'l', 'value', total,
+				`${applianceId}.consumption`,
+				'totalWaterConsumption',
+				'Total water consumption',
+				'l',
+				'value',
+				total,
 			);
 		} catch (err) {
 			this.log.debug(`Total consumption for ${applianceId} failed: ${err.message}`);
