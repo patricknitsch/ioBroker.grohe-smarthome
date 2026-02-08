@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "news": {
+      "0.1.3": {
+        "en": "Fix null of Total Consumption\nUpdate Readme",
+        "de": "Null des Gesamtverbrauchs\nUpdate Reader",
+        "ru": "Исправить нуль общего потребления\nОбновление Readme",
+        "pt": "Fixar nulo do consumo total\nActualizar a Leitura",
+        "nl": "Fix null of Total Consumer\nReadme bijwerken",
+        "fr": "Fix null de la consommation totale\nMettre à jour Readme",
+        "it": "Fisso nullo del Consumo Totale\nAggiornamento",
+        "es": "Fijación nula de Consumo Total\nActualización Readme",
+        "pl": "Popraw jądro całkowitego zużycia\nAktualizacja Readme",
+        "uk": "Виправлення null Загальне споживання\nОновлення Readme",
+        "zh-cn": "修复无总消费\n更新读取器"
+      },
       "0.1.2": {
         "en": "Update Readme and Translations",
         "de": "Readme und Übersetzungen aktualisieren",
