@@ -5,7 +5,7 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
-      day: 25
+      day: "monday"
       time: "00:05"
       timezone: Europe/Berlin
     open-pull-requests-limit: 15
@@ -17,7 +17,7 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
-      day: 25
+      day: "monday"
       time: "00:05"
       timezone: Europe/Berlin
     open-pull-requests-limit: 15
