@@ -206,7 +206,7 @@ Controls:
 
 When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`.
 
-> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After starting the adapter, it may take 1–2 poll cycles before current values (e.g. `remainingFilter`, `remainingCo2`) are displayed.
+> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After starting the adapter, it may take 1 poll cycles before current values (e.g. `remainingFilter`, `remainingCo2`) are displayed.
 
 ---
 
@@ -237,6 +237,7 @@ To minimize API calls and avoid HTTP 403 rate-limiting errors, not every endpoin
 
 - If polling fails, `info.connection` is set to `false`.
 - Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active.
+With every failed Try the Timout will increased till max. 1h.
 - Token refresh is automatic on **401** and then the request is retried once.
 
 ---
