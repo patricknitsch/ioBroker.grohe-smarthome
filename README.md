@@ -41,6 +41,7 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 ### **WORK IN PROGRESS**
 
 * (patricknitsch) Changed Loglevel
+* (claude) Update Error Handling -> increase Try-Timeouts
 
 ### 0.1.5 (2026-02-09)
 

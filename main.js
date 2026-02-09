@@ -24,6 +24,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.client = null;
 		this.pollTimer = null;
+		this.baseInterval = Math.max(60, Number(this.config.pollInterval) || 300);
 
 		/** Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name } */
 		this.devices = new Map();
@@ -119,7 +120,6 @@ class GroheSmarthome extends utils.Adapter {
 			await this.pollDevices();
 
 			// 4) Set up polling interval (minimum 60s)
-			this.baseInterval = Math.max(60, Number(this.config.pollInterval) || 300);
 			this.currentPollInterval = this.baseInterval;
 			this._schedulePoll();
 			this.log.info(`Polling active: every ${this.baseInterval}s`);
@@ -168,7 +168,9 @@ class GroheSmarthome extends utils.Adapter {
 
 			// Successful poll – reset backoff to configured interval
 			if (this.consecutiveErrors > 0) {
-				this.log.info(`Polling recovered after ${this.consecutiveErrors} error(s), interval reset to ${this.baseInterval}s`);
+				this.log.info(
+					`Polling recovered after ${this.consecutiveErrors} error(s), interval reset to ${this.baseInterval}s`,
+				);
 				this.consecutiveErrors = 0;
 				this.currentPollInterval = this.baseInterval;
 			}
@@ -204,17 +206,21 @@ class GroheSmarthome extends utils.Adapter {
 			this.currentPollInterval = Math.min(MAX_INTERVAL, this.baseInterval * Math.pow(2, this.consecutiveErrors));
 
 			const nextTryDate = new Date(Date.now() + this.currentPollInterval * 1000);
-			const nextTryStr = nextTryDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+			const nextTryStr = nextTryDate.toLocaleTimeString('de-DE', {
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+			});
 
 			if (err?.response?.status === 403) {
 				this.log.warn(
 					`Polling failed: HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking. ` +
-					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
+						`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
 				);
 			} else {
 				this.log.warn(
 					`Polling failed: ${err.message}. ` +
-					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
+						`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
 				);
 			}
 		}
@@ -452,7 +458,7 @@ class GroheSmarthome extends utils.Adapter {
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
 		// Without it, the dashboard returns stale data (possibly weeks old).
 		// Trigger a refresh every 3rd poll (including first poll after restart).
-		if (this.pollCount % 3 === 0 && locationId && roomId) {
+		if (this.pollCount % 3 === 0 && locationId && roomId && this.client) {
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
 					get_current_measurement: true,
