@@ -206,6 +206,8 @@ Steuerungen:
 
 Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, startet den Zapfvorgang und setzt `dispenseTrigger` anschließend wieder auf `false`.
 
+> **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Start des Adapters kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte (z. B. `remainingFilter`, `remainingCo2`) angezeigt werden.
+
 ---
 
 ## Polling und Geräteerkennung
