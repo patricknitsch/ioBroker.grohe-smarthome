@@ -125,7 +125,7 @@ class GroheSmarthome extends utils.Adapter {
 			this.log.info(`Polling active: every ${this.baseInterval}s`);
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
-			this.log.error(`Initialization failed: ${err.message}`);
+			this.log.warn(`Initialization failed: ${err.message}`);
 		}
 	}
 
@@ -410,7 +410,7 @@ class GroheSmarthome extends utils.Adapter {
 				}
 			} catch (err) {
 				if (err?.response?.status === 404) {
-					this.log.debug(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
+					this.log.warn(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
 				} else {
 					this.log.warn(`Pressure measurement for ${id} failed: ${err.message}`);
 				}
@@ -467,7 +467,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.log.debug(
 			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
-			`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
+				`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
 		);
 
 		// CO2 & Filter
