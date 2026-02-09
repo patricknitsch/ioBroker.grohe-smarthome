@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "news": {
+      "0.1.4": {
+        "en": "Fix wrong value for Grohe Blue remainingFilter\nUpdate Readme",
+        "de": "Fehlerbehebung für Grohe Blue restFilter\nUpdate Reader",
+        "ru": "Исправьте неправильное значение оставшегося фильтра Grohe Blue\nОбновление Readme",
+        "pt": "Corrigir o valor errado para Grohe Blue restanteFilter\nActualizar a Leitura",
+        "nl": "Fix verkeerde waarde voor Grohe Blue resterendFilter\nReadme bijwerken",
+        "fr": "Correction de la mauvaise valeur pour Grohe Blue restantFilter\nMettre à jour Readme",
+        "it": "Fissare il valore sbagliato per Grohe Blue restanteFilter\nAggiornamento",
+        "es": "Fijar el valor incorrecto para Grohe Blue restFilter\nActualización Readme",
+        "pl": "Naprawiono niewłaściwą wartość dla filtra Grohe Blue\nAktualizacja Readme",
+        "uk": "Виправити неправильне значення для Grohe Blue залишилисяFilter\nОновлення Readme",
+        "zh-cn": "修正 Grohe Blue 剩余过滤器的错误值\n更新读取器"
+      },
       "0.1.3": {
         "en": "Fix null of Total Consumption\nUpdate Readme",
         "de": "Null des Gesamtverbrauchs\nUpdate Reader",
