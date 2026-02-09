@@ -23,10 +23,10 @@
       "type": "number",
       "label": { "en": "Polling interval (seconds)", "de": "Abfrageintervall (Sekunden)" },
       "help": {
-        "en": "Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.",
-        "de": "Zu häufiges Polling kann zu HTTP 403-Fehlern der Grohe-API führen. Empfohlen: 300s oder höher."
+        "en": "Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher. On errors the interval increases automatically (up to 1h) and resets after a successful poll.",
+        "de": "Zu häufiges Polling kann zu HTTP 403-Fehlern der Grohe-API führen. Empfohlen: 300s oder höher. Bei Fehlern wird das Intervall automatisch erhöht (bis 1h) und nach erfolgreichem Abruf zurückgesetzt."
       },
-      "min": 30,
+      "min": 60,
       "default": 300,
       "xs": 12,
       "sm": 6,
