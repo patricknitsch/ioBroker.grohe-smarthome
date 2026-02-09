@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "news": {
+      "0.1.6": {
+        "en": "Changed Loglevel\nUpdate Error Handling -> increase Try-Timeouts",
+        "de": "Geänderter Loglevel\nUpdate Fehlerbehandlung -> erhöhen Try-Timeouts",
+        "ru": "Измененный Loglevel\nОбновление Обработка ошибок -> Увеличение Try-Timeouts",
+        "pt": "Nível de log alterado\nManuseamento de Erros de Atualização -> aumentar os Tempos de Teste",
+        "nl": "Gewijzigd loglevel\nFout bij het verwerken van updates -> verhogen Try-Timeouts",
+        "fr": "Changement de niveau de log\nMise à jour de la gestion des erreurs -> augmenter Tri-Timeouts",
+        "it": "Cambiato livello di registro\nGestione degli errori di aggiornamento -> aumentare",
+        "es": "Cambio de nivel de los resultados\nActualizar el manejo de errores - aumentar Try-Timeouts",
+        "pl": "Zmieniony poziom logowania\nAktualizacja Błąd obsługi - > zwiększenie timeout",
+        "uk": "Змінений рівень\nUpdate Помилка Handling -> збільшення",
+        "zh-cn": "更改的日志级别\n更新错误处理 - > 增加尝试超时"
+      },
       "0.1.5": {
         "en": "Update Dependencies",
         "de": "Anpassungsabhängigkeiten",
