@@ -412,7 +412,7 @@ class GroheSmarthome extends utils.Adapter {
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
 		// Without it, the dashboard returns stale data (possibly weeks old).
 		// Trigger a refresh every 3rd poll so the NEXT poll has fresh data.
-		if (this.pollCount % 3 === 1 && locationId && roomId) {
+		if (this.pollCount % 3 === 1 && locationId && roomId && this.client) {
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
 					get_current_measurement: true,
@@ -427,7 +427,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.log.debug(
 			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
-			`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
+				`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
 		);
 
 		// CO2 & Filter
