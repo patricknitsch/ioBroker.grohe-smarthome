@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "news": {
+      "0.1.7": {
+        "en": "Update Error Handling\nUpdate Readme",
+        "de": "Aktualisieren von Fehlern\nUpdate Reader",
+        "ru": "Обновление Error Handling\nОбновление Readme",
+        "pt": "Manuseamento de Erros de Atualização\nActualizar a Leitura",
+        "nl": "Fout bij het omgaan met bijwerken\nReadme bijwerken",
+        "fr": "Mise à jour de la gestion des erreurs\nMettre à jour Readme",
+        "it": "Gestione degli errori di aggiornamento\nAggiornamento",
+        "es": "Actualizar el manejo de errores\nActualización Readme",
+        "pl": "Aktualizuj błąd obsługi\nAktualizacja Readme",
+        "uk": "Оновлення помилок\nОновлення Readme",
+        "zh-cn": "更新错误处理\n更新读取器"
+      },
       "0.1.6": {
         "en": "Changed Loglevel\nUpdate Error Handling -> increase Try-Timeouts",
         "de": "Geänderter Loglevel\nUpdate Fehlerbehandlung -> erhöhen Try-Timeouts",
@@ -80,19 +93,6 @@
         "pl": "Szybkość ograniczania świadomości (obsługa HTTP 403)\nNatychmiastowy odczyt stanu po poleceniu\nZoptymalizowane sondaże z wielowarstwową częstotliwością wywołania API",
         "uk": "Поінформованість процентів (HTTP 403)\nІммедіате стан читання після команд\nОптимізоване опитування з частотою виклику стягнутого API",
         "zh-cn": "费率限制意识(HTTP 403处理)\n命令后立即恢复状态\n以分级API呼叫频率优化投票"
-      },
-      "0.1.0": {
-        "en": "initial release\nfirst functional version\na lot of debug to see where the problems are",
-        "de": "erstausstrahlung\nerste funktionsversion\nviel debug zu sehen, wo die probleme sind",
-        "ru": "первоначальное освобождение\nпервая функциональная версия\nмного отладки, чтобы увидеть, где проблемы",
-        "pt": "libertação inicial\nprimeira versão funcional\num monte de depuração para ver onde os problemas estão",
-        "nl": "eerste release\neerste functionele versie\nveel debug om te zien waar de problemen zijn",
-        "fr": "libération initiale\npremière version fonctionnelle\nbeaucoup de débogage pour voir où sont les problèmes",
-        "it": "rilascio iniziale\nprima versione funzionale\nun sacco di debug per vedere dove i problemi sono",
-        "es": "liberación inicial\nprimera versión funcional\nmucha depuración para ver dónde están los problemas",
-        "pl": "początkowe zwolnienie\npierwsza wersja funkcjonalna\ndużo debug, aby zobaczyć, gdzie są problemy",
-        "uk": "початковий реліз\nперший функціонал\nбагато абвуг, щоб побачити, де проблеми є",
-        "zh-cn": "初步释放\n第一个功能版本\n很多调试,看看问题在哪里"
       }
     },
     "titleLang": {
