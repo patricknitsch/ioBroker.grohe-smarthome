@@ -411,8 +411,8 @@ class GroheSmarthome extends utils.Adapter {
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
 		// Without it, the dashboard returns stale data (possibly weeks old).
-		// Trigger a refresh every 3rd poll so the NEXT poll has fresh data.
-		if (this.pollCount % 3 === 1 && locationId && roomId) {
+		// Trigger a refresh every 3rd poll (including first poll after restart).
+		if (this.pollCount % 3 === 0 && locationId && roomId) {
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
 					get_current_measurement: true,
