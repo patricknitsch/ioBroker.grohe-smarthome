@@ -118,7 +118,7 @@ class GroheSmarthome extends utils.Adapter {
 			this.log.info(`Polling active: every ${interval}s`);
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
-			this.log.error(`Initialization failed: ${err.message}`);
+			this.log.warn(`Initialization failed: ${err.message}`);
 		}
 	}
 
@@ -171,11 +171,11 @@ class GroheSmarthome extends utils.Adapter {
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
 			if (err?.response?.status === 403) {
-				this.log.error(
+				this.log.warn(
 					'Polling failed: HTTP 403 (Forbidden). This may be caused by too frequent polling. Please increase the polling interval or check if the Grohe app is working correctly.',
 				);
 			} else {
-				this.log.error(`pollDevices failed: ${err.message}`);
+				this.log.warn(`pollDevices failed: ${err.message}`);
 			}
 		}
 	}
@@ -370,9 +370,9 @@ class GroheSmarthome extends utils.Adapter {
 				}
 			} catch (err) {
 				if (err?.response?.status === 404) {
-					this.log.debug(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
+					this.log.warn(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
 				} else {
-					this.log.debug(`Pressure measurement for ${id} failed: ${err.message}`);
+					this.log.warn(`Pressure measurement for ${id} failed: ${err.message}`);
 				}
 			}
 		}
@@ -419,7 +419,7 @@ class GroheSmarthome extends utils.Adapter {
 				});
 				this.log.debug(`Triggered measurement refresh for Blue ${id}`);
 			} catch (err) {
-				this.log.debug(`Measurement refresh for Blue ${id} failed: ${err.message}`);
+				this.log.warn(`Measurement refresh for Blue ${id} failed: ${err.message}`);
 			}
 		}
 
@@ -656,7 +656,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.debug(`Readback after command: valveOpen=${valveOpen} for ${applianceId}`);
 			}
 		} catch (err) {
-			this.log.debug(`Readback command for ${applianceId} failed: ${err.message}`);
+			this.log.warn(`Readback command for ${applianceId} failed: ${err.message}`);
 		}
 	}
 
@@ -729,7 +729,7 @@ class GroheSmarthome extends utils.Adapter {
 				total,
 			);
 		} catch (err) {
-			this.log.debug(`Total consumption for ${applianceId} failed: ${err.message}`);
+			this.log.warn(`Total consumption for ${applianceId} failed: ${err.message}`);
 		}
 	}
 

@@ -37,6 +37,11 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+* (patricknitsch) Changed Loglevel
+
 ### 0.1.5 (2026-02-09)
 
 * (patricknitsch) Update Dependencies
