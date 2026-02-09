@@ -1,6 +1,6 @@
 {
   "name": "iobroker.grohe-smarthome",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Connect to Grohe Guard / Sense / Blue Systems",
   "author": {
     "name": "patricknitsch",
