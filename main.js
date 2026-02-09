@@ -211,7 +211,7 @@ class GroheSmarthome extends utils.Adapter {
 				break;
 			case GROHE_BLUE_HOME:
 			case GROHE_BLUE_PROFESSIONAL:
-				await this._updateBlue(id, name, appliance, type, status);
+				await this._updateBlue(id, name, appliance, type, status, locationId, roomId);
 				break;
 			default:
 				await this._ensureDevice(id, name, `UNKNOWN_${type}`);
@@ -404,11 +404,31 @@ class GroheSmarthome extends utils.Adapter {
 	/*  Blue Home / Professional (type 104/105)                           */
 	/* ================================================================== */
 
-	async _updateBlue(id, name, appliance, type, status) {
+	async _updateBlue(id, name, appliance, type, status, locationId, roomId) {
 		const typeStr = type === GROHE_BLUE_HOME ? 'Blue Home' : 'Blue Professional';
 		await this._ensureDevice(id, `${name} (${typeStr})`, typeStr.toUpperCase().replace(' ', '_'));
 
+		// Blue devices do NOT push measurements automatically – the device must
+		// be explicitly asked via get_current_measurement (the Grohe app does this too).
+		// Without it, the dashboard returns stale data (possibly weeks old).
+		// Trigger a refresh every 3rd poll so the NEXT poll has fresh data.
+		if (this.pollCount % 3 === 1 && locationId && roomId) {
+			try {
+				await this.client.setApplianceCommand(locationId, roomId, id, {
+					get_current_measurement: true,
+				});
+				this.log.debug(`Triggered measurement refresh for Blue ${id}`);
+			} catch (err) {
+				this.log.debug(`Measurement refresh for Blue ${id} failed: ${err.message}`);
+			}
+		}
+
 		const m = appliance.data_latest?.measurement || {};
+
+		this.log.debug(
+			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
+			`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
+		);
 
 		// CO2 & Filter
 		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value', m.remaining_co2);
