@@ -139,7 +139,7 @@ Verbrauchs-Kanal:
 <applianceId>.consumption.lastMaxFlowRate
 ```
 
-> **Hinweis zu `totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn daher über den Endpunkt `/data/aggregated` – analog zur [HA Grohe-Integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, gruppiert nach Jahr) abgerufen; bei jedem Polling wird der aktuelle Tagesverbrauch hinzuaddiert.
+> **Hinweis zu `totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn daher über den Endpunkt `/data/aggregated` – analog zur [HA Grohe-Integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, gruppiert nach Jahr) abgerufen; jeden 5. Poll wird der aktuelle Tagesverbrauch hinzuaddiert.
 
 Druckmessungs-Kanal (nur wenn die API Daten liefert; kann anfangs fehlen):
 
@@ -220,24 +220,35 @@ Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und 
 
 Um die Anzahl der API-Aufrufe zu minimieren und HTTP-403-Fehler durch Rate-Limiting zu vermeiden, wird nicht bei jedem Polling-Zyklus jeder Endpunkt abgefragt. Der Adapter verwendet einen **Poll-Zähler** und ruft zusätzliche Daten in unterschiedlichen Intervallen ab:
 
-| Endpunkt | Häufigkeit | Grund |
-|---|---|---|
-| `/dashboard` | **jeder** Poll | Kern-Sensordaten (Temperatur, Durchfluss, Druck, …) |
-| `/data/aggregated` (heute) | **jeder** Poll | Tagesverbrauch für totalWaterConsumption |
-| `/data/aggregated` (historisch) | **einmal pro Tag** | Historische Basis für totalWaterConsumption |
-| `/status` | jeder **5.** Poll | Online-/WLAN-/Update-Status ändert sich selten |
-| `/command` | jeder **3.** Poll | Ventilzustand (wird nach Befehlen sofort zurückgelesen) |
-| `/pressuremeasurement` | jeder **10.** Poll | Ändert sich nur nach manueller Druckmessung |
+| Endpunkt | Häufigkeit | Gilt für | Grund |
+|---|---|---|---|
+| `/dashboard` | **jeder** Poll | Alle | Kern-Sensordaten (Temperatur, Durchfluss, Druck, …) |
+| `/status` | jeder **5.** Poll | Alle | Online-/WLAN-/Update-Status ändert sich selten |
+| `/command` (lesen) | jeder **3.** Poll | Sense Guard | Ventilzustand (wird nach Befehlen sofort zurückgelesen) |
+| `/command` (`get_current_measurement`) | jeder **3.** Poll | Blue | Löst eine frische Messung am Gerät aus |
+| `/data/aggregated` (heute) | jeder **5.** Poll | Sense Guard | Tagesverbrauch für totalWaterConsumption |
+| `/data/aggregated` (historisch) | **einmal pro Tag** | Sense Guard | Historische Basis für totalWaterConsumption |
+| `/pressuremeasurement` | jeder **10.** Poll | Sense Guard | Ändert sich nur nach manueller Druckmessung |
 
 > **Tipp:** Falls weiterhin HTTP-403-Fehler auftreten, erhöhe das Polling-Intervall in den Adapter-Einstellungen. Die Grohe-API hat Rate-Limits.
+
+### Exponentieller Backoff
+
+Bei Polling-Fehlern erhöht der Adapter das Intervall automatisch:
+
+1. Jeder aufeinanderfolgende Fehler **verdoppelt** das Intervall (z. B. 300 → 600 → 1200 → 2400 → 3600s).
+2. Maximaler Backoff: **1 Stunde**.
+3. Nach Erreichen von 1 Stunde: Der Adapter pausiert bis **12:00** (Mittag) bzw., falls bereits nach 12:00, bis **00:00** (Mitternacht). So wird unnötiger API-Verkehr für den Rest des Tages vermieden.
+4. Nach einem **erfolgreichen** Poll wird das Intervall auf den konfigurierten Wert zurückgesetzt.
 
 ---
 
 ## Hinweise zur Fehlerbehandlung
 
 - Wenn das Polling fehlschlägt, wird `info.connection` auf `false` gesetzt.
-- Spezielle Behandlung für **HTTP 403**: Der Adapter protokolliert einen Hinweis, dass überprüft werden sollte, ob die Grohe-App bzw. das Konto noch aktiv und funktionsfähig ist.
+- Spezielle Behandlung für **HTTP 403**: Der Adapter loggt eine Warnung mit dem nächsten Wiederholungszeitpunkt.
 - Token-Refresh erfolgt automatisch bei **401**, anschließend wird die Anfrage einmal wiederholt.
+- Alle Fehler in catch-Blöcken werden auf **warn**-Stufe geloggt (außer erwartete HTTP 404 bei Druckmessungen, die auf debug bleiben).
 
 ---
 

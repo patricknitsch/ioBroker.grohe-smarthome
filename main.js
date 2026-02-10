@@ -157,9 +157,11 @@ class GroheSmarthome extends utils.Adapter {
 		const fetchStatus = isFirstPoll || this.pollCount % 5 === 0;
 		const fetchCommand = isFirstPoll || this.pollCount % 3 === 0;
 		const fetchPressure = isFirstPoll || this.pollCount % 10 === 0;
+		const fetchConsumption = isFirstPoll || this.pollCount % 5 === 0;
 
 		this.log.debug(
-			`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, pressure=${fetchPressure})`,
+			`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, ` +
+			`pressure=${fetchPressure}, consumption=${fetchConsumption})`,
 		);
 
 		try {
@@ -191,6 +193,7 @@ class GroheSmarthome extends utils.Adapter {
 							fetchStatus,
 							fetchCommand,
 							fetchPressure,
+							fetchConsumption,
 						});
 					}
 				}
@@ -198,25 +201,37 @@ class GroheSmarthome extends utils.Adapter {
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
 
-			// Exponential backoff: double the interval on each consecutive failure (max 1h)
+			// Exponential backoff: double the interval on each consecutive failure
 			this.consecutiveErrors++;
-			const MAX_INTERVAL = 3600; // 1 hour
-			this.currentPollInterval = Math.min(MAX_INTERVAL, this.baseInterval * Math.pow(2, this.consecutiveErrors));
+			const MAX_BACKOFF = 3600; // 1 hour
+			const backoff = Math.min(MAX_BACKOFF, this.baseInterval * Math.pow(2, this.consecutiveErrors));
+
+			if (backoff >= MAX_BACKOFF) {
+				// After reaching 1h backoff: pause until 12:00 or 00:00
+				// This avoids further spam and gives the API a full rest period.
+				const now = new Date();
+				const target = new Date(now);
+				if (now.getHours() < 12) {
+					target.setHours(12, 0, 0, 0);
+				} else {
+					target.setDate(target.getDate() + 1);
+					target.setHours(0, 0, 0, 0);
+				}
+				this.currentPollInterval = Math.round((target.getTime() - now.getTime()) / 1000);
+			} else {
+				this.currentPollInterval = backoff;
+			}
 
 			const nextTryDate = new Date(Date.now() + this.currentPollInterval * 1000);
 			const nextTryStr = nextTryDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-			if (err?.response?.status === 403) {
-				this.log.warn(
-					`Polling failed: HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking. ` +
-					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
-				);
-			} else {
-				this.log.warn(
-					`Polling failed: ${err.message}. ` +
-					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
-				);
-			}
+			const reason = err?.response?.status === 403
+				? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
+				: err.message;
+			this.log.warn(
+				`Polling failed: ${reason}. ` +
+				`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
+			);
 		}
 	}
 
@@ -345,7 +360,10 @@ class GroheSmarthome extends utils.Adapter {
 			dl.average_monthly_consumption,
 		);
 		// Total water consumption (calculated from /data/aggregated, like HA integration)
-		await this._updateTotalConsumption(id, locationId, roomId, appliance);
+		// Fetched every 5th poll – consumption changes slowly and uses extra API calls
+		if (flags.fetchConsumption) {
+			await this._updateTotalConsumption(id, locationId, roomId, appliance);
+		}
 
 		// Withdrawals (from dashboard – always available)
 		const w = dl.withdrawals || {};
