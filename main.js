@@ -161,7 +161,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.log.debug(
 			`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, ` +
-			`pressure=${fetchPressure}, consumption=${fetchConsumption})`,
+				`pressure=${fetchPressure}, consumption=${fetchConsumption})`,
 		);
 
 		try {
@@ -231,12 +231,13 @@ class GroheSmarthome extends utils.Adapter {
 				second: '2-digit',
 			});
 
-			const reason = err?.response?.status === 403
-				? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
-				: err.message;
+			const reason =
+				err?.response?.status === 403
+					? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
+					: err.message;
 			this.log.warn(
 				`Polling failed: ${reason}. ` +
-				`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
+					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
 			);
 		}
 	}
