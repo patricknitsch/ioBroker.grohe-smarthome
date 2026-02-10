@@ -206,7 +206,7 @@ Steuerungen:
 
 Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, startet den Zapfvorgang und setzt `dispenseTrigger` anschließend wieder auf `false`.
 
-> **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Start des Adapters kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte (z. B. `remainingFilter`, `remainingCo2`) angezeigt werden.
+> **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Start des Adapters kann es 1 Poll-Zyklen dauern, bis aktuelle Werte (z. B. `remainingFilter`, `remainingCo2`) angezeigt werden.
 
 ---
 
@@ -246,7 +246,8 @@ Bei Polling-Fehlern erhöht der Adapter das Intervall automatisch:
 ## Hinweise zur Fehlerbehandlung
 
 - Wenn das Polling fehlschlägt, wird `info.connection` auf `false` gesetzt.
-- Spezielle Behandlung für **HTTP 403**: Der Adapter loggt eine Warnung mit dem nächsten Wiederholungszeitpunkt.
+- Spezielle Behandlung für **HTTP 403**: Der Adapter protokolliert einen Hinweis, dass überprüft werden sollte, ob die Grohe-App bzw. das Konto noch aktiv und funktionsfähig ist.
+Mit jedem fehlgeschlagenen Pollingversuch wird die Zeit bis zum nächsten Versuch bis max. 1h erhöht. 
 - Token-Refresh erfolgt automatisch bei **401**, anschließend wird die Anfrage einmal wiederholt.
 - Alle Fehler in catch-Blöcken werden auf **warn**-Stufe geloggt (außer erwartete HTTP 404 bei Druckmessungen, die auf debug bleiben).
 
