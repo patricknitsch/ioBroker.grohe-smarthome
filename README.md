@@ -38,6 +38,7 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 	### **WORK IN PROGRESS**
 -->
 
+### **WORK IN PROGRESS**
 * (patricknitsch) Change Log for measurement
 
 ### 0.2.0 (2026-02-10)
