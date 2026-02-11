@@ -119,7 +119,9 @@ class GroheSmarthome extends utils.Adapter {
 			await this.pollDevices();
 
 			// 4) Set up polling interval (minimum 60s)
-			this.baseInterval = Math.max(60, Number(this.config.pollInterval) || 300);
+			const configuredInterval = this.config.pollInterval;
+			this.log.debug(`Config pollInterval: ${configuredInterval} (type: ${typeof configuredInterval})`);
+			this.baseInterval = Math.max(60, Number(configuredInterval) > 0 ? Number(configuredInterval) : 300);
 			this.currentPollInterval = this.baseInterval;
 			this._schedulePoll();
 			this.log.info(`Polling active: every ${this.baseInterval}s`);
