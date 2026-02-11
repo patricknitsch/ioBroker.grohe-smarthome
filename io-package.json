@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "news": {
+      "0.2.1": {
+        "en": "Change Log for measurement",
+        "de": "Change Log zur Messung",
+        "ru": "Изменить журнал для измерения",
+        "pt": "Alterar o Log para medição",
+        "nl": "Logboek voor meting wijzigen",
+        "fr": "Modifier le journal pour la mesure",
+        "it": "Cambia Log per la misurazione",
+        "es": "Change Log for measurement",
+        "pl": "Zmień dziennik pomiaru",
+        "uk": "Журнал змін для вимірювання",
+        "zh-cn": "更改测量日志"
+      },
       "0.2.0": {
         "en": "Extend Error Handling for noon and midnight",
         "de": "Extend Error Handling für Mittag und Mitternacht",
@@ -80,19 +93,6 @@
         "pl": "Popraw jądro całkowitego zużycia\nAktualizacja Readme",
         "uk": "Виправлення null Загальне споживання\nОновлення Readme",
         "zh-cn": "修复无总消费\n更新读取器"
-      },
-      "0.1.2": {
-        "en": "Update Readme and Translations",
-        "de": "Readme und Übersetzungen aktualisieren",
-        "ru": "Обновление Readme и переводов",
-        "pt": "Atualizar Readme e traduções",
-        "nl": "Readme en vertalingen bijwerken",
-        "fr": "Mettre à jour le texte et les traductions",
-        "it": "Aggiornamento Readme e Traduzioni",
-        "es": "Actualizar Readme y Traducciones",
-        "pl": "Aktualizacja Readme i tłumaczenia",
-        "uk": "Оновлення перекладу",
-        "zh-cn": "更新阅读和翻译"
       }
     },
     "titleLang": {
