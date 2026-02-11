@@ -24,6 +24,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.client = null;
 		this.pollTimer = null;
+		this.baseInterval = Math.max(60, Number(this.config.pollInterval) || 300);
 
 		/** Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name } */
 		this.devices = new Map();
@@ -127,7 +128,7 @@ class GroheSmarthome extends utils.Adapter {
 			this.log.info(`Polling active: every ${this.baseInterval}s`);
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
-			this.log.error(`Initialization failed: ${err.message}`);
+			this.log.warn(`Initialization failed: ${err.message}`);
 		}
 	}
 
@@ -163,7 +164,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.log.debug(
 			`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, ` +
-			`pressure=${fetchPressure}, consumption=${fetchConsumption})`,
+				`pressure=${fetchPressure}, consumption=${fetchConsumption})`,
 		);
 
 		try {
@@ -172,7 +173,9 @@ class GroheSmarthome extends utils.Adapter {
 
 			// Successful poll – reset backoff to configured interval
 			if (this.consecutiveErrors > 0) {
-				this.log.info(`Polling recovered after ${this.consecutiveErrors} error(s), interval reset to ${this.baseInterval}s`);
+				this.log.info(
+					`Polling recovered after ${this.consecutiveErrors} error(s), interval reset to ${this.baseInterval}s`,
+				);
 				this.consecutiveErrors = 0;
 				this.currentPollInterval = this.baseInterval;
 			}
@@ -225,14 +228,19 @@ class GroheSmarthome extends utils.Adapter {
 			}
 
 			const nextTryDate = new Date(Date.now() + this.currentPollInterval * 1000);
-			const nextTryStr = nextTryDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+			const nextTryStr = nextTryDate.toLocaleTimeString('de-DE', {
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+			});
 
-			const reason = err?.response?.status === 403
-				? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
-				: err.message;
+			const reason =
+				err?.response?.status === 403
+					? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
+					: err.message;
 			this.log.warn(
 				`Polling failed: ${reason}. ` +
-				`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
+					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
 			);
 		}
 	}
@@ -472,7 +480,7 @@ class GroheSmarthome extends utils.Adapter {
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
 		// Without it, the dashboard returns stale data (possibly weeks old).
 		// Trigger a refresh every 3rd poll (including first poll after restart).
-		if (this.pollCount % 3 === 0 && locationId && roomId) {
+		if (this.pollCount % 3 === 0 && locationId && roomId && this.client) {
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
 					get_current_measurement: true,
@@ -487,7 +495,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.log.debug(
 			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
-			`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
+				`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
 		);
 
 		// CO2 & Filter

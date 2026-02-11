@@ -1,8 +1,86 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.1.3",
+    "version": "0.2.1",
     "news": {
+      "0.2.1": {
+        "en": "Change Log for measurement",
+        "de": "Change Log zur Messung",
+        "ru": "Изменить журнал для измерения",
+        "pt": "Alterar o Log para medição",
+        "nl": "Logboek voor meting wijzigen",
+        "fr": "Modifier le journal pour la mesure",
+        "it": "Cambia Log per la misurazione",
+        "es": "Change Log for measurement",
+        "pl": "Zmień dziennik pomiaru",
+        "uk": "Журнал змін для вимірювання",
+        "zh-cn": "更改测量日志"
+      },
+      "0.2.0": {
+        "en": "Extend Error Handling for noon and midnight",
+        "de": "Extend Error Handling für Mittag und Mitternacht",
+        "ru": "Обработка ошибок в полдень и полночь",
+        "pt": "Estender o Tratamento de Erros para o meio- dia e a meia- noite",
+        "nl": "Extend Error Handling voor middag en middernacht",
+        "fr": "Prolonger la manipulation des erreurs pour midi et minuit",
+        "it": "Estendere la gestione degli errori per mezzogiorno e mezzanotte",
+        "es": "Extender el manejo de errores para mediodía y medianoche",
+        "pl": "Rozszerzenie błędów obsługi na południe i północ",
+        "uk": "Продовжити поломку для он-лайн",
+        "zh-cn": "将错误处理延伸至中午和午夜"
+      },
+      "0.1.7": {
+        "en": "Update Error Handling\nUpdate Readme",
+        "de": "Aktualisieren von Fehlern\nUpdate Reader",
+        "ru": "Обновление Error Handling\nОбновление Readme",
+        "pt": "Manuseamento de Erros de Atualização\nActualizar a Leitura",
+        "nl": "Fout bij het omgaan met bijwerken\nReadme bijwerken",
+        "fr": "Mise à jour de la gestion des erreurs\nMettre à jour Readme",
+        "it": "Gestione degli errori di aggiornamento\nAggiornamento",
+        "es": "Actualizar el manejo de errores\nActualización Readme",
+        "pl": "Aktualizuj błąd obsługi\nAktualizacja Readme",
+        "uk": "Оновлення помилок\nОновлення Readme",
+        "zh-cn": "更新错误处理\n更新读取器"
+      },
+      "0.1.6": {
+        "en": "Changed Loglevel\nUpdate Error Handling -> increase Try-Timeouts",
+        "de": "Geänderter Loglevel\nUpdate Fehlerbehandlung -> erhöhen Try-Timeouts",
+        "ru": "Измененный Loglevel\nОбновление Обработка ошибок -> Увеличение Try-Timeouts",
+        "pt": "Nível de log alterado\nManuseamento de Erros de Atualização -> aumentar os Tempos de Teste",
+        "nl": "Gewijzigd loglevel\nFout bij het verwerken van updates -> verhogen Try-Timeouts",
+        "fr": "Changement de niveau de log\nMise à jour de la gestion des erreurs -> augmenter Tri-Timeouts",
+        "it": "Cambiato livello di registro\nGestione degli errori di aggiornamento -> aumentare",
+        "es": "Cambio de nivel de los resultados\nActualizar el manejo de errores - aumentar Try-Timeouts",
+        "pl": "Zmieniony poziom logowania\nAktualizacja Błąd obsługi - > zwiększenie timeout",
+        "uk": "Змінений рівень\nUpdate Помилка Handling -> збільшення",
+        "zh-cn": "更改的日志级别\n更新错误处理 - > 增加尝试超时"
+      },
+      "0.1.5": {
+        "en": "Update Dependencies",
+        "de": "Anpassungsabhängigkeiten",
+        "ru": "Обновление зависимостей",
+        "pt": "Atualizar dependências",
+        "nl": "Afhankelijkheden bijwerken",
+        "fr": "Mettre à jour les dépendances",
+        "it": "Dipendenze di aggiornamento",
+        "es": "Dependencias de actualización",
+        "pl": "Aktualizuj zależności",
+        "uk": "Оновлення залежностей",
+        "zh-cn": "更新依赖关系"
+      },
+      "0.1.4": {
+        "en": "Fix wrong value for Grohe Blue remainingFilter\nUpdate Readme",
+        "de": "Fehlerbehebung für Grohe Blue restFilter\nUpdate Reader",
+        "ru": "Исправьте неправильное значение оставшегося фильтра Grohe Blue\nОбновление Readme",
+        "pt": "Corrigir o valor errado para Grohe Blue restanteFilter\nActualizar a Leitura",
+        "nl": "Fix verkeerde waarde voor Grohe Blue resterendFilter\nReadme bijwerken",
+        "fr": "Correction de la mauvaise valeur pour Grohe Blue restantFilter\nMettre à jour Readme",
+        "it": "Fissare il valore sbagliato per Grohe Blue restanteFilter\nAggiornamento",
+        "es": "Fijar el valor incorrecto para Grohe Blue restFilter\nActualización Readme",
+        "pl": "Naprawiono niewłaściwą wartość dla filtra Grohe Blue\nAktualizacja Readme",
+        "uk": "Виправити неправильне значення для Grohe Blue залишилисяFilter\nОновлення Readme",
+        "zh-cn": "修正 Grohe Blue 剩余过滤器的错误值\n更新读取器"
+      },
       "0.1.3": {
         "en": "Fix null of Total Consumption\nUpdate Readme",
         "de": "Null des Gesamtverbrauchs\nUpdate Reader",
@@ -15,45 +93,6 @@
         "pl": "Popraw jądro całkowitego zużycia\nAktualizacja Readme",
         "uk": "Виправлення null Загальне споживання\nОновлення Readme",
         "zh-cn": "修复无总消费\n更新读取器"
-      },
-      "0.1.2": {
-        "en": "Update Readme and Translations",
-        "de": "Readme und Übersetzungen aktualisieren",
-        "ru": "Обновление Readme и переводов",
-        "pt": "Atualizar Readme e traduções",
-        "nl": "Readme en vertalingen bijwerken",
-        "fr": "Mettre à jour le texte et les traductions",
-        "it": "Aggiornamento Readme e Traduzioni",
-        "es": "Actualizar Readme y Traducciones",
-        "pl": "Aktualizacja Readme i tłumaczenia",
-        "uk": "Оновлення перекладу",
-        "zh-cn": "更新阅读和翻译"
-      },
-      "0.1.1": {
-        "en": "Rate limiting awareness (HTTP 403 handling)\nImmediate state readback after commands\nOptimized polling with tiered API call frequency",
-        "de": "Geschwindigkeitsbegrenzungsbewusstsein (HTTP 403 Handling)\nSofortige Staatslese nach Befehlen\nOptimierte Abstimmung mit gebundener API Anruffrequenz",
-        "ru": "Ограничение скорости (HTTP 403)\nНемедленное восстановление состояния после команд\nОптимизированный опрос с многоуровневой частотой вызовов API",
-        "pt": "Consciência de limitação de taxa (handling HTTP 403)\nLeitura imediata do estado após comandos\nPesquisa otimizada com frequência de chamada API em camadas",
-        "nl": "Bewustmakingsgraad (HTTP 403)\nOnmiddellijke terugblik na commando's\nGeoptimaliseerde polling met gelaagde API oproepfrequentie",
-        "fr": "Sensibilisation à la limitation des taux (manipulation du PTTP 403)\nReprise immédiate après les commandes\nSondage optimisé avec fréquence d'appel API à niveaux",
-        "it": "Tasso di riduzione della sensibilizzazione (gestione HTTPTP 403)\nRipristino immediato dello stato dopo i comandi\nInquinamento ottimizzato con frequenza di chiamata API tiered",
-        "es": "Tasa de reducción de la conciencia (HTTP 403 manipulación)\nRegreso inmediato del estado después de órdenes\nVotación optimizada con frecuencia de llamada de API empatada",
-        "pl": "Szybkość ograniczania świadomości (obsługa HTTP 403)\nNatychmiastowy odczyt stanu po poleceniu\nZoptymalizowane sondaże z wielowarstwową częstotliwością wywołania API",
-        "uk": "Поінформованість процентів (HTTP 403)\nІммедіате стан читання після команд\nОптимізоване опитування з частотою виклику стягнутого API",
-        "zh-cn": "费率限制意识(HTTP 403处理)\n命令后立即恢复状态\n以分级API呼叫频率优化投票"
-      },
-      "0.1.0": {
-        "en": "initial release\nfirst functional version\na lot of debug to see where the problems are",
-        "de": "erstausstrahlung\nerste funktionsversion\nviel debug zu sehen, wo die probleme sind",
-        "ru": "первоначальное освобождение\nпервая функциональная версия\nмного отладки, чтобы увидеть, где проблемы",
-        "pt": "libertação inicial\nprimeira versão funcional\num monte de depuração para ver onde os problemas estão",
-        "nl": "eerste release\neerste functionele versie\nveel debug om te zien waar de problemen zijn",
-        "fr": "libération initiale\npremière version fonctionnelle\nbeaucoup de débogage pour voir où sont les problèmes",
-        "it": "rilascio iniziale\nprima versione funzionale\nun sacco di debug per vedere dove i problemi sono",
-        "es": "liberación inicial\nprimera versión funcional\nmucha depuración para ver dónde están los problemas",
-        "pl": "początkowe zwolnienie\npierwsza wersja funkcjonalna\ndużo debug, aby zobaczyć, gdzie są problemy",
-        "uk": "початковий реліз\nперший функціонал\nбагато абвуг, щоб побачити, де проблеми є",
-        "zh-cn": "初步释放\n第一个功能版本\n很多调试,看看问题在哪里"
       }
     },
     "titleLang": {
