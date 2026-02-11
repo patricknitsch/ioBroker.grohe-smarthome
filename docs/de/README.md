@@ -36,7 +36,7 @@ In den Instanz-Einstellungen des Adapters:
 - **E-Mail**: E-Mail-Adresse deines Grohe/Ondus-Kontos
 - **Passwort**: Passwort deines Grohe/Ondus-Kontos
 - **Abfrageintervall (Sekunden)**: Polling-Intervall in Sekunden  
-  - Minimum **30 Sekunden**
+  - Minimum **60 Sekunden**
   - Standard-Fallback **300 Sekunden**
 - **Raw-States** (`rawStates`): Wenn aktiviert, schreibt der Adapter alle Messfelder nach `<device>.raw.*`
 

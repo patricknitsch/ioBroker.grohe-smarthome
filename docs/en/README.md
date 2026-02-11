@@ -36,7 +36,7 @@ In the adapter instance settings:
 - **Email**: your Grohe/Ondus account email
 - **Password**: your Grohe/Ondus account password
 - **Poll interval (seconds)**: polling interval in seconds  
-  - minimum is **30 seconds**
+  - minimum is **60 seconds**
   - default fallback is **300 seconds**
 - **Raw states** (`rawStates`): if enabled, the adapter writes all measurement fields to `<device>.raw.*`
 
