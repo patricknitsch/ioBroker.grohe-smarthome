@@ -435,7 +435,7 @@ class GroheSmarthome extends utils.Adapter {
 				}
 			} catch (err) {
 				if (err?.response?.status === 404) {
-					this.log.warn(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
+					this.log.debug(`Pressure measurement not available for ${id} (HTTP 404 – no measurement data yet)`);
 				} else {
 					this.log.warn(`Pressure measurement for ${id} failed: ${err.message}`);
 				}
