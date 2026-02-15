@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "news": {
+      "0.2.3": {
+        "en": "Fix no correct messages",
+        "de": "Keine korrekten Nachrichten",
+        "ru": "Не исправляйте правильные сообщения",
+        "pt": "Não corrigir mensagens corretas",
+        "nl": "Geen correcte berichten herstellen",
+        "fr": "Correction d'aucun message correct",
+        "it": "Fissare i messaggi corretti",
+        "es": "Corregir no mensajes correctos",
+        "pl": "Nie naprawiaj poprawnych wiadomości",
+        "uk": "Виправлення не коректних повідомлень",
+        "zh-cn": "校正没有正确的信件"
+      },
       "0.2.2": {
         "en": "Fix Problem with jsonConfig and Interval",
         "de": "Problem mit jsonConfig und Intervall behoben",
@@ -80,19 +93,6 @@
         "pl": "Aktualizuj zależności",
         "uk": "Оновлення залежностей",
         "zh-cn": "更新依赖关系"
-      },
-      "0.1.4": {
-        "en": "Fix wrong value for Grohe Blue remainingFilter\nUpdate Readme",
-        "de": "Fehlerbehebung für Grohe Blue restFilter\nUpdate Reader",
-        "ru": "Исправьте неправильное значение оставшегося фильтра Grohe Blue\nОбновление Readme",
-        "pt": "Corrigir o valor errado para Grohe Blue restanteFilter\nActualizar a Leitura",
-        "nl": "Fix verkeerde waarde voor Grohe Blue resterendFilter\nReadme bijwerken",
-        "fr": "Correction de la mauvaise valeur pour Grohe Blue restantFilter\nMettre à jour Readme",
-        "it": "Fissare il valore sbagliato per Grohe Blue restanteFilter\nAggiornamento",
-        "es": "Fijar el valor incorrecto para Grohe Blue restFilter\nActualización Readme",
-        "pl": "Naprawiono niewłaściwą wartość dla filtra Grohe Blue\nAktualizacja Readme",
-        "uk": "Виправити неправильне значення для Grohe Blue залишилисяFilter\nОновлення Readme",
-        "zh-cn": "修正 Grohe Blue 剩余过滤器的错误值\n更新读取器"
       }
     },
     "titleLang": {
