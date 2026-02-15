@@ -37,6 +37,11 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+* (claude) Fix no correct messages
+
 ### 0.2.2 (2026-02-12)
  * (claude) Fix Problem with jsonConfig and Interval
 
