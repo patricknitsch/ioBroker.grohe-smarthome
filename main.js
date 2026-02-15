@@ -11,10 +11,85 @@ const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
 
 const NOTIFICATION_CATEGORIES = {
+	0: 'Advertisement',
 	10: 'Information',
 	20: 'Warning',
 	30: 'Alarm',
 	40: 'WebURL',
+};
+
+/**
+ * Notification type lookup – maps (category, type) to human-readable text.
+ * The Grohe API does NOT return message text; all clients build it client-side.
+ * Source: ha-grohe_smarthome notifications.yaml
+ */
+const NOTIFICATION_TYPES = {
+	// Information (10)
+	'10_10': 'Installation successful',
+	'10_60': 'Firmware update available',
+	'10_100': 'System information',
+	'10_410': 'Installation of Sense Guard successful',
+	'10_460': 'Firmware update of Sense Guard available',
+	'10_555': 'Blue: auto flush active',
+	'10_556': 'Blue: auto flush inactive',
+	'10_557': 'Cartridge empty',
+	'10_559': 'Cleaning complete',
+	'10_560': 'Firmware update for Blue available',
+	'10_561': 'Order fully shipped',
+	'10_563': 'Order fully delivered',
+	'10_566': 'Order partially shipped',
+	'10_601': 'Nest away mode automatic control off',
+	'10_602': 'Nest home mode automatic control off',
+	'10_605': 'Connect with your insurer',
+	'10_606': 'Device deactivated',
+	// Warning (20)
+	'20_11': 'Battery is at critical level',
+	'20_12': 'Battery is empty and must be changed',
+	'20_20': 'Temperature below minimum limit',
+	'20_21': 'Temperature above maximum limit',
+	'20_30': 'Humidity below minimum limit',
+	'20_31': 'Humidity above maximum limit',
+	'20_40': 'Frost warning',
+	'20_80': 'Sense lost WiFi',
+	'20_320': 'Unusual water consumption – water SHUT OFF',
+	'20_321': 'Unusual water consumption – water still ON',
+	'20_330': 'Pressure drop detected during pipe check',
+	'20_332': 'Water system check not possible',
+	'20_380': 'Sense Guard lost WiFi',
+	'20_381': 'Water pressure drops detected',
+	'20_383': 'Potential leak detected',
+	'20_385': 'Water pressure drops detected – severity increased',
+	'20_420': 'Multiple pressure drops – water supply switched off',
+	'20_421': 'Multiple water pressure drops detected',
+	'20_550': 'Blue filter low',
+	'20_551': 'Blue CO₂ low',
+	'20_552': 'Blue empty filter',
+	'20_553': 'Blue empty CO₂',
+	'20_558': 'Cleaning needed',
+	'20_564': 'Filter stock empty',
+	'20_565': 'CO₂ stock empty',
+	'20_580': 'Blue no connection',
+	'20_603': 'Sense Guard did not respond – valve open',
+	'20_604': 'Sense Guard did not respond – valve closed',
+	// Alarm (30)
+	'30_0': 'Flooding detected – water SHUT OFF',
+	'30_50': 'Sensor error',
+	'30_90': 'System error',
+	'30_100': 'System error',
+	'30_101': 'RTC error',
+	'30_102': 'Acceleration sensor error',
+	'30_103': 'System out of service',
+	'30_104': 'System memory error',
+	'30_105': 'System relative temperature error',
+	'30_106': 'Water detection error',
+	'30_107': 'Button error',
+	'30_310': 'Extremely high flow rate – water supply switched off',
+	'30_390': 'System error',
+	'30_400': 'Maximum volume reached – water supply switched off',
+	'30_430': 'Water detected by Sense – water supply switched off',
+	'30_431': 'Water detected by Sense',
+	// WebURL (40)
+	'40_1': 'Web URL',
 };
 
 class GroheSmarthome extends utils.Adapter {
@@ -613,23 +688,28 @@ class GroheSmarthome extends utils.Adapter {
 
 	async _updateLatestNotification(id, appliance) {
 		const notifications = appliance.notifications || [];
-		if (notifications.length > 0) {
-			const latest = notifications[0];
-			const catName = NOTIFICATION_CATEGORIES[latest.category] || `Category ${latest.category}`;
-			const message = latest.message || latest.body || latest.text || '';
-
-			await this._ensureChannel(`${id}.notifications`, 'Notifications');
-			await this._setStr(
-				`${id}.notifications`,
-				'latestMessage',
-				'Latest notification message',
-				'text',
-				message || `Type ${latest.type || latest.notification_type || '?'}`,
-			);
-			await this._setStr(`${id}.notifications`, 'latestTimestamp', 'Timestamp', 'date', latest.timestamp);
-			await this._setNum(`${id}.notifications`, 'latestCategory', 'Category', '', 'value', latest.category);
-			await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Category name', 'text', catName);
+		if (notifications.length === 0) {
+			return;
 		}
+
+		const latest = notifications[0];
+		const cat = latest.category;
+		const type = latest.type ?? latest.notification_type;
+		const catName = NOTIFICATION_CATEGORIES[cat] || `Category ${cat}`;
+
+		// Look up the human-readable notification text from the type map.
+		// The Grohe API does not return message text – all clients build it locally.
+		const key = `${cat}_${type}`;
+		const typeText = NOTIFICATION_TYPES[key] || `Unknown (${key})`;
+
+		this.log.debug(`Notification for ${id}: category=${cat}, type=${type}, key=${key}, text=${typeText}`);
+
+		await this._ensureChannel(`${id}.notifications`, 'Notifications');
+		await this._setStr(`${id}.notifications`, 'latestMessage', 'Latest notification message', 'text', typeText);
+		await this._setStr(`${id}.notifications`, 'latestTimestamp', 'Timestamp', 'date', latest.timestamp);
+		await this._setNum(`${id}.notifications`, 'latestCategory', 'Category', '', 'value', cat);
+		await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Category name', 'text', catName);
+		await this._setNum(`${id}.notifications`, 'latestType', 'Notification type', '', 'value', type);
 	}
 
 	/* ================================================================== */
