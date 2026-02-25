@@ -1,7 +1,7 @@
 {
-	"Create raw measurement states": "Создание необработанных состояний измерений",
 	"Grohe email / username": "Адрес электронной почты / имя пользователя Grohe",
-	"Grohe password": "Пароль Гроэ",
+	"Grohe password": "Пароль Grohe",
 	"Polling interval (seconds)": "Интервал опроса (секунды)",
-	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "Слишком частый опрос может привести к ошибке HTTP 403 от Grohe API. Рекомендуется: 300 с или выше."
+	"pollIntervalHelp": "Слишком частый опрос может привести к ошибкам HTTP 403 от Grohe API. Рекомендуется: 300с или выше. При ошибках интервал автоматически увеличивается (до 1ч) и сбрасывается после успешного опроса.",
+	"Create raw measurement states": "Создание необработанных состояний измерений"
 }

@@ -1,7 +1,7 @@
 {
-	"Create raw measurement states": "Crie estados de medição brutos",
 	"Grohe email / username": "E-mail / nome de usuário Grohe",
 	"Grohe password": "Senha Grohe",
 	"Polling interval (seconds)": "Intervalo de pesquisa (segundos)",
-	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "Pesquisas muito frequentes podem causar erros HTTP 403 da API Grohe. Recomendado: 300 ou superior."
+	"pollIntervalHelp": "Pesquisas muito frequentes podem causar erros HTTP 403 da API Grohe. Recomendado: 300s ou superior. Em caso de erros, o intervalo aumenta automaticamente (até 1h) e é redefinido após uma pesquisa bem-sucedida.",
+	"Create raw measurement states": "Criar estados de medição brutos"
 }

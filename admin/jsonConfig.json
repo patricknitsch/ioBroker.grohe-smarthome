@@ -1,49 +1,46 @@
 {
-  "type": "panel",
-  "i18n": true,
-  "items": {
-    "email": {
-      "type": "text",
-      "label": { "en": "Grohe email / username", "de": "Grohe E-Mail / Benutzername" },
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "password": {
-      "type": "password",
-      "label": { "en": "Grohe password", "de": "Grohe Passwort" },
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "pollInterval": {
-      "type": "number",
-      "label": { "en": "Polling interval (seconds)", "de": "Abfrageintervall (Sekunden)" },
-      "help": {
-        "en": "Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher. On errors the interval increases automatically (up to 1h) and resets after a successful poll.",
-        "de": "Zu häufiges Polling kann zu HTTP 403-Fehlern der Grohe-API führen. Empfohlen: 300s oder höher. Bei Fehlern wird das Intervall automatisch erhöht (bis 1h) und nach erfolgreichem Abruf zurückgesetzt."
-      },
-      "min": 60,
-      "default": 300,
-      "xs": 12,
-      "sm": 6,
-      "md": 4,
-      "lg": 3,
-      "xl": 2
-    },
-    "rawStates": {
-      "type": "checkbox",
-      "label": { "en": "Create raw measurement states", "de": "Rohdaten-States erstellen" },
-      "default": false,
-      "xs": 12,
-      "sm": 6,
-      "md": 4,
-      "lg": 3,
-      "xl": 2
-    }
-  }
+	"type": "panel",
+	"i18n": true,
+	"items": {
+		"email": {
+			"type": "text",
+			"label": "Grohe email / username",
+			"xs": 12,
+			"sm": 12,
+			"md": 6,
+			"lg": 6,
+			"xl": 6
+		},
+		"password": {
+			"type": "password",
+			"label": "Grohe password",
+			"xs": 12,
+			"sm": 12,
+			"md": 6,
+			"lg": 6,
+			"xl": 6
+		},
+		"pollInterval": {
+			"type": "number",
+			"label": "Polling interval (seconds)",
+			"help": "pollIntervalHelp",
+			"min": 60,
+			"default": 300,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 3,
+			"xl": 2
+		},
+		"rawStates": {
+			"type": "checkbox",
+			"label": "Create raw measurement states",
+			"default": false,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 3,
+			"xl": 2
+		}
+	}
 }

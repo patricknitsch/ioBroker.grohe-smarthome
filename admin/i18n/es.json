@@ -1,7 +1,7 @@
 {
-	"Create raw measurement states": "Crear estados de medición sin procesar",
-	"Grohe email / username": "Correo electrónico/nombre de usuario de Grohe",
+	"Grohe email / username": "Correo electrónico / nombre de usuario de Grohe",
 	"Grohe password": "Contraseña de Grohe",
 	"Polling interval (seconds)": "Intervalo de sondeo (segundos)",
-	"Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher.": "Un sondeo demasiado frecuente puede provocar errores HTTP 403 en la API de Grohe. Recomendado: 300s o más."
+	"pollIntervalHelp": "Un sondeo demasiado frecuente puede provocar errores HTTP 403 en la API de Grohe. Recomendado: 300s o más. En caso de errores, el intervalo se incrementa automáticamente (hasta 1h) y se restablece tras una consulta exitosa.",
+	"Create raw measurement states": "Crear estados de medición sin procesar"
 }

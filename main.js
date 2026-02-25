@@ -216,9 +216,9 @@ class GroheSmarthome extends utils.Adapter {
 	 */
 	_schedulePoll() {
 		if (this.pollTimer) {
-			clearTimeout(this.pollTimer);
+			this.clearTimeout(this.pollTimer);
 		}
-		this.pollTimer = setTimeout(async () => {
+		this.pollTimer = this.setTimeout(async () => {
 			await this.pollDevices();
 			this._schedulePoll();
 		}, this.currentPollInterval * 1000);
@@ -1034,7 +1034,7 @@ class GroheSmarthome extends utils.Adapter {
 	onUnload(callback) {
 		try {
 			if (this.pollTimer) {
-				clearTimeout(this.pollTimer);
+				this.clearTimeout(this.pollTimer);
 			}
 			this.client = null;
 			callback();
