@@ -25,7 +25,7 @@ jobs:
           npm config set fetch-retries 5
           npm config set fetch-retry-mintimeout 20000
           npm config set fetch-retry-maxtimeout 120000
-          npm config set cache false
+          npm config set cache /tmp/npm-cache --global
 
       - uses: ioBroker/testing-action-check@v1
         with:
