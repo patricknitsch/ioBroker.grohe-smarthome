@@ -52,6 +52,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           os: ${{ matrix.os }}
+          install-command: npm install
 
   deploy:
     needs: [check-and-lint, adapter-tests]
