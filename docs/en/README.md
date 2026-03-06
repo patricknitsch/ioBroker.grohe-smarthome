@@ -206,7 +206,7 @@ Controls:
 
 When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`.
 
-> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After starting the adapter, it may take 1 poll cycles before current values (e.g. `remainingFilter`, `remainingCo2`) are displayed.
+> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After the command is sent, a **background verify loop** polls the `/details` endpoint every 10 seconds (up to 3 attempts / 30 seconds total) until a newer measurement timestamp appears, then updates all states immediately. This ensures that values like `remainingFilter` and `remainingCo2` reflect the latest device data rather than stale dashboard values. After starting the adapter, it may take 1–2 poll cycles before current values are displayed.
 
 ---
 
@@ -226,6 +226,7 @@ To minimize API calls and avoid HTTP 403 rate-limiting errors, not every endpoin
 | `/status` | every **5th** poll | All | Online/WiFi/update status changes slowly |
 | `/command` (read) | every **3rd** poll | Sense Guard | Valve state (also read back immediately after commands) |
 | `/command` (`get_current_measurement`) | every **3rd** poll | Blue | Triggers a fresh measurement on the device |
+| `/details` (verify) | up to **3×** after refresh | Blue | Background poll to verify fresh data arrived (10s interval) |
 | `/data/aggregated` (today) | every **5th** poll | Sense Guard | Current day's water consumption for totalWaterConsumption |
 | `/data/aggregated` (historical) | **once per day** | Sense Guard | Historical base for totalWaterConsumption |
 | `/pressuremeasurement` | every **10th** poll | Sense Guard | Only changes after a manual pressure test |
