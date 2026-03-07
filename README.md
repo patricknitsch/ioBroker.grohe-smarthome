@@ -1,4 +1,4 @@
-![Logo](admin/grohe-smarthome.png)
+<img src="admin/grohe-smarthome.png" alt="Logo" width="256" />
 # ioBroker.grohe-smarthome
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.grohe-smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe-smarthome)
