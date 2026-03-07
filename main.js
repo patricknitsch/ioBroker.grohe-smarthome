@@ -572,7 +572,8 @@ class GroheSmarthome extends utils.Adapter {
 
 				// Start background verify loop to wait for fresh data from the API.
 				// The Grohe cloud needs time to process the measurement request.
-				// We poll /details up to 3 times (every 10s) until a newer timestamp appears.
+				// We poll /details up to 5 times (every 10s). After detecting a new
+				// timestamp, we wait one extra poll for values to settle.
 				this._startBlueVerify(id, locationId, roomId, oldTimestamp);
 			} catch (err) {
 				this.log.warn(`Measurement refresh for Blue ${id} failed: ${err.message}`);
@@ -708,8 +709,9 @@ class GroheSmarthome extends utils.Adapter {
 		this._blueRefreshRunning.set(applianceId, true);
 
 		const POLL_INTERVAL_MS = 10000; // 10 seconds between checks
-		const MAX_ATTEMPTS = 3; // total wait: up to 30s
+		const MAX_ATTEMPTS = 5; // total wait: up to 50s
 		let attempt = 0;
+		let timestampChanged = false;
 
 		const poll = () => {
 			attempt++;
@@ -723,14 +725,38 @@ class GroheSmarthome extends utils.Adapter {
 
 					const details = await this.client.getApplianceDetails(locationId, roomId, applianceId);
 					const newTimestamp = details?.data_latest?.measurement?.timestamp;
+					const newM = details?.data_latest?.measurement || {};
 
 					if (newTimestamp && newTimestamp !== oldTimestamp) {
-						const newM = details.data_latest.measurement || {};
-						this.log.debug(
-							`Blue ${applianceId}: fresh data received (old=${oldTimestamp}, new=${newTimestamp})`,
+						if (!timestampChanged) {
+							// First time we see the new timestamp. The Grohe cloud often
+							// updates the timestamp before all measurement values (e.g.
+							// remaining_filter) have propagated. Wait one more interval
+							// to let the values settle before writing states.
+							timestampChanged = true;
+							this.log.debug(
+								`Blue ${applianceId}: new timestamp detected (old=${oldTimestamp}, new=${newTimestamp}), ` +
+									`waiting one more poll for values to settle...`,
+							);
+							if (attempt < MAX_ATTEMPTS) {
+								poll();
+							} else {
+								// No more attempts left – use what we have
+								this.log.info(
+									`Blue ${applianceId}: using data from final attempt (ts=${newTimestamp})`,
+								);
+								await this._updateBlueStates(applianceId, newM, null, null);
+								this._blueRefreshRunning.delete(applianceId);
+							}
+							return;
+						}
+
+						// Second poll after timestamp change – values should have settled
+						this.log.info(
+							`Blue ${applianceId}: fresh data received after settle delay ` +
+								`(old=${oldTimestamp}, new=${newTimestamp}, ` +
+								`remaining_filter=${newM.remaining_filter}, remaining_co2=${newM.remaining_co2})`,
 						);
-						// Update states immediately with the fresh measurement data.
-						// Pass null for status/appliance – those don't change between polls.
 						await this._updateBlueStates(applianceId, newM, null, null);
 						this._blueRefreshRunning.delete(applianceId);
 						return;
