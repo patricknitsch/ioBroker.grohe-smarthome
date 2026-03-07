@@ -1,4 +1,3 @@
-![Logo](admin/grohe-smarthome.png)
 # ioBroker.grohe-smarthome
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.grohe-smarthome.svg)](https://www.npmjs.com/package/iobroker.grohe-smarthome)
@@ -11,8 +10,8 @@
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe-smarthome/workflows/Test%20and%20Release/badge.svg)
 
 # ioBroker Grohe Smarthome Adapter
-
-This adapter connects ioBroker to the **Grohe Smarthome / Ondus** cloud and exposes Grohe devices as states (and some controls) inside ioBroker.
+<img align="left" src="admin/grohe-smarthome.png" alt="image" width="200"/>
+This adapter connects ioBroker to the <strong>Grohe Smarthome / Ondus</strong> cloud and exposes Grohe devices as states (and some controls) inside ioBroker.
 
 It supports:
 
