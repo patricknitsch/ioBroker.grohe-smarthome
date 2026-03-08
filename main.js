@@ -399,7 +399,7 @@ class GroheSmarthome extends utils.Adapter {
 			'battery',
 			'Battery',
 			'%',
-			'level.battery',
+			'value.battery',
 			typeof m.battery === 'number' ? m.battery : undefined,
 		);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
@@ -428,7 +428,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Temperature, flow, pressure (from dashboard – always available)
 		await this._setNum(id, 'temperature', 'Water temperature', '°C', 'value.temperature', m.temperature_guard);
-		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value.flow', m.flowrate);
+		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value', m.flowrate);
 		await this._setNum(id, 'pressure', 'Current pressure', 'bar', 'value.pressure', m.pressure);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
 
@@ -597,15 +597,15 @@ class GroheSmarthome extends utils.Adapter {
 		);
 
 		// CO2 & Filter
-		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value', m.remaining_co2);
-		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value', m.remaining_filter);
-		await this._setNum(id, 'remainingCo2Liters', 'Remaining CO₂ (liters)', 'l', 'value', m.remaining_co2_liters);
+		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value.fill', m.remaining_co2);
+		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', m.remaining_filter);
+		await this._setNum(id, 'remainingCo2Liters', 'Remaining CO₂ (liters)', 'l', 'value.fill', m.remaining_co2_liters);
 		await this._setNum(
 			id,
 			'remainingFilterLiters',
 			'Remaining filter (liters)',
 			'l',
-			'value',
+			'value.fill',
 			m.remaining_filter_liters,
 		);
 
