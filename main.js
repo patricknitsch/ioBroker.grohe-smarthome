@@ -558,37 +558,49 @@ class GroheSmarthome extends utils.Adapter {
 		const typeStr = type === GROHE_BLUE_HOME ? 'Blue Home' : 'Blue Professional';
 		await this._ensureDevice(id, `${name} (${typeStr})`, typeStr.toUpperCase().replace(' ', '_'));
 
+		// Fetch measurement data from /details endpoint (like the HA integration).
+		// The /dashboard endpoint often returns stale remaining_filter / remaining_co2
+		// values, while /details provides the same data the GROHE app displays.
+		let m = appliance.data_latest?.measurement || {};
+		if (locationId && roomId && this.client) {
+			try {
+				const details = await this.client.getApplianceDetails(locationId, roomId, id);
+				const detailsM = details?.data_latest?.measurement;
+				if (detailsM) {
+					m = detailsM;
+				}
+			} catch (err) {
+				this.log.warn(`Details query for Blue ${id} failed, using dashboard data: ${err.message}`);
+			}
+		}
+
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
-		// Without it, the dashboard returns stale data (possibly weeks old).
 		// Trigger a refresh every 3rd poll (including first poll after restart).
 		if (this.pollCount % 3 === 0 && locationId && roomId && this.client) {
-			const oldTimestamp = appliance.data_latest?.measurement?.timestamp || null;
+			const oldTimestamp = m.timestamp || null;
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
 					get_current_measurement: true,
 				});
 				this.log.debug(`Triggered measurement refresh for Blue ${id}`);
 
-				// Start background verify loop to wait for fresh data from the API.
+				// Start background verify loop to wait for fresh data from /details.
 				// The Grohe cloud needs time to process the measurement request.
-				// We poll /details up to 5 times (every 10s). After detecting a new
-				// timestamp, we wait one extra poll for values to settle.
+				// We poll /details up to 5 times (every 10s).
 				this._startBlueVerify(id, locationId, roomId, oldTimestamp);
 			} catch (err) {
 				this.log.warn(`Measurement refresh for Blue ${id} failed: ${err.message}`);
 			}
 		}
 
-		// Update states from current dashboard data (may still be stale)
-		const m = appliance.data_latest?.measurement || {};
 		await this._updateBlueStates(id, m, status, appliance);
 	}
 
 	/**
 	 * Write all Blue device measurement states.
-	 * Called both from the normal poll (dashboard data) and from the
-	 * background verify loop (details data) when fresh data arrives.
+	 * Called both from the normal poll (/details data) and from the
+	 * background verify loop when fresh data arrives after a measurement command.
 	 */
 	async _updateBlueStates(id, m, status, appliance) {
 		this.log.debug(
@@ -691,20 +703,12 @@ class GroheSmarthome extends utils.Adapter {
 	/* ================================================================== */
 
 	/**
-	 * Start a non-blocking background loop that polls the /dashboard endpoint
-	 * until a newer measurement timestamp appears (or gives up after 50s).
+	 * Start a non-blocking background loop that polls the /details endpoint
+	 * until a newer measurement timestamp appears (or gives up after 30s).
 	 *
 	 * This mirrors the HA ha-grohe_smarthome BlueHomeCoordinator pattern:
 	 * after sending get_current_measurement, the Grohe cloud needs time to
-	 * fetch data from the device. We poll every 10s up to 5 times.
-	 *
-	 * IMPORTANT: The HA integration's get_appliance_details() is misleadingly
-	 * named – it actually calls /dashboard (not /details) and filters locally.
-	 * The real /details endpoint returns different (often stale) measurement
-	 * data. We therefore use /dashboard here as well.
-	 *
-	 * After detecting a new timestamp we wait one extra interval to let all
-	 * values (especially remaining_filter) propagate before writing states.
+	 * fetch data from the device. We poll /details every 10s up to 3 times.
 	 *
 	 * A guard flag prevents multiple concurrent verify loops for the same device.
 	 */
@@ -717,9 +721,8 @@ class GroheSmarthome extends utils.Adapter {
 		this._blueRefreshRunning.set(applianceId, true);
 
 		const POLL_INTERVAL_MS = 10000; // 10 seconds between checks
-		const MAX_ATTEMPTS = 5; // total wait: up to 50s
+		const MAX_ATTEMPTS = 3; // total wait: up to 30s
 		let attempt = 0;
-		let timestampChanged = false;
 
 		const poll = () => {
 			attempt++;
@@ -731,46 +734,13 @@ class GroheSmarthome extends utils.Adapter {
 						return;
 					}
 
-					// Use /dashboard (like the HA integration) – NOT /details which
-					// returns different and often stale measurement data.
-					const dashboard = await this.client.getDashboard();
-					const appliance = this._findApplianceInDashboard(dashboard, applianceId);
-					if (!appliance) {
-						this.log.debug(`Blue verify for ${applianceId}: appliance not found in dashboard`);
-						this._blueRefreshRunning.delete(applianceId);
-						return;
-					}
-
-					const newTimestamp = appliance.data_latest?.measurement?.timestamp;
-					const newM = appliance.data_latest?.measurement || {};
+					const details = await this.client.getApplianceDetails(locationId, roomId, applianceId);
+					const newTimestamp = details?.data_latest?.measurement?.timestamp;
+					const newM = details?.data_latest?.measurement || {};
 
 					if (newTimestamp && newTimestamp !== oldTimestamp) {
-						if (!timestampChanged) {
-							// First time we see the new timestamp. The Grohe cloud often
-							// updates the timestamp before all measurement values (e.g.
-							// remaining_filter) have propagated. Wait one more interval
-							// to let the values settle before writing states.
-							timestampChanged = true;
-							this.log.debug(
-								`Blue ${applianceId}: new timestamp detected (old=${oldTimestamp}, new=${newTimestamp}), ` +
-									`waiting one more poll for values to settle...`,
-							);
-							if (attempt < MAX_ATTEMPTS) {
-								poll();
-							} else {
-								// No more attempts left – use what we have
-								this.log.info(
-									`Blue ${applianceId}: using data from final attempt (ts=${newTimestamp})`,
-								);
-								await this._updateBlueStates(applianceId, newM, null, null);
-								this._blueRefreshRunning.delete(applianceId);
-							}
-							return;
-						}
-
-						// Second poll after timestamp change – values should have settled
 						this.log.info(
-							`Blue ${applianceId}: fresh data received after settle delay ` +
+							`Blue ${applianceId}: fresh data from /details ` +
 								`(old=${oldTimestamp}, new=${newTimestamp}, ` +
 								`remaining_filter=${newM.remaining_filter}, remaining_co2=${newM.remaining_co2})`,
 						);
@@ -799,26 +769,6 @@ class GroheSmarthome extends utils.Adapter {
 		};
 
 		poll();
-	}
-
-	/**
-	 * Find a specific appliance in the dashboard response by its ID.
-	 * The dashboard structure is: { locations: [{ rooms: [{ appliances: [...] }] }] }
-	 */
-	_findApplianceInDashboard(dashboard, applianceId) {
-		if (!dashboard?.locations) {
-			return null;
-		}
-		for (const loc of dashboard.locations) {
-			for (const room of loc.rooms || []) {
-				for (const app of room.appliances || []) {
-					if (app.appliance_id === applianceId) {
-						return app;
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 	/* ================================================================== */
