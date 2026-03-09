@@ -562,9 +562,19 @@ class GroheSmarthome extends utils.Adapter {
 		// The /dashboard endpoint often returns stale remaining_filter / remaining_co2
 		// values, while /details provides the same data the GROHE app displays.
 		let m = appliance.data_latest?.measurement || {};
+		this.log.debug(
+			`Blue ${id} /dashboard measurement: ${JSON.stringify(appliance.data_latest?.measurement)}`,
+		);
 		if (locationId && roomId && this.client) {
 			try {
 				const details = await this.client.getApplianceDetails(locationId, roomId, id);
+				this.log.debug(`Blue ${id} /details raw response keys: ${JSON.stringify(Object.keys(details || {}))}`);
+				this.log.debug(
+					`Blue ${id} /details data_latest keys: ${JSON.stringify(Object.keys(details?.data_latest || {}))}`,
+				);
+				this.log.debug(
+					`Blue ${id} /details measurement: ${JSON.stringify(details?.data_latest?.measurement)}`,
+				);
 				const detailsM = details?.data_latest?.measurement;
 				if (detailsM) {
 					m = detailsM;
