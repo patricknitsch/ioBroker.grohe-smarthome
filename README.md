@@ -38,8 +38,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.2.6 (2026-03-11)
 
 * (claude/patricknitsch) Fix measurement "Filter" for Blue Systems
 * (claude/patricknitsch) Fix permanent dispense without Trigger

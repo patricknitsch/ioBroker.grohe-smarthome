@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "news": {
+      "0.2.6": {
+        "en": "Fix measurement \"Filter\" for Blue Systems\nFix permanent dispense without Trigger",
+        "de": "Fixmessung \"Filter\" für Blaue Systeme\nDauerspende ohne Trigger beheben",
+        "ru": "Фиксация измерения «Фильтр» для Blue Systems\nИсправьте постоянный отпуск без триггера",
+        "pt": "Corrigir \"Filtro\" de medição para sistemas azuis\nCorrigir a dispensa permanente sem Trigger",
+        "nl": "Fix meting \"Filter\" voor Blue Systems\nFix permanent dispenser zonder Trigger",
+        "fr": "Correction de la mesure \"Filtre\" pour les systèmes bleus\nFixer une dispense permanente sans Trigger",
+        "it": "Misura di fissaggio \"Filter\" per sistemi blu\nFissare l'erogazione permanente senza Trigger",
+        "es": "Medición de fijación \"Filter\" para sistemas azules\nFijar la dispensa permanente sin Trigger",
+        "pl": "Pomiar fix \"Filtr\" dla systemów niebieskich\nNapraw stałą dystrybucję bez Triggera",
+        "uk": "Фіксація вимірювання \"Фільтр\" для Blue Systems\nФіксувати постійний дозатор без Trigger",
+        "zh-cn": "为蓝色系统修补测量“ Filter”\n在不触发的情况下修复永久分发"
+      },
       "0.2.5": {
         "en": "Update Admin Package",
         "de": "Admin-Paket aktualisieren",
@@ -80,19 +93,6 @@
         "pl": "Rozszerzenie błędów obsługi na południe i północ",
         "uk": "Продовжити поломку для он-лайн",
         "zh-cn": "将错误处理延伸至中午和午夜"
-      },
-      "0.1.7": {
-        "en": "Update Error Handling\nUpdate Readme",
-        "de": "Aktualisieren von Fehlern\nUpdate Reader",
-        "ru": "Обновление Error Handling\nОбновление Readme",
-        "pt": "Manuseamento de Erros de Atualização\nActualizar a Leitura",
-        "nl": "Fout bij het omgaan met bijwerken\nReadme bijwerken",
-        "fr": "Mise à jour de la gestion des erreurs\nMettre à jour Readme",
-        "it": "Gestione degli errori di aggiornamento\nAggiornamento",
-        "es": "Actualizar el manejo de errores\nActualización Readme",
-        "pl": "Aktualizuj błąd obsługi\nAktualizacja Readme",
-        "uk": "Оновлення помилок\nОновлення Readme",
-        "zh-cn": "更新错误处理\n更新读取器"
       }
     },
     "titleLang": {
