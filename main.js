@@ -558,27 +558,11 @@ class GroheSmarthome extends utils.Adapter {
 		const typeStr = type === GROHE_BLUE_HOME ? 'Blue Home' : 'Blue Professional';
 		await this._ensureDevice(id, `${name} (${typeStr})`, typeStr.toUpperCase().replace(' ', '_'));
 
-		// Fetch measurement data from /details endpoint (like the HA integration).
-		// The /dashboard endpoint often returns stale remaining_filter / remaining_co2
-		// values, while /details provides the same data the GROHE app displays.
-		let m = appliance.data_latest?.measurement || {};
+		// Use the measurement data supplied by /dashboard.  The background verify
+		// loop (_startBlueVerify) fetches /details after get_current_measurement
+		// to pick up fresh readings; there is no need to call /details here too.
+		const m = appliance.data_latest?.measurement || {};
 		this.log.debug(`Blue ${id} /dashboard measurement: ${JSON.stringify(appliance.data_latest?.measurement)}`);
-		if (locationId && roomId && this.client) {
-			try {
-				const details = await this.client.getApplianceDetails(locationId, roomId, id);
-				this.log.debug(`Blue ${id} /details raw response keys: ${JSON.stringify(Object.keys(details || {}))}`);
-				this.log.debug(
-					`Blue ${id} /details data_latest keys: ${JSON.stringify(Object.keys(details?.data_latest || {}))}`,
-				);
-				this.log.debug(`Blue ${id} /details measurement: ${JSON.stringify(details?.data_latest?.measurement)}`);
-				const detailsM = details?.data_latest?.measurement;
-				if (detailsM) {
-					m = detailsM;
-				}
-			} catch (err) {
-				this.log.warn(`Details query for Blue ${id} failed, using dashboard data: ${err.message}`);
-			}
-		}
 
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
