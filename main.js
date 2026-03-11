@@ -129,6 +129,13 @@ class GroheSmarthome extends utils.Adapter {
 		 */
 		this.totalConsumptionCache = new Map();
 
+		/**
+		 * Tracks running background refresh-and-verify tasks for Blue devices.
+		 * Maps applianceId -> true while a verify loop is in progress.
+		 * Prevents multiple concurrent refresh tasks for the same device.
+		 */
+		this._blueRefreshRunning = new Map();
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -392,7 +399,7 @@ class GroheSmarthome extends utils.Adapter {
 			'battery',
 			'Battery',
 			'%',
-			'level.battery',
+			'value.battery',
 			typeof m.battery === 'number' ? m.battery : undefined,
 		);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
@@ -421,7 +428,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Temperature, flow, pressure (from dashboard – always available)
 		await this._setNum(id, 'temperature', 'Water temperature', '°C', 'value.temperature', m.temperature_guard);
-		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value.flow', m.flowrate);
+		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value', m.flowrate);
 		await this._setNum(id, 'pressure', 'Current pressure', 'bar', 'value.pressure', m.pressure);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
 
@@ -551,38 +558,63 @@ class GroheSmarthome extends utils.Adapter {
 		const typeStr = type === GROHE_BLUE_HOME ? 'Blue Home' : 'Blue Professional';
 		await this._ensureDevice(id, `${name} (${typeStr})`, typeStr.toUpperCase().replace(' ', '_'));
 
+		// Use the measurement data supplied by /dashboard.  The background verify
+		// loop (_startBlueVerify) fetches /details after get_current_measurement
+		// to pick up fresh readings; there is no need to call /details here too.
+		const m = appliance.data_latest?.measurement || {};
+		this.log.debug(`Blue ${id} /dashboard measurement: ${JSON.stringify(appliance.data_latest?.measurement)}`);
+
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
-		// Without it, the dashboard returns stale data (possibly weeks old).
 		// Trigger a refresh every 3rd poll (including first poll after restart).
 		if (this.pollCount % 3 === 0 && locationId && roomId && this.client) {
+			const oldTimestamp = m.timestamp || null;
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
 					get_current_measurement: true,
 				});
 				this.log.debug(`Triggered measurement refresh for Blue ${id}`);
+
+				// Start background verify loop to wait for fresh data from /details.
+				// The Grohe cloud needs time to process the measurement request.
+				// We poll /details up to 3 times (every 10s, max 30s).
+				this._startBlueVerify(id, locationId, roomId, oldTimestamp);
 			} catch (err) {
 				this.log.warn(`Measurement refresh for Blue ${id} failed: ${err.message}`);
 			}
 		}
 
-		const m = appliance.data_latest?.measurement || {};
+		await this._updateBlueStates(id, m, status, appliance);
+	}
 
+	/**
+	 * Write all Blue device measurement states.
+	 * Called both from the normal poll (/details data) and from the
+	 * background verify loop when fresh data arrives after a measurement command.
+	 */
+	async _updateBlueStates(id, m, status, appliance) {
 		this.log.debug(
 			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
 				`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
 		);
 
 		// CO2 & Filter
-		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value', m.remaining_co2);
-		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value', m.remaining_filter);
-		await this._setNum(id, 'remainingCo2Liters', 'Remaining CO₂ (liters)', 'l', 'value', m.remaining_co2_liters);
+		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value.fill', m.remaining_co2);
+		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', m.remaining_filter);
+		await this._setNum(
+			id,
+			'remainingCo2Liters',
+			'Remaining CO₂ (liters)',
+			'l',
+			'value.fill',
+			m.remaining_co2_liters,
+		);
 		await this._setNum(
 			id,
 			'remainingFilterLiters',
 			'Remaining filter (liters)',
 			'l',
-			'value',
+			'value.fill',
 			m.remaining_filter_liters,
 		);
 
@@ -634,10 +666,14 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setNum(id, 'pumpCount', 'Pump cycles', '', 'value', m.pump_count);
 
 		// Status channel
-		await this._updateStatusChannel(id, status);
+		if (status) {
+			await this._updateStatusChannel(id, status);
+		}
 
 		// Notifications
-		await this._updateLatestNotification(id, appliance);
+		if (appliance) {
+			await this._updateLatestNotification(id, appliance);
+		}
 
 		// Controls
 		await this._ensureChannel(`${id}.controls`, 'Controls');
@@ -650,6 +686,12 @@ class GroheSmarthome extends utils.Adapter {
 		);
 		await this._ensureWritableNum(`${id}.controls`, 'tapAmount', 'Amount (ml, multiples of 50)', 'level', 250);
 		await this._ensureWritableBool(`${id}.controls`, 'dispenseTrigger', 'Dispense', 'button');
+		// On the first poll after adapter startup, reset tap controls to 0 to clear any stale values
+		// from a previous session that could cause unintended dispensing.
+		if (this.pollCount === 1) {
+			await this.setState(`${id}.controls.tapType`, { val: 0, ack: true });
+			await this.setState(`${id}.controls.tapAmount`, { val: 0, ack: true });
+		}
 		await this._ensureWritableBool(`${id}.controls`, 'resetCo2', 'Reset CO₂', 'button');
 		await this._ensureWritableBool(`${id}.controls`, 'resetFilter', 'Reset filter', 'button');
 
@@ -657,6 +699,79 @@ class GroheSmarthome extends utils.Adapter {
 		if (this.config.rawStates) {
 			await this._writeRaw(id, m);
 		}
+	}
+
+	/* ================================================================== */
+	/*  Blue – Background refresh-and-verify                              */
+	/* ================================================================== */
+
+	/**
+	 * Start a non-blocking background loop that polls the /details endpoint
+	 * until a newer measurement timestamp appears (or gives up after 30s).
+	 *
+	 * This mirrors the HA ha-grohe_smarthome BlueHomeCoordinator pattern:
+	 * after sending get_current_measurement, the Grohe cloud needs time to
+	 * fetch data from the device. We poll /details every 10s up to 3 times.
+	 *
+	 * A guard flag prevents multiple concurrent verify loops for the same device.
+	 */
+	_startBlueVerify(applianceId, locationId, roomId, oldTimestamp) {
+		if (this._blueRefreshRunning.get(applianceId)) {
+			this.log.debug(`Blue verify already running for ${applianceId}, skipping`);
+			return;
+		}
+
+		this._blueRefreshRunning.set(applianceId, true);
+
+		const POLL_INTERVAL_MS = 10000; // 10 seconds between checks
+		const MAX_ATTEMPTS = 3; // total wait: up to 30s
+		let attempt = 0;
+
+		const poll = () => {
+			attempt++;
+			this.setTimeout(async () => {
+				try {
+					if (!this.client) {
+						this.log.debug(`Blue verify for ${applianceId}: client gone, aborting`);
+						this._blueRefreshRunning.delete(applianceId);
+						return;
+					}
+
+					const details = await this.client.getApplianceDetails(locationId, roomId, applianceId);
+					const newTimestamp = details?.data_latest?.measurement?.timestamp;
+					const newM = details?.data_latest?.measurement || {};
+
+					if (newTimestamp && newTimestamp !== oldTimestamp) {
+						this.log.info(
+							`Blue ${applianceId}: fresh data from /details ` +
+								`(old=${oldTimestamp}, new=${newTimestamp}, ` +
+								`remaining_filter=${newM.remaining_filter}, remaining_co2=${newM.remaining_co2})`,
+						);
+						await this._updateBlueStates(applianceId, newM, null, null);
+						this._blueRefreshRunning.delete(applianceId);
+						return;
+					}
+
+					if (attempt < MAX_ATTEMPTS) {
+						this.log.debug(
+							`Blue ${applianceId}: no new data yet (attempt ${attempt}/${MAX_ATTEMPTS}), retrying...`,
+						);
+						poll();
+					} else {
+						this.log.warn(
+							`Blue ${applianceId}: no new measurement found after ${MAX_ATTEMPTS * (POLL_INTERVAL_MS / 1000)}s ` +
+								`(timestamp still ${oldTimestamp || 'unknown'})`,
+						);
+						this._blueRefreshRunning.delete(applianceId);
+					}
+				} catch (err) {
+					this.log.warn(`Blue verify for ${applianceId} failed: ${err.message}`);
+					this._blueRefreshRunning.delete(applianceId);
+				}
+			}, POLL_INTERVAL_MS);
+		};
+
+		poll();
 	}
 
 	/* ================================================================== */
@@ -766,6 +881,10 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Dispensing: type=${tapType} amount=${tapAmount}ml for ${applianceId}`);
 				await this.client.tapWater(locationId, roomId, applianceId, tapType, tapAmount);
 				await this.setState(stateId, { val: false, ack: true });
+				// Reset tap controls to 0 after dispense to confirm command was consumed
+				// and to prevent accidental re-use of stale values.
+				await this.setState(`${this.namespace}.${applianceId}.controls.tapType`, { val: 0, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.tapAmount`, { val: 0, ack: true });
 				return;
 			}
 			// Blue: reset CO2
@@ -1036,6 +1155,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (this.pollTimer) {
 				this.clearTimeout(this.pollTimer);
 			}
+			this._blueRefreshRunning.clear();
 			this.client = null;
 			callback();
 		} catch {

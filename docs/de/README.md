@@ -204,9 +204,9 @@ Steuerungen:
 <applianceId>.controls.resetFilter        (boolean button)
 ```
 
-Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, startet den Zapfvorgang und setzt `dispenseTrigger` anschließend wieder auf `false`.
+Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, startet den Zapfvorgang und setzt `dispenseTrigger` anschließend wieder auf `false`. Nach dem Zapfvorgang werden `tapType` und `tapAmount` automatisch auf `0` zurückgesetzt, um eine unbeabsichtigte Wiederverwendung der Werte in nachfolgenden Polling-Zyklen zu verhindern. Sie werden auch bei jedem Adapterstart auf `0` zurückgesetzt.
 
-> **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Start des Adapters kann es 1 Poll-Zyklen dauern, bis aktuelle Werte (z. B. `remainingFilter`, `remainingCo2`) angezeigt werden.
+> **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Senden des Befehls startet eine **Hintergrund-Verifizierung**, die den `/details`-Endpunkt alle 10 Sekunden erneut abfragt (bis zu 3 Versuche / maximal 30 Sekunden insgesamt), bis ein neuerer Messwert-Timestamp erscheint. Nach Erkennung werden alle States aktualisiert. So wird sichergestellt, dass Werte wie `remainingFilter` und `remainingCo2` die aktuellen Gerätedaten widerspiegeln. Nach dem Start des Adapters kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte angezeigt werden.
 
 ---
 
@@ -226,6 +226,7 @@ Um die Anzahl der API-Aufrufe zu minimieren und HTTP-403-Fehler durch Rate-Limit
 | `/status` | jeder **5.** Poll | Alle | Online-/WLAN-/Update-Status ändert sich selten |
 | `/command` (lesen) | jeder **3.** Poll | Sense Guard | Ventilzustand (wird nach Befehlen sofort zurückgelesen) |
 | `/command` (`get_current_measurement`) | jeder **3.** Poll | Blue | Löst eine frische Messung am Gerät aus |
+| `/details` (Verifizierung) | bis zu **3×** nach Refresh | Blue | Hintergrund-Abfrage ob frische Daten angekommen sind (10s-Intervall, max. 30s gesamt) |
 | `/data/aggregated` (heute) | jeder **5.** Poll | Sense Guard | Tagesverbrauch für totalWaterConsumption |
 | `/data/aggregated` (historisch) | **einmal pro Tag** | Sense Guard | Historische Basis für totalWaterConsumption |
 | `/pressuremeasurement` | jeder **10.** Poll | Sense Guard | Ändert sich nur nach manueller Druckmessung |
