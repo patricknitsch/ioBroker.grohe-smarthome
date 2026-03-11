@@ -702,6 +702,12 @@ class GroheSmarthome extends utils.Adapter {
 		);
 		await this._ensureWritableNum(`${id}.controls`, 'tapAmount', 'Amount (ml, multiples of 50)', 'level', 250);
 		await this._ensureWritableBool(`${id}.controls`, 'dispenseTrigger', 'Dispense', 'button');
+		// On the first poll after adapter startup, reset tap controls to 0 to clear any stale values
+		// from a previous session that could cause unintended dispensing.
+		if (this.pollCount === 1) {
+			await this.setState(`${id}.controls.tapType`, { val: 0, ack: true });
+			await this.setState(`${id}.controls.tapAmount`, { val: 0, ack: true });
+		}
 		await this._ensureWritableBool(`${id}.controls`, 'resetCo2', 'Reset CO₂', 'button');
 		await this._ensureWritableBool(`${id}.controls`, 'resetFilter', 'Reset filter', 'button');
 
@@ -891,6 +897,10 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Dispensing: type=${tapType} amount=${tapAmount}ml for ${applianceId}`);
 				await this.client.tapWater(locationId, roomId, applianceId, tapType, tapAmount);
 				await this.setState(stateId, { val: false, ack: true });
+				// Reset tap controls to 0 after dispense to confirm command was consumed
+				// and to prevent accidental re-use of stale values.
+				await this.setState(`${this.namespace}.${applianceId}.controls.tapType`, { val: 0, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.tapAmount`, { val: 0, ack: true });
 				return;
 			}
 			// Blue: reset CO2
