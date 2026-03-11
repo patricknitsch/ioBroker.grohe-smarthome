@@ -42,6 +42,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### **WORK IN PROGRESS**
 
 * (claude/patricknitsch) Fix measurement "Filter" for Blue Systems
+* (claude/patricknitsch) Fix permanent dispense without Trigger
 
 ### 0.2.5 (2026-02-26)
 
