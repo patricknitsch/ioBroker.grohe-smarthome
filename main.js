@@ -562,9 +562,7 @@ class GroheSmarthome extends utils.Adapter {
 		// The /dashboard endpoint often returns stale remaining_filter / remaining_co2
 		// values, while /details provides the same data the GROHE app displays.
 		let m = appliance.data_latest?.measurement || {};
-		this.log.debug(
-			`Blue ${id} /dashboard measurement: ${JSON.stringify(appliance.data_latest?.measurement)}`,
-		);
+		this.log.debug(`Blue ${id} /dashboard measurement: ${JSON.stringify(appliance.data_latest?.measurement)}`);
 		if (locationId && roomId && this.client) {
 			try {
 				const details = await this.client.getApplianceDetails(locationId, roomId, id);
@@ -572,9 +570,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.debug(
 					`Blue ${id} /details data_latest keys: ${JSON.stringify(Object.keys(details?.data_latest || {}))}`,
 				);
-				this.log.debug(
-					`Blue ${id} /details measurement: ${JSON.stringify(details?.data_latest?.measurement)}`,
-				);
+				this.log.debug(`Blue ${id} /details measurement: ${JSON.stringify(details?.data_latest?.measurement)}`);
 				const detailsM = details?.data_latest?.measurement;
 				if (detailsM) {
 					m = detailsM;
@@ -621,7 +617,14 @@ class GroheSmarthome extends utils.Adapter {
 		// CO2 & Filter
 		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value.fill', m.remaining_co2);
 		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', m.remaining_filter);
-		await this._setNum(id, 'remainingCo2Liters', 'Remaining CO₂ (liters)', 'l', 'value.fill', m.remaining_co2_liters);
+		await this._setNum(
+			id,
+			'remainingCo2Liters',
+			'Remaining CO₂ (liters)',
+			'l',
+			'value.fill',
+			m.remaining_co2_liters,
+		);
 		await this._setNum(
 			id,
 			'remainingFilterLiters',
