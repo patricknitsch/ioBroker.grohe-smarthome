@@ -204,9 +204,9 @@ Controls:
 <applianceId>.controls.resetFilter        (boolean button)
 ```
 
-When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`.
+When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`. After the dispense, `tapType` and `tapAmount` are automatically reset to `0` to prevent unintended re-use of the values in subsequent polling cycles. They are also reset to `0` each time the adapter starts.
 
-> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After the command is sent, a **background verify loop** re-polls the `/dashboard` endpoint every 10 seconds (up to 5 attempts / 50 seconds total) until a newer measurement timestamp appears. Once detected, it waits one extra interval for values to settle, then updates all states. This ensures that values like `remainingFilter` and `remainingCo2` reflect the latest device data. After starting the adapter, it may take 1–2 poll cycles before current values are displayed.
+> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After the command is sent, a **background verify loop** re-polls the `/details` endpoint every 10 seconds (up to 3 attempts / 30 seconds total) until a newer measurement timestamp appears. Once detected, the states are updated. This ensures that values like `remainingFilter` and `remainingCo2` reflect the latest device data. After starting the adapter, it may take 1–2 poll cycles before current values are displayed.
 
 ---
 
@@ -226,7 +226,7 @@ To minimize API calls and avoid HTTP 403 rate-limiting errors, not every endpoin
 | `/status` | every **5th** poll | All | Online/WiFi/update status changes slowly |
 | `/command` (read) | every **3rd** poll | Sense Guard | Valve state (also read back immediately after commands) |
 | `/command` (`get_current_measurement`) | every **3rd** poll | Blue | Triggers a fresh measurement on the device |
-| `/dashboard` (verify) | up to **5×** after refresh | Blue | Background poll to verify fresh data arrived (10s interval, incl. settle delay) |
+| `/details` (verify) | up to **3×** after refresh | Blue | Background poll to verify fresh data arrived (10s interval, max 30s total) |
 | `/data/aggregated` (today) | every **5th** poll | Sense Guard | Current day's water consumption for totalWaterConsumption |
 | `/data/aggregated` (historical) | **once per day** | Sense Guard | Historical base for totalWaterConsumption |
 | `/pressuremeasurement` | every **10th** poll | Sense Guard | Only changes after a manual pressure test |

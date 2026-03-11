@@ -593,7 +593,7 @@ class GroheSmarthome extends utils.Adapter {
 
 				// Start background verify loop to wait for fresh data from /details.
 				// The Grohe cloud needs time to process the measurement request.
-				// We poll /details up to 5 times (every 10s).
+				// We poll /details up to 3 times (every 10s, max 30s).
 				this._startBlueVerify(id, locationId, roomId, oldTimestamp);
 			} catch (err) {
 				this.log.warn(`Measurement refresh for Blue ${id} failed: ${err.message}`);
