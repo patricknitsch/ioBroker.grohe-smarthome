@@ -606,9 +606,9 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
-		// Trigger a refresh every 3rd poll so the device sends a fresh reading to the
-		// cloud, which will then be picked up by the next regular poll or the verify loop.
-		if (this.pollCount % 3 === 0 && locationId && roomId && this.client) {
+		// Trigger a refresh on every poll (matching the HA integration approach) so the
+		// device always sends its latest reading to the cloud before we fetch /details.
+		if (locationId && roomId && this.client) {
 			const oldTimestamp = m.timestamp || null;
 			try {
 				await this.client.setApplianceCommand(locationId, roomId, id, {
