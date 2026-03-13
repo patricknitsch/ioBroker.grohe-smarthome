@@ -598,15 +598,12 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
-		// Trigger a refresh on every poll (matching the HA integration approach) so the
-		// device always sends its latest reading to the cloud before we fetch /details.
+		// Trigger a refresh on every poll with up to 3 retries on timeout (matching
+		// the HA integration approach) so the device reliably pushes its latest reading.
 		if (locationId && roomId && this.client) {
 			const oldTimestamp = m.timestamp || null;
 			try {
-				await this.client.setApplianceCommand(locationId, roomId, id, {
-					get_current_measurement: true,
-				});
-				this.log.debug(`Triggered measurement refresh for Blue ${id}`);
+				await this._sendMeasurementRefresh(locationId, roomId, id);
 
 				// Start background verify loop to pick up the fresh reading faster
 				// (within ~10-30s) rather than waiting for the next full poll cycle.
@@ -730,6 +727,54 @@ class GroheSmarthome extends utils.Adapter {
 		// Raw measurement data (optional)
 		if (this.config.rawStates) {
 			await this._writeRaw(id, m);
+		}
+	}
+
+	/* ================================================================== */
+	/*  Blue – send get_current_measurement with retry                   */
+	/* ================================================================== */
+
+	/**
+	 * Send the get_current_measurement command to a Blue device, retrying up to
+	 * MAX_ATTEMPTS times on network/timeout errors.
+	 *
+	 * Mirrors the HA grohe_smarthome BlueHomeCoordinator._send_refresh_command()
+	 * which retries up to 3 times on httpx.ReadTimeout.  In the ioBroker adapter
+	 * (axios) the equivalent transient errors have code ECONNABORTED, ETIMEDOUT,
+	 * ECONNRESET, or ERR_NETWORK.
+	 *
+	 * @param {string} locationId  Location ID of the device
+	 * @param {string} roomId  Room ID of the device
+	 * @param {string} applianceId  Appliance ID of the Blue device
+	 * @returns {Promise<void>} Resolves on first successful send; throws if all attempts fail.
+	 */
+	async _sendMeasurementRefresh(locationId, roomId, applianceId) {
+		const MAX_ATTEMPTS = 3;
+		const RETRYABLE_CODES = new Set(['ECONNABORTED', 'ETIMEDOUT', 'ECONNRESET', 'ERR_NETWORK']);
+
+		for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+			try {
+				this.log.debug(
+					`Sending get_current_measurement to Blue ${applianceId} – attempt ${attempt}/${MAX_ATTEMPTS}`,
+				);
+				await this.client.setApplianceCommand(locationId, roomId, applianceId, {
+					get_current_measurement: true,
+				});
+				this.log.debug(`Triggered measurement refresh for Blue ${applianceId}`);
+				return;
+			} catch (err) {
+				const isRetryable = RETRYABLE_CODES.has(err.code) || err.message?.toLowerCase().includes('timeout');
+				if (attempt < MAX_ATTEMPTS && isRetryable) {
+					this.log.debug(
+						`Measurement refresh attempt ${attempt}/${MAX_ATTEMPTS} timed out for Blue ${applianceId} – retrying: ${err.message}`,
+					);
+				} else {
+					this.log.warn(
+						`Measurement refresh failed for Blue ${applianceId} after ${attempt} attempt(s): ${err.message}`,
+					);
+					throw err;
+				}
+			}
 		}
 	}
 
