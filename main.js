@@ -136,6 +136,16 @@ class GroheSmarthome extends utils.Adapter {
 		 */
 		this._blueRefreshRunning = new Map();
 
+		/**
+		 * Cache for consumption-based filter calculation for Blue devices.
+		 * Maps applianceId -> { base, lastDay, fromStr, capacity }
+		 * base     = total liters consumed from filter replacement to yesterday
+		 * lastDay  = ISO date string when base was last calculated
+		 * fromStr  = ISO date of last filter replacement (cache invalidated on change)
+		 * capacity = derived filter total capacity in liters
+		 */
+		this._blueFilterConsumptionCache = new Map();
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -579,6 +589,21 @@ class GroheSmarthome extends utils.Adapter {
 			}
 		}
 
+		// The Grohe device firmware only updates remaining_filter infrequently (can be
+		// many days out of date even after a fresh get_current_measurement).  Calculate
+		// a more accurate filter remaining from actual water consumption since the last
+		// filter replacement, mirroring how the Grohe app derives the displayed value.
+		if (locationId && roomId && this.client) {
+			try {
+				const calcFilter = await this._calcBlueFilterFromConsumption(id, locationId, roomId, m);
+				if (calcFilter !== null) {
+					m = { ...m, remaining_filter: calcFilter.pct, remaining_filter_liters: calcFilter.liters };
+				}
+			} catch (err) {
+				this.log.debug(`Blue ${id}: filter consumption calculation failed, using device data: ${err.message}`);
+			}
+		}
+
 		// Blue devices do NOT push measurements automatically – the device must
 		// be explicitly asked via get_current_measurement (the Grohe app does this too).
 		// Trigger a refresh every 3rd poll so the device sends a fresh reading to the
@@ -762,7 +787,27 @@ class GroheSmarthome extends utils.Adapter {
 								`(old=${oldTimestamp}, new=${newTimestamp}, ` +
 								`remaining_filter=${newM.remaining_filter}, remaining_co2=${newM.remaining_co2})`,
 						);
-						await this._updateBlueStates(applianceId, newM, null, null);
+						let stateM = newM;
+						try {
+							const calcFilter = await this._calcBlueFilterFromConsumption(
+								applianceId,
+								locationId,
+								roomId,
+								newM,
+							);
+							if (calcFilter !== null) {
+								stateM = {
+									...newM,
+									remaining_filter: calcFilter.pct,
+									remaining_filter_liters: calcFilter.liters,
+								};
+							}
+						} catch (calcErr) {
+							this.log.debug(
+								`Blue ${applianceId}: filter calc in verify loop failed: ${calcErr.message}`,
+							);
+						}
+						await this._updateBlueStates(applianceId, stateM, null, null);
 						this._blueRefreshRunning.delete(applianceId);
 						return;
 					}
@@ -780,7 +825,27 @@ class GroheSmarthome extends utils.Adapter {
 							`Blue ${applianceId}: no new measurement timestamp after ${MAX_ATTEMPTS * (POLL_INTERVAL_MS / 1000)}s ` +
 								`(still ${oldTimestamp || 'unknown'}); updating states with current /details data`,
 						);
-						await this._updateBlueStates(applianceId, newM, null, null);
+						let stateM = newM;
+						try {
+							const calcFilter = await this._calcBlueFilterFromConsumption(
+								applianceId,
+								locationId,
+								roomId,
+								newM,
+							);
+							if (calcFilter !== null) {
+								stateM = {
+									...newM,
+									remaining_filter: calcFilter.pct,
+									remaining_filter_liters: calcFilter.liters,
+								};
+							}
+						} catch (calcErr) {
+							this.log.debug(
+								`Blue ${applianceId}: filter calc in verify loop failed: ${calcErr.message}`,
+							);
+						}
+						await this._updateBlueStates(applianceId, stateM, null, null);
 						this._blueRefreshRunning.delete(applianceId);
 					}
 				} catch (err) {
@@ -791,6 +856,111 @@ class GroheSmarthome extends utils.Adapter {
 		};
 
 		poll();
+	}
+
+	/* ================================================================== */
+	/*  Blue – consumption-based filter calculation                       */
+	/* ================================================================== */
+
+	/**
+	 * Calculate remaining filter % and liters from actual water consumption since
+	 * the last filter replacement.  The Grohe device firmware updates remaining_filter
+	 * infrequently (the field can be days or weeks stale even after a fresh
+	 * get_current_measurement).  The Grohe app uses aggregated dispensing data to
+	 * derive the displayed filter percentage – we mirror that approach here.
+	 *
+	 * Algorithm:
+	 *  1. Derive filter capacity from the device-reported remaining_filter_liters /
+	 *     (remaining_filter / 100).
+	 *  2. Fetch total liters dispensed since date_of_filter_replacement via
+	 *     /data/aggregated (cached daily like Sense Guard total consumption).
+	 *  3. remaining_filter_liters = capacity – total_dispensed_since_replacement
+	 *  4. remaining_filter       = round(remaining_filter_liters / capacity * 100)
+	 *
+	 * Returns { pct, liters } on success, or null if insufficient data / API failure
+	 * (caller falls back to device-reported values).
+	 */
+	async _calcBlueFilterFromConsumption(applianceId, locationId, roomId, m) {
+		if (
+			!m.date_of_filter_replacement ||
+			!m.remaining_filter ||
+			!m.remaining_filter_liters ||
+			m.remaining_filter <= 0 ||
+			m.remaining_filter_liters <= 0
+		) {
+			return null;
+		}
+
+		// Derive filter cartridge total capacity from the device-reported values.
+		// (e.g. 1971L at 66% → capacity ≈ 3000L)
+		const capacity = Math.round((m.remaining_filter_liters * 100) / m.remaining_filter);
+		if (!capacity || capacity <= 0 || !isFinite(capacity)) {
+			return null;
+		}
+
+		const filterDate = new Date(m.date_of_filter_replacement);
+		if (isNaN(filterDate.getTime())) {
+			return null;
+		}
+
+		const fromStr = filterDate.toISOString().split('T')[0];
+		const todayStr = new Date().toISOString().split('T')[0];
+
+		// Today's consumption (always fresh)
+		const todayData = await this.client.getApplianceData(
+			locationId,
+			roomId,
+			applianceId,
+			todayStr,
+			todayStr,
+			'day',
+		);
+		const todayConsumed = this._sumWithdrawals(todayData);
+
+		// Historical base (since filter replacement up to yesterday) – refresh once/day
+		let cache = this._blueFilterConsumptionCache.get(applianceId);
+		if (!cache || cache.lastDay !== todayStr || cache.fromStr !== fromStr) {
+			const histData = await this.client.getApplianceData(
+				locationId,
+				roomId,
+				applianceId,
+				fromStr,
+				todayStr,
+				'year',
+			);
+			const histTotal = this._sumWithdrawals(histData);
+			const base = Math.max(0, Math.round((histTotal - todayConsumed) * 100) / 100);
+			cache = { base, lastDay: todayStr, fromStr, capacity };
+			this._blueFilterConsumptionCache.set(applianceId, cache);
+			this.log.debug(
+				`Blue ${applianceId}: filter consumption base=${base}l since ${fromStr}, capacity=${capacity}l`,
+			);
+		}
+
+		const totalConsumed = Math.round((cache.base + todayConsumed) * 100) / 100;
+
+		// Guard: if the aggregated API returned no data at all for a filter that has
+		// clearly been in use (replaced more than 7 days ago), skip the override to
+		// avoid incorrectly showing 100% remaining.
+		const daysSinceReplacement = (Date.now() - filterDate.getTime()) / (1000 * 60 * 60 * 24);
+		if (totalConsumed <= 0 && daysSinceReplacement > 7) {
+			this.log.debug(
+				`Blue ${applianceId}: aggregated API returned 0L consumed since ${fromStr} ` +
+					`(${Math.round(daysSinceReplacement)}d ago) – skipping consumption-based filter calc`,
+			);
+			return null;
+		}
+
+		const remainingLiters = Math.max(0, Math.round((capacity - totalConsumed) * 100) / 100);
+		const remainingPct = Math.max(0, Math.round((remainingLiters / capacity) * 100));
+
+		this.log.debug(
+			`Blue ${applianceId}: calculated filter: consumed=${Math.round(totalConsumed)}l, ` +
+				`remaining=${remainingLiters}l (${remainingPct}%), ` +
+				`device-reported=${m.remaining_filter}% (${m.remaining_filter_liters}l)`,
+		);
+
+		return { pct: remainingPct, liters: remainingLiters };
 	}
 
 	/* ================================================================== */
@@ -1175,6 +1345,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.clearTimeout(this.pollTimer);
 			}
 			this._blueRefreshRunning.clear();
+			this._blueFilterConsumptionCache.clear();
 			this.client = null;
 			callback();
 		} catch {
