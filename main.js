@@ -14,16 +14,25 @@ const GROHE_BLUE_PROFESSIONAL = 105;
  * Grohe Blue filter type → max filter capacity in liters.
  * Types match GroheBlueFilterType enum from ha-grohe_smarthome (Flo-Schilli).
  * The Grohe app calculates remaining filter % as: remaining_filter_liters / capacity * 100.
- * The raw API field `remaining_filter` uses a legacy 3000 L base and diverges from the app.
+ * The raw API field `remaining_filter` uses a fixed base and may diverge from the app.
+ *
+ * Capacities (from Grohe product specifications):
+ *   1 = S Filter          →   600 L
+ *   2 = Aktivkohlefilter  → 3000 L
+ *   3 = Ultra Safe Filter → 3000 L
+ *   4 = Magnesium+Zink    →  400 L
+ *   5 = M Filter          → 1500 L
+ *   6 = L Filter          → 2500 L
  */
 const BLUE_FILTER_CAPACITY_LITERS = {
-	1: 1500, // S_SIZE
-	2: 1500, // ACTIVE_CARBON
-	3: 1500, // ULTRA_SAFE
-	4: 1500, // MAGNESIUM_PLUS
-	5: 3150, // M_SIZE (most common for Blue Home)
+	1: 600, // S_SIZE
+	2: 3000, // ACTIVE_CARBON (Aktivkohlefilter)
+	3: 3000, // ULTRA_SAFE
+	4: 400, // MAGNESIUM_PLUS (Magnesium+Zink)
+	5: 1500, // M_SIZE
+	6: 2500, // L_SIZE
 };
-const BLUE_FILTER_CAPACITY_DEFAULT = 3150; // M_SIZE fallback when filter_type unknown
+const BLUE_FILTER_CAPACITY_DEFAULT = 3000; // ACTIVE_CARBON fallback when filter_type unknown
 
 const NOTIFICATION_CATEGORIES = {
 	0: 'Advertisement',
