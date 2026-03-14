@@ -10,6 +10,30 @@ const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
 
+/**
+ * Grohe Blue filter type → max filter capacity in liters.
+ * Types match GroheBlueFilterType enum from ha-grohe_smarthome (Flo-Schilli).
+ * The Grohe app calculates remaining filter % as: remaining_filter_liters / capacity * 100.
+ * The raw API field `remaining_filter` uses a fixed base and may diverge from the app.
+ *
+ * Capacities (from Grohe product specifications):
+ *   1 = S Filter          →   600 L
+ *   2 = Aktivkohlefilter  → 3000 L
+ *   3 = Ultra Safe Filter → 3000 L
+ *   4 = Magnesium+Zink    →  400 L
+ *   5 = M Filter          → 1500 L
+ *   6 = L Filter          → 2500 L
+ */
+const BLUE_FILTER_CAPACITY_LITERS = {
+	1: 600, // S_SIZE
+	2: 3000, // ACTIVE_CARBON (Aktivkohlefilter)
+	3: 3000, // ULTRA_SAFE
+	4: 400, // MAGNESIUM_PLUS (Magnesium+Zink)
+	5: 1500, // M_SIZE
+	6: 2500, // L_SIZE
+};
+const BLUE_FILTER_CAPACITY_DEFAULT = 3000; // ACTIVE_CARBON fallback when filter_type unknown
+
 const NOTIFICATION_CATEGORIES = {
 	0: 'Advertisement',
 	10: 'Information',
@@ -336,7 +360,10 @@ class GroheSmarthome extends utils.Adapter {
 		const type = appliance.type;
 		const name = appliance.name || 'Grohe Device';
 
-		this.devices.set(id, { locationId, roomId, applianceId: id, type, name });
+		// Preserve filterType from a previous verify-loop fetch so that the
+		// correct filter capacity is used even on dashboard-only poll cycles.
+		const existingFilterType = this.devices.get(id)?.filterType ?? null;
+		this.devices.set(id, { locationId, roomId, applianceId: id, type, name, filterType: existingFilterType });
 
 		// Fetch status only every 5th poll (online/wifi/update change slowly)
 		let status = null;
@@ -584,23 +611,55 @@ class GroheSmarthome extends utils.Adapter {
 			}
 		}
 
-		await this._updateBlueStates(id, m, status, appliance);
+		// Use the filter type stored from the last /details fetch (verify loop).
+		// This ensures the correct capacity is used to calculate remaining filter %.
+		const filterType = this.devices.get(id)?.filterType ?? null;
+		await this._updateBlueStates(id, m, status, appliance, filterType);
 	}
 
 	/**
 	 * Write all Blue device measurement states.
 	 * Called both from the normal poll (/details data) and from the
 	 * background verify loop when fresh data arrives after a measurement command.
+	 *
+	 * @param {string} id - Appliance ID
+	 * @param {object} m - Measurement object
+	 * @param {object|null} status - Status object (or null)
+	 * @param {object|null} appliance - Appliance object (or null)
+	 * @param {number|null} filterType - filter_type from details.params (1–5), or null if unknown
 	 */
-	async _updateBlueStates(id, m, status, appliance) {
+	async _updateBlueStates(id, m, status, appliance, filterType) {
 		this.log.debug(
 			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
 				`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
 		);
 
+		// Calculate remaining filter % from liters using the correct filter capacity.
+		// The raw `remaining_filter` from the API uses a legacy 3000 L base which diverges
+		// from the Grohe app.  The app calculates: remaining_filter_liters / capacity * 100.
+		// See: ha-grohe_smarthome config.yaml → details.params.filter_type
+		const filterCapacity =
+			filterType != null
+				? (BLUE_FILTER_CAPACITY_LITERS[filterType] ?? BLUE_FILTER_CAPACITY_DEFAULT)
+				: BLUE_FILTER_CAPACITY_DEFAULT;
+		let remainingFilterPct;
+		if (m.remaining_filter_liters != null) {
+			remainingFilterPct = Math.min(
+				100,
+				Math.max(0, Math.round((m.remaining_filter_liters / filterCapacity) * 100)),
+			);
+		} else {
+			// remaining_filter_liters unavailable – fall back to the raw API percentage.
+			// This may be slightly off (legacy 3000 L base) but is better than null.
+			this.log.debug(
+				`Blue ${id}: remaining_filter_liters missing, using raw remaining_filter=${m.remaining_filter}`,
+			);
+			remainingFilterPct = m.remaining_filter;
+		}
+
 		// CO2 & Filter
 		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value.fill', m.remaining_co2);
-		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', m.remaining_filter);
+		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', remainingFilterPct);
 		await this._setNum(
 			id,
 			'remainingCo2Liters',
@@ -741,13 +800,24 @@ class GroheSmarthome extends utils.Adapter {
 					const newTimestamp = details?.data_latest?.measurement?.timestamp;
 					const newM = details?.data_latest?.measurement || {};
 
+					// Extract filter type from params and persist it for future polls.
+					// This is needed to calculate the correct remaining filter percentage
+					// (see BLUE_FILTER_CAPACITY_LITERS).
+					const filterType = details?.params?.filter_type ?? null;
+					if (filterType != null) {
+						const dev = this.devices.get(applianceId);
+						if (dev) {
+							dev.filterType = filterType;
+						}
+					}
+
 					if (newTimestamp && newTimestamp !== oldTimestamp) {
 						this.log.info(
 							`Blue ${applianceId}: fresh data from /details ` +
 								`(old=${oldTimestamp}, new=${newTimestamp}, ` +
 								`remaining_filter=${newM.remaining_filter}, remaining_co2=${newM.remaining_co2})`,
 						);
-						await this._updateBlueStates(applianceId, newM, null, null);
+						await this._updateBlueStates(applianceId, newM, null, null, filterType);
 						this._blueRefreshRunning.delete(applianceId);
 						return;
 					}
