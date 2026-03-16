@@ -1,4 +1,4 @@
-# Dependabot will run on day 15 of each month at 01:42 (Europe/Berlin timezone)
+# Dependabot will run on day 17 of each month at 01:42 (Europe/Berlin timezone)
 version: 2
 updates:
 
@@ -8,7 +8,7 @@ updates:
       interval: "cron"
       day: "monday"
       timezone: "Europe/Berlin"
-      cronjob: "42 1 15 * *"
+      cronjob: "42 1 17 * *"
     open-pull-requests-limit: 15
     assignees:
       - "patricknitsch"
@@ -20,7 +20,7 @@ updates:
       interval: "cron"
       day: "monday"
       timezone: "Europe/Berlin"
-      cronjob: "42 1 15 * *"
+      cronjob: "42 1 17 * *"
     open-pull-requests-limit: 15
     assignees:
       - "patricknitsch"
