@@ -6,257 +6,81 @@
     <title>Grohe Smarthome – Device Overview</title>
     <script src="../../socket.io/socket.io.js"></script>
     <style>
-        :root {
-            --bg: #0a1929;
-            --surface: #0d2137;
-            --text: #ddeeff;
-            --text-muted: #6b9bbf;
-            --accent: #29b6f6;
-            --accent-alt: #00e5ff;
-            --border: #1a3a5c;
-            --th-bg: #0d2a42;
-            --code-bg: rgba(41,182,246,0.1);
-            --dot-inactive: #2a4a66;
-            --shadow: 0 2px 10px rgba(0,0,0,0.6);
-            --sense-accent: #4fc3f7;
-            --guard-accent: #0288d1;
-            --blue-accent: #26c6da;
-            --warn: #ff9800;
-            --danger: #ef5350;
-        }
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg: #e3f2fd;
-                --surface: #ffffff;
-                --text: #0d2137;
-                --text-muted: #4a7fa0;
-                --accent: #0277bd;
-                --accent-alt: #006064;
-                --border: #b3d9f0;
-                --th-bg: #daeaf8;
-                --code-bg: rgba(2,119,189,0.08);
-                --dot-inactive: #90b9d4;
-                --shadow: 0 1px 4px rgba(0,60,120,0.15);
-                --sense-accent: #0288d1;
-                --guard-accent: #01579b;
-                --blue-accent: #00838f;
-                --warn: #e65100;
-                --danger: #c62828;
-            }
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 20px;
-            font-size: 14px;
-            min-height: 100vh;
-        }
-        section { margin-bottom: 28px; }
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-        .section-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .sense-icon   { background: var(--sense-accent); }
-        .guard-icon   { background: var(--guard-accent); }
-        .blue-icon    { background: var(--blue-accent); }
-        .card {
-            background: var(--surface);
-            border-radius: 8px;
-            overflow-x: auto;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-        table {
-            width: 100%;
-            min-width: 560px;
-            border-collapse: collapse;
-        }
-        th {
-            background: var(--th-bg);
-            padding: 9px 14px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 12px;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            white-space: nowrap;
-        }
-        td {
-            padding: 9px 14px;
-            border-top: 1px solid var(--border);
-            font-size: 13px;
-            color: var(--text);
-            vertical-align: middle;
-        }
-        tr:first-child td { border-top: none; }
-        tr:hover td { background: rgba(41,182,246,0.04); }
-        .col-status { width: 36px; text-align: center; }
-        .dot {
-            display: inline-block;
-            width: 11px;
-            height: 11px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 6px var(--accent);
-            vertical-align: middle;
-        }
-        .dot.inactive {
-            background: var(--dot-inactive);
-            box-shadow: none;
-        }
-        .value-cell { font-weight: 600; }
-        .val-na { color: var(--text-muted); font-weight: normal; }
-        .empty-row td {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 24px;
-            font-style: italic;
-        }
-        #loading {
-            text-align: center;
-            padding: 60px;
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-        #loading::after {
-            content: '';
-            display: block;
-            width: 32px;
-            height: 32px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-            margin: 16px auto 0;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #error-msg {
-            background: rgba(239,83,80,0.12);
-            border: 1px solid rgba(239,83,80,0.4);
-            color: #ef5350;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            display: none;
-            font-size: 13px;
-        }
-        #refresh-info {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-align: right;
-            margin-top: 8px;
-        }
-        #content { display: none; }
-        #no-devices {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 40px;
-            font-size: 14px;
-            display: none;
-        }
-        .intro-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        .intro-text {
-            font-size: 14px;
-            color: var(--text-muted);
-            flex: 1;
-            min-width: 200px;
-        }
-        .config-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: transparent;
-            color: var(--accent);
-            border: 1.5px solid var(--accent);
-            border-radius: 6px;
-            padding: 7px 16px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-            flex-shrink: 0;
-            font-family: inherit;
-            transition: background 0.15s, color 0.15s;
-        }
-        .config-btn:hover {
-            background: var(--accent);
-            color: var(--bg);
-        }
-        /* Progress bar for CO₂ / Filter remaining */
-        .progress-wrap {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            min-width: 90px;
-        }
-        .progress-track {
-            flex: 1;
-            height: 7px;
-            background: var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-            min-width: 50px;
-        }
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: var(--accent);
-            transition: width 0.4s;
-        }
-        .progress-fill.low    { background: var(--danger); }
-        .progress-fill.medium { background: var(--warn); }
-        .progress-label {
-            font-size: 12px;
-            font-weight: 600;
-            min-width: 32px;
-            text-align: right;
-        }
-        /* Valve badge */
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .badge-open   { background: rgba(41,182,246,0.15); color: var(--accent); }
-        .badge-closed { background: rgba(100,150,180,0.12); color: var(--text-muted); }
-        /* Device name */
-        .device-name { font-weight: 600; }
-        /* Watermark decoration */
-        .tab-header-decoration {
-            position: absolute;
-            right: 20px;
-            top: 14px;
-            font-size: 48px;
-            opacity: 0.04;
-            pointer-events: none;
-            user-select: none;
-        }
+        :root{--bg:#0a1929;--surface:#0d2137;--surface2:#0f2a48;--text:#ddeeff;--text-muted:#6b9bbf;
+        --accent:#29b6f6;--border:#1a3a5c;--shadow:0 2px 12px rgba(0,0,0,.6);
+        --sense-accent:#4fc3f7;--guard-accent:#0288d1;--blue-accent:#26c6da;
+        --warn:#ff9800;--danger:#ef5350;--success:#66bb6a;
+        --valve-open-bg:rgba(102,187,106,.15);--valve-open-fg:#66bb6a;
+        --valve-closed-bg:rgba(239,83,80,.15);--valve-closed-fg:#ef5350;}
+        @media(prefers-color-scheme:light){:root{--bg:#e3f2fd;--surface:#fff;--surface2:#f5f9ff;
+        --text:#0d2137;--text-muted:#4a7fa0;--accent:#0277bd;--border:#b3d9f0;
+        --shadow:0 1px 5px rgba(0,60,120,.18);--sense-accent:#0288d1;--guard-accent:#01579b;
+        --blue-accent:#00838f;--warn:#e65100;--danger:#c62828;--success:#2e7d32;
+        --valve-open-bg:rgba(46,125,50,.12);--valve-open-fg:#2e7d32;
+        --valve-closed-bg:rgba(198,40,40,.12);--valve-closed-fg:#c62828;}}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+            background:var(--bg);color:var(--text);padding:20px;font-size:14px;min-height:100vh}
+        .intro-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+            flex-wrap:wrap;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+        .intro-text{font-size:14px;color:var(--text-muted);flex:1;min-width:200px}
+        .config-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--accent);
+            border:1.5px solid var(--accent);border-radius:6px;padding:7px 16px;cursor:pointer;
+            font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;font-family:inherit;
+            transition:background .15s,color .15s}
+        .config-btn:hover{background:var(--accent);color:var(--bg)}
+        .device-group{margin-bottom:32px}
+        .group-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;
+            margin-bottom:14px;color:var(--text)}
+        .group-icon{width:18px;height:18px;border-radius:50%;flex-shrink:0}
+        .sense-icon{background:var(--sense-accent)}.guard-icon{background:var(--guard-accent)}
+        .blue-icon{background:var(--blue-accent)}
+        .device-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+            box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+        .card-header{display:flex;align-items:center;gap:12px;padding:14px 18px;
+            background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+        .dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--accent);
+            box-shadow:0 0 6px var(--accent);flex-shrink:0}
+        .dot.inactive{background:#888;box-shadow:none}
+        .card-device-name{font-size:16px;font-weight:700;flex:1;min-width:120px}
+        .valve-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
+            border-radius:14px;font-size:13px;font-weight:700;letter-spacing:.02em}
+        .valve-badge-open{background:var(--valve-open-bg);color:var(--valve-open-fg)}
+        .valve-badge-closed{background:var(--valve-closed-bg);color:var(--valve-closed-fg)}
+        .valve-badge-dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+        .update-badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;
+            font-weight:600;background:rgba(255,152,0,.18);color:var(--warn)}
+        .data-section{padding:12px 18px;border-bottom:1px solid var(--border)}
+        .data-section:last-child{border-bottom:none}
+        .sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+            color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+        .sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+        .prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px 16px}
+        .prop-item{display:flex;flex-direction:column;gap:2px}
+        .prop-label{font-size:11px;color:var(--text-muted);font-weight:500}
+        .prop-value{font-size:13px;font-weight:600;color:var(--text)}
+        .prop-value.ok{color:var(--success)}.prop-value.warn{color:var(--warn)}.prop-value.danger{color:var(--danger)}
+        .progress-wrap{display:flex;align-items:center;gap:8px}
+        .progress-track{flex:1;height:7px;background:var(--border);border-radius:4px;
+            overflow:hidden;min-width:60px;max-width:120px}
+        .progress-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .4s}
+        .progress-label{font-size:12px;font-weight:700;white-space:nowrap}
+        .notif-row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+        .notif-message{flex:1;min-width:200px}
+        .notif-time{font-size:12px;color:var(--text-muted);white-space:nowrap}
+        .notif-category{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;
+            font-weight:600;margin-right:6px;background:rgba(41,182,246,.12);color:var(--accent)}
+        .notif-category.alarm{background:rgba(239,83,80,.15);color:var(--danger)}
+        .notif-category.warning{background:rgba(255,152,0,.15);color:var(--warn)}
+        #loading{text-align:center;padding:60px;color:var(--text-muted);font-size:16px}
+        #loading::after{content:'';display:block;width:32px;height:32px;border:3px solid var(--border);
+            border-top-color:var(--accent);border-radius:50%;animation:spin .9s linear infinite;margin:16px auto 0}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        #error-msg{background:rgba(239,83,80,.12);border:1px solid rgba(239,83,80,.4);color:#ef5350;
+            padding:12px 16px;border-radius:6px;margin-bottom:16px;display:none;font-size:13px}
+        #refresh-info{font-size:11px;color:var(--text-muted);text-align:right;margin-top:8px}
+        #content{display:none}
+        #no-devices{text-align:center;color:var(--text-muted);padding:40px;font-size:14px;display:none}
     </style>
 </head>
 <body>
@@ -267,850 +91,525 @@
         <span id="intro-text" class="intro-text"></span>
         <button class="config-btn" id="config-btn"></button>
     </div>
-
-    <!-- Grohe Sense -->
-    <section id="sense-section" style="display:none">
-        <div class="section-title">
-            <span class="section-icon sense-icon"></span>
-            <span id="h-sense"></span>
-        </div>
-        <div class="card">
-            <table id="sense-table">
-                <thead>
-                    <tr>
-                        <th class="col-status"></th>
-                        <th id="th-sense-name"></th>
-                        <th id="th-sense-temp"></th>
-                        <th id="th-sense-hum"></th>
-                        <th id="th-sense-bat"></th>
-                        <th id="th-sense-last"></th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-sense"></tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- Grohe Sense Guard -->
-    <section id="guard-section" style="display:none">
-        <div class="section-title">
-            <span class="section-icon guard-icon"></span>
-            <span id="h-guard"></span>
-        </div>
-        <div class="card">
-            <table id="guard-table">
-                <thead>
-                    <tr>
-                        <th class="col-status"></th>
-                        <th id="th-guard-name"></th>
-                        <th id="th-guard-wtemp"></th>
-                        <th id="th-guard-flow"></th>
-                        <th id="th-guard-pres"></th>
-                        <th id="th-guard-valve"></th>
-                        <th id="th-guard-daily"></th>
-                        <th id="th-guard-last"></th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-guard"></tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- Grohe Blue -->
-    <section id="blue-section" style="display:none">
-        <div class="section-title">
-            <span class="section-icon blue-icon"></span>
-            <span id="h-blue"></span>
-        </div>
-        <div class="card">
-            <table id="blue-table">
-                <thead>
-                    <tr>
-                        <th class="col-status"></th>
-                        <th id="th-blue-name"></th>
-                        <th id="th-blue-co2"></th>
-                        <th id="th-blue-filter"></th>
-                        <th id="th-blue-co2l"></th>
-                        <th id="th-blue-filterl"></th>
-                        <th id="th-blue-last"></th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-blue"></tbody>
-            </table>
-        </div>
-    </section>
-
+    <div id="sense-group" class="device-group" style="display:none">
+        <div class="group-title"><span class="group-icon sense-icon"></span><span id="h-sense"></span></div>
+        <div id="sense-cards"></div>
+    </div>
+    <div id="guard-group" class="device-group" style="display:none">
+        <div class="group-title"><span class="group-icon guard-icon"></span><span id="h-guard"></span></div>
+        <div id="guard-cards"></div>
+    </div>
+    <div id="blue-group" class="device-group" style="display:none">
+        <div class="group-title"><span class="group-icon blue-icon"></span><span id="h-blue"></span></div>
+        <div id="blue-cards"></div>
+    </div>
     <div id="no-devices"></div>
     <div id="refresh-info"></div>
 </div>
-
 <script>
-(function () {
-    'use strict';
-
-    /* ── i18n ── */
-    var STRINGS = {
-        en: {
-            loading:           'Loading\u2026',
-            noConn:            'Cannot connect to ioBroker socket.',
-            error:             'Error\u202f: ',
-            refreshed:         'Last\u00a0updated\u202f: ',
-            configBtn:         'Configuration',
-            intro:             'Overview of all connected Grohe water devices.',
-            noDevices:         'No Grohe devices found. Please check adapter configuration.',
-            hSense:            'Grohe Sense \u2013 Humidity Sensor',
-            hGuard:            'Grohe Sense Guard \u2013 Water Guard',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Drinking Water',
-            colName:           'Device',
-            colStatus:         'Status',
-            colTemp:           'Temperature',
-            colHumidity:       'Humidity',
-            colBattery:        'Battery',
-            colLastUpdate:     'Last Update',
-            colWaterTemp:      'Water\u00a0Temp.',
-            colFlowRate:       'Flow\u00a0Rate',
-            colPressure:       'Pressure',
-            colValve:          'Valve',
-            colDailyConsump:   'Daily\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0rem.',
-            colFilter:         'Filter\u00a0rem.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filter\u00a0(l)',
-            valveOpen:         'Open',
-            valveClosed:       'Closed',
-            online:            'Online',
-            offline:           'Offline',
-            na:                'n/a',
-        },
-        de: {
-            loading:           'Lade\u2026',
-            noConn:            'Verbindung zum ioBroker-Socket nicht m\u00f6glich.',
-            error:             'Fehler\u202f: ',
-            refreshed:         'Zuletzt\u00a0aktualisiert\u202f: ',
-            configBtn:         'Konfiguration',
-            intro:             '\u00dcbersicht aller verbundenen Grohe Wassenger\u00e4te.',
-            noDevices:         'Keine Grohe-Ger\u00e4te gefunden. Bitte Adapterkonfiguration pr\u00fcfen.',
-            hSense:            'Grohe Sense \u2013 Feuchtigkeitssensor',
-            hGuard:            'Grohe Sense Guard \u2013 Wasserw\u00e4chter',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Trinkwasser',
-            colName:           'Ger\u00e4t',
-            colStatus:         'Status',
-            colTemp:           'Temperatur',
-            colHumidity:       'Luftfeuchte',
-            colBattery:        'Akku',
-            colLastUpdate:     'Letzte\u00a0Messung',
-            colWaterTemp:      'Wassertemp.',
-            colFlowRate:       'Durchfluss',
-            colPressure:       'Druck',
-            colValve:          'Ventil',
-            colDailyConsump:   'T\u00e4glich\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0verbl.',
-            colFilter:         'Filter\u00a0verbl.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filter\u00a0(l)',
-            valveOpen:         'Offen',
-            valveClosed:       'Geschlossen',
-            online:            'Online',
-            offline:           'Offline',
-            na:                'k.\u202fA.',
-        },
-        es: {
-            loading:           'Cargando\u2026',
-            noConn:            'No se puede conectar al socket de ioBroker.',
-            error:             'Error\u202f: ',
-            refreshed:         '\u00daltima\u00a0actualizaci\u00f3n\u202f: ',
-            configBtn:         'Configuraci\u00f3n',
-            intro:             'Resumen de todos los dispositivos de agua Grohe conectados.',
-            noDevices:         'No se encontraron dispositivos Grohe. Compruebe la configuraci\u00f3n del adaptador.',
-            hSense:            'Grohe Sense \u2013 Sensor de humedad',
-            hGuard:            'Grohe Sense Guard \u2013 Protecci\u00f3n de agua',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Agua potable',
-            colName:           'Dispositivo',
-            colStatus:         'Estado',
-            colTemp:           'Temperatura',
-            colHumidity:       'Humedad',
-            colBattery:        'Bater\u00eda',
-            colLastUpdate:     '\u00daltima\u00a0medici\u00f3n',
-            colWaterTemp:      'Temp.\u00a0agua',
-            colFlowRate:       'Caudal',
-            colPressure:       'Presi\u00f3n',
-            colValve:          'V\u00e1lvula',
-            colDailyConsump:   'Diario\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0rest.',
-            colFilter:         'Filtro\u00a0rest.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filtro\u00a0(l)',
-            valveOpen:         'Abierta',
-            valveClosed:       'Cerrada',
-            online:            'En l\u00ednea',
-            offline:           'Sin conexi\u00f3n',
-            na:                'n/d',
-        },
-        fr: {
-            loading:           'Chargement\u2026',
-            noConn:            'Impossible de se connecter au socket ioBroker.',
-            error:             'Erreur\u202f: ',
-            refreshed:         'Derni\u00e8re\u00a0mise\u00a0\u00e0\u00a0jour\u202f: ',
-            configBtn:         'Configuration',
-            intro:             'Vue d\u2019ensemble de tous les appareils d\u2019eau Grohe connect\u00e9s.',
-            noDevices:         'Aucun appareil Grohe trouv\u00e9. V\u00e9rifiez la configuration de l\u2019adaptateur.',
-            hSense:            'Grohe Sense \u2013 Capteur d\u2019humidit\u00e9',
-            hGuard:            'Grohe Sense Guard \u2013 Garde-eau',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Eau potable',
-            colName:           'Appareil',
-            colStatus:         'Statut',
-            colTemp:           'Temp\u00e9rature',
-            colHumidity:       'Humidit\u00e9',
-            colBattery:        'Batterie',
-            colLastUpdate:     'Derni\u00e8re\u00a0mesure',
-            colWaterTemp:      'Temp.\u00a0eau',
-            colFlowRate:       'D\u00e9bit',
-            colPressure:       'Pression',
-            colValve:          'Vanne',
-            colDailyConsump:   'Journalier\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0rest.',
-            colFilter:         'Filtre\u00a0rest.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filtre\u00a0(l)',
-            valveOpen:         'Ouverte',
-            valveClosed:       'Ferm\u00e9e',
-            online:            'En\u00a0ligne',
-            offline:           'Hors\u00a0ligne',
-            na:                'n/d',
-        },
-        it: {
-            loading:           'Caricamento\u2026',
-            noConn:            'Impossibile connettersi al socket ioBroker.',
-            error:             'Errore\u202f: ',
-            refreshed:         'Ultimo\u00a0aggiornamento\u202f: ',
-            configBtn:         'Configurazione',
-            intro:             'Panoramica di tutti i dispositivi acqua Grohe connessi.',
-            noDevices:         'Nessun dispositivo Grohe trovato. Controllare la configurazione dell\u2019adattatore.',
-            hSense:            'Grohe Sense \u2013 Sensore di umidit\u00e0',
-            hGuard:            'Grohe Sense Guard \u2013 Protezione acqua',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Acqua potabile',
-            colName:           'Dispositivo',
-            colStatus:         'Stato',
-            colTemp:           'Temperatura',
-            colHumidity:       'Umidit\u00e0',
-            colBattery:        'Batteria',
-            colLastUpdate:     'Ultimo\u00a0aggiorn.',
-            colWaterTemp:      'Temp.\u00a0acqua',
-            colFlowRate:       'Portata',
-            colPressure:       'Pressione',
-            colValve:          'Valvola',
-            colDailyConsump:   'Giorn.\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0rim.',
-            colFilter:         'Filtro\u00a0rim.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filtro\u00a0(l)',
-            valveOpen:         'Aperta',
-            valveClosed:       'Chiusa',
-            online:            'Online',
-            offline:           'Offline',
-            na:                'n/d',
-        },
-        nl: {
-            loading:           'Laden\u2026',
-            noConn:            'Kan geen verbinding maken met ioBroker-socket.',
-            error:             'Fout\u202f: ',
-            refreshed:         'Laatste\u00a0update\u202f: ',
-            configBtn:         'Configuratie',
-            intro:             'Overzicht van alle verbonden Grohe waterapparaten.',
-            noDevices:         'Geen Grohe-apparaten gevonden. Controleer de adapterconfiguratie.',
-            hSense:            'Grohe Sense \u2013 Vochtigheidssensor',
-            hGuard:            'Grohe Sense Guard \u2013 Waterbewaker',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Drinkwater',
-            colName:           'Apparaat',
-            colStatus:         'Status',
-            colTemp:           'Temperatuur',
-            colHumidity:       'Vochtigheid',
-            colBattery:        'Batterij',
-            colLastUpdate:     'Laatste\u00a0meting',
-            colWaterTemp:      'Watertemp.',
-            colFlowRate:       'Debiet',
-            colPressure:       'Druk',
-            colValve:          'Klep',
-            colDailyConsump:   'Dagelijks\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0rest.',
-            colFilter:         'Filter\u00a0rest.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filter\u00a0(l)',
-            valveOpen:         'Open',
-            valveClosed:       'Gesloten',
-            online:            'Online',
-            offline:           'Offline',
-            na:                'n.v.t.',
-        },
-        pl: {
-            loading:           '\u0141adowanie\u2026',
-            noConn:            'Nie mo\u017cna po\u0142\u0105czy\u0107 si\u0119 z gniazdem ioBroker.',
-            error:             'B\u0142\u0105d\u202f: ',
-            refreshed:         'Ostatnia\u00a0aktualizacja\u202f: ',
-            configBtn:         'Konfiguracja',
-            intro:             'Przegl\u0105d wszystkich pod\u0142\u0105czonych urz\u0105dze\u0144 wodnych Grohe.',
-            noDevices:         'Nie znaleziono urz\u0105dze\u0144 Grohe. Sprawid\u017a konfiguracj\u0119 adaptera.',
-            hSense:            'Grohe Sense \u2013 Czujnik wilgotno\u015bci',
-            hGuard:            'Grohe Sense Guard \u2013 Stra\u017cnik wody',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 Woda pitna',
-            colName:           'Urz\u0105dzenie',
-            colStatus:         'Status',
-            colTemp:           'Temperatura',
-            colHumidity:       'Wilgotno\u015b\u0107',
-            colBattery:        'Bateria',
-            colLastUpdate:     'Ostatni\u00a0pomiar',
-            colWaterTemp:      'Temp.\u00a0wody',
-            colFlowRate:       'Przep\u0142yw',
-            colPressure:       'Ci\u015bnienie',
-            colValve:          'Zaw\u00f3r',
-            colDailyConsump:   'Dzienny\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0poz.',
-            colFilter:         'Filtr\u00a0poz.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filtr\u00a0(l)',
-            valveOpen:         'Otwarty',
-            valveClosed:       'Zamkni\u0119ty',
-            online:            'Online',
-            offline:           'Offline',
-            na:                'b.d.',
-        },
-        pt: {
-            loading:           'A\u00a0carregar\u2026',
-            noConn:            'N\u00e3o \u00e9 poss\u00edvel ligar ao socket ioBroker.',
-            error:             'Erro\u202f: ',
-            refreshed:         '\u00daltima\u00a0atualiza\u00e7\u00e3o\u202f: ',
-            configBtn:         'Configura\u00e7\u00e3o',
-            intro:             'Vis\u00e3o geral de todos os dispositivos de \u00e1gua Grohe ligados.',
-            noDevices:         'Nenhum dispositivo Grohe encontrado. Verifique a configura\u00e7\u00e3o do adaptador.',
-            hSense:            'Grohe Sense \u2013 Sensor de humidade',
-            hGuard:            'Grohe Sense Guard \u2013 Prote\u00e7\u00e3o de \u00e1gua',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 \u00c1gua pot\u00e1vel',
-            colName:           'Dispositivo',
-            colStatus:         'Estado',
-            colTemp:           'Temperatura',
-            colHumidity:       'Humidade',
-            colBattery:        'Bateria',
-            colLastUpdate:     '\u00daltima\u00a0leitura',
-            colWaterTemp:      'Temp.\u00a0\u00e1gua',
-            colFlowRate:       'Caudal',
-            colPressure:       'Press\u00e3o',
-            colValve:          'V\u00e1lvula',
-            colDailyConsump:   'Di\u00e1rio\u00a0(l)',
-            colCo2:            'CO\u2082\u00a0rest.',
-            colFilter:         'Filtro\u00a0rest.',
-            colCo2Liters:      'CO\u2082\u00a0(l)',
-            colFilterLiters:   'Filtro\u00a0(l)',
-            valveOpen:         'Aberta',
-            valveClosed:       'Fechada',
-            online:            'Online',
-            offline:           'Offline',
-            na:                'n/d',
-        },
-        ru: {
-            loading:           '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026',
-            noConn:            '\u041d\u0435\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f \u043a \u0441\u043e\u043a\u0435\u0442\u0443 ioBroker.',
-            error:             '\u041e\u0448\u0438\u0431\u043a\u0430\u202f: ',
-            refreshed:         '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e\u202f: ',
-            configBtn:         '\u041a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u044f',
-            intro:             '\u041e\u0431\u0437\u043e\u0440 \u0432\u0441\u0435\u0445 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0451\u043d\u043d\u044b\u0445 \u0432\u043e\u0434\u043d\u044b\u0445 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432 Grohe.',
-            noDevices:         '\u0423\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430 Grohe \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0443 \u0430\u0434\u0430\u043f\u0442\u0435\u0440\u0430.',
-            hSense:            'Grohe Sense \u2013 \u0414\u0430\u0442\u0447\u0438\u043a \u0432\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u0438',
-            hGuard:            'Grohe Sense Guard \u2013 \u0417\u0430\u0449\u0438\u0442\u0430 \u0432\u043e\u0434\u044b',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 \u041f\u0438\u0442\u044c\u0435\u0432\u0430\u044f \u0432\u043e\u0434\u0430',
-            colName:           '\u0423\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u043e',
-            colStatus:         '\u0421\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435',
-            colTemp:           '\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430',
-            colHumidity:       '\u0412\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u044c',
-            colBattery:        '\u0410\u043a\u043a\u0443\u043c',
-            colLastUpdate:     '\u041f\u043e\u0441\u043b.\u00a0\u0438\u0437\u043c\u0435\u0440.',
-            colWaterTemp:      '\u0422\u0435\u043c\u043f.\u00a0\u0432\u043e\u0434\u044b',
-            colFlowRate:       '\u0420\u0430\u0441\u0445\u043e\u0434',
-            colPressure:       '\u0414\u0430\u0432\u043b\u0435\u043d\u0438\u0435',
-            colValve:          '\u041a\u043b\u0430\u043f\u0430\u043d',
-            colDailyConsump:   '\u0412\u00a0\u0434\u0435\u043d\u044c\u00a0(\u043b)',
-            colCo2:            'CO\u2082\u00a0\u043e\u0441\u0442.',
-            colFilter:         '\u0424\u0438\u043b\u044c\u0442\u0440\u00a0\u043e\u0441\u0442.',
-            colCo2Liters:      'CO\u2082\u00a0(\u043b)',
-            colFilterLiters:   '\u0424\u0438\u043b\u044c\u0442\u0440\u00a0(\u043b)',
-            valveOpen:         '\u041e\u0442\u043a\u0440\u044b\u0442',
-            valveClosed:       '\u0417\u0430\u043a\u0440\u044b\u0442',
-            online:            '\u041e\u043d\u043b\u0430\u0439\u043d',
-            offline:           '\u041e\u0444\u043b\u0430\u0439\u043d',
-            na:                '\u043d/\u0434',
-        },
-        uk: {
-            loading:           '\u0417\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u043d\u044f\u2026',
-            noConn:            '\u041d\u0435\u043c\u043e\u0436\u043b\u0438\u0432\u043e \u043f\u0456\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u0438\u0441\u044c \u0434\u043e \u0441\u043e\u043a\u0435\u0442\u0430 ioBroker.',
-            error:             '\u041f\u043e\u043c\u0438\u043b\u043a\u0430\u202f: ',
-            refreshed:         '\u041e\u0441\u0442\u0430\u043d\u043d\u0454\u00a0\u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f\u202f: ',
-            configBtn:         '\u041a\u043e\u043d\u0444\u0456\u0433\u0443\u0440\u0430\u0446\u0456\u044f',
-            intro:             '\u041e\u0433\u043b\u044f\u0434 \u0443\u0441\u0456\u0445 \u043f\u0456\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0445 \u0432\u043e\u0434\u043d\u0438\u0445 \u043f\u0440\u0438\u0441\u0442\u0440\u043e\u0457\u0432 Grohe.',
-            noDevices:         '\u041f\u0440\u0438\u0441\u0442\u0440\u043e\u0457 Grohe \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e. \u041f\u0435\u0440\u0435\u0432\u0456\u0440\u0442\u0435 \u043d\u0430\u043b\u0430\u0448\u0442\u0443\u0432\u0430\u043d\u043d\u044f \u0430\u0434\u0430\u043f\u0442\u0435\u0440\u0430.',
-            hSense:            'Grohe Sense \u2013 \u0414\u0430\u0442\u0447\u0438\u043a \u0432\u043e\u043b\u043e\u0433\u043e\u0441\u0442\u0456',
-            hGuard:            'Grohe Sense Guard \u2013 \u0417\u0430\u0445\u0438\u0441\u0442 \u0432\u043e\u0434\u0438',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 \u041f\u0438\u0442\u043d\u0430 \u0432\u043e\u0434\u0430',
-            colName:           '\u041f\u0440\u0438\u0441\u0442\u0440\u0456\u0439',
-            colStatus:         '\u0421\u0442\u0430\u0442\u0443\u0441',
-            colTemp:           '\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430',
-            colHumidity:       '\u0412\u043e\u043b\u043e\u0433\u0456\u0441\u0442\u044c',
-            colBattery:        '\u0411\u0430\u0442\u0430\u0440\u0435\u044f',
-            colLastUpdate:     '\u041e\u0441\u0442\u0430\u043d\u043d\u0454\u00a0\u0432\u0438\u043c\u0456\u0440.',
-            colWaterTemp:      '\u0422\u0435\u043c\u043f.\u00a0\u0432\u043e\u0434\u0438',
-            colFlowRate:       '\u0412\u0438\u0442\u0440\u0430\u0442\u0430',
-            colPressure:       '\u0422\u0438\u0441\u043a',
-            colValve:          '\u041a\u043b\u0430\u043f\u0430\u043d',
-            colDailyConsump:   '\u041d\u0430\u00a0\u0434\u0435\u043d\u044c\u00a0(\u043b)',
-            colCo2:            'CO\u2082\u00a0\u0437\u0430\u043b.',
-            colFilter:         '\u0424\u0456\u043b\u044c\u0442\u0440\u00a0\u0437\u0430\u043b.',
-            colCo2Liters:      'CO\u2082\u00a0(\u043b)',
-            colFilterLiters:   '\u0424\u0456\u043b\u044c\u0442\u0440\u00a0(\u043b)',
-            valveOpen:         '\u0412\u0456\u0434\u043a\u0440\u0438\u0442\u043e',
-            valveClosed:       '\u0417\u0430\u043a\u0440\u0438\u0442\u043e',
-            online:            '\u041e\u043d\u043b\u0430\u0439\u043d',
-            offline:           '\u041e\u0444\u043b\u0430\u0439\u043d',
-            na:                'н/д',
-        },
-        'zh-cn': {
-            loading:           '\u52a0\u8f7d\u4e2d\u2026',
-            noConn:            '\u65e0\u6cd5\u8fde\u63a5\u5230 ioBroker \u5957\u63a5\u5b57\u3002',
-            error:             '\u9519\u8bef\uff1a',
-            refreshed:         '\u6700\u540e\u66f4\u65b0\uff1a',
-            configBtn:         '\u914d\u7f6e',
-            intro:             '\u6240\u6709\u5df2\u8fde\u63a5\u7684 Grohe \u6c34\u8bbe\u5907\u6982\u89c8\u3002',
-            noDevices:         '\u672a\u627e\u5230 Grohe \u8bbe\u5907\u3002\u8bf7\u68c0\u67e5\u9002\u914d\u5668\u914d\u7f6e\u3002',
-            hSense:            'Grohe Sense \u2013 \u6e7f\u5ea6\u4f20\u611f\u5668',
-            hGuard:            'Grohe Sense Guard \u2013 \u6c34\u4fdd\u62a4',
-            hBlue:             'Grohe Blue Home\u00a0/ Professional \u2013 \u996e\u7528\u6c34',
-            colName:           '\u8bbe\u5907',
-            colStatus:         '\u72b6\u6001',
-            colTemp:           '\u6e29\u5ea6',
-            colHumidity:       '\u6e7f\u5ea6',
-            colBattery:        '\u7535\u6c60',
-            colLastUpdate:     '\u6700\u540e\u66f4\u65b0',
-            colWaterTemp:      '\u6c34\u6e29',
-            colFlowRate:       '\u6d41\u91cf',
-            colPressure:       '\u538b\u529b',
-            colValve:          '\u9600',
-            colDailyConsump:   '\u6bcf\u65e5\uff08\u5347\uff09',
-            colCo2:            'CO\u2082\u5269\u4f59',
-            colFilter:         '\u6ee4\u82af\u5269\u4f59',
-            colCo2Liters:      'CO\u2082\uff08\u5347\uff09',
-            colFilterLiters:   '\u6ee4\u82af\uff08\u5347\uff09',
-            valveOpen:         '\u5f00',
-            valveClosed:       '\u5173',
-            online:            '\u5728\u7ebf',
-            offline:           '\u79bb\u7ebf',
-            na:                'N/A',
-        },
-    };
-
-    var lang = (navigator.language || 'en').replace('-', '_').toLowerCase();
-    /* Try full locale, then two-letter language code, then 'en' */
-    var T = STRINGS[lang] || STRINGS[lang.slice(0, 2)] || STRINGS.en;
-
-    /* ── constants ── */
-    var SOCKET_TIMEOUT_MS   = 8000;
-    var REFRESH_INTERVAL_MS = 5000;
-
-    /* ── instance from URL ── */
-    var params   = new URLSearchParams(window.location.search);
-    var instance = parseInt(params.get('instance') || '0', 10);
-    if (isNaN(instance) || instance < 0) instance = 0;
-    var NS = 'grohe-smarthome.' + instance;
-
-    /* Excluded root keys that are not devices */
-    var EXCLUDED_ROOTS = ['info', 'auth'];
-
-    /* ── socket abstraction ── */
-    var _sock = null;
-
-    function _getObject(id) {
-        var ps = _sock;
-        if (ps && typeof ps.getObject === 'function') return ps.getObject(id);
-        return new Promise(function (res, rej) {
-            ps.emit('getObject', id, function (err, obj) { err ? rej(new Error(err)) : res(obj); });
-        });
-    }
-    function _getStates(pattern) {
-        var ps = _sock;
-        if (ps && typeof ps.getStates === 'function') return ps.getStates(pattern);
-        return new Promise(function (res, rej) {
-            ps.emit('getForeignStates', pattern, function (err, states) {
-                err ? rej(new Error(err)) : res(states || {});
-            });
-        });
-    }
-
-    function initSocket() {
-        /* Strategy 1 – reuse parent admin socket (admin v7+) */
-        try {
-            var ps = window.parent && window.parent !== window && window.parent.socket;
-            if (ps && (typeof ps.getObject === 'function' || typeof ps.emit === 'function')) {
-                _sock = ps;
-                return Promise.resolve();
-            }
-        } catch (_) { /* cross-origin – ignore */ }
-
-        /* Strategy 2 – create a fresh socket.io connection */
-        if (typeof io === 'undefined') {
-            return Promise.reject(new Error(T.noConn));
-        }
-        return new Promise(function (resolve, reject) {
-            try {
-                var s = io.connect();
-                var addListener = typeof s.once === 'function' ? s.once.bind(s)
-                                : typeof s.on   === 'function' ? s.on.bind(s)
-                                : null;
-                if (!addListener) { return reject(new Error(T.noConn)); }
-                if (s.connected) { _sock = s; return resolve(); }
-                var done = false;
-                addListener('connect', function () {
-                    if (done) return; done = true; _sock = s; resolve();
-                });
-                addListener('connect_error', function (e) {
-                    if (done) return; done = true; reject(e);
-                });
-                setTimeout(function () {
-                    if (!done) { done = true; reject(new Error('Socket timeout')); }
-                }, SOCKET_TIMEOUT_MS);
-            } catch (e) { reject(e); }
-        });
-    }
-
-    /* ── helpers ── */
-    function el(tag, opts) {
-        var e = document.createElement(tag);
-        if (opts) {
-            if (opts.text  !== undefined) e.textContent = opts.text;
-            if (opts.html  !== undefined) e.innerHTML   = opts.html;
-            if (opts.cls)  e.className   = opts.cls;
-            if (opts.title) e.title      = opts.title;
-        }
-        return e;
-    }
-    function setText(id, txt) {
-        var node = document.getElementById(id);
-        if (node) node.textContent = txt;
-    }
-    function getVal(states, key) {
-        var s = states[key];
-        if (!s) return null;
-        if (s.val === null || s.val === undefined) return null;
-        return s.val;
-    }
-    function fmtNum(val, decimals, unit) {
-        if (val === null || val === undefined) return T.na;
-        var n = parseFloat(val);
-        if (isNaN(n)) return T.na;
-        return n.toFixed(decimals) + '\u202f' + unit;
-    }
-    function fmtDate(val) {
-        if (!val) return T.na;
-        try {
-            var d = new Date(val);
-            if (isNaN(d.getTime())) return String(val);
-            return d.toLocaleString();
-        } catch (_) { return String(val); }
-    }
-    function makeProgressBar(val) {
-        var pct = Math.max(0, Math.min(100, parseFloat(val) || 0));
-        var cls = pct < 20 ? 'low' : pct < 50 ? 'medium' : '';
-        var colorStyle = pct < 20 ? 'background:var(--danger)' : pct < 50 ? 'background:var(--warn)' : '';
-        return '<div class="progress-wrap">' +
-            '<div class="progress-track">' +
-            '<div class="progress-fill ' + cls + '" style="width:' + pct.toFixed(0) + '%;' + colorStyle + '"></div>' +
-            '</div>' +
-            '<span class="progress-label">' + pct.toFixed(0) + '\u202f%</span>' +
-            '</div>';
-    }
-    function makeValveBadge(isOpen) {
-        if (isOpen === null || isOpen === undefined) return '<span style="color:var(--text-muted)">' + T.na + '</span>';
-        if (isOpen) return '<span class="badge badge-open">' + T.valveOpen + '</span>';
-        return '<span class="badge badge-closed">' + T.valveClosed + '</span>';
-    }
-    function makeDot(online) {
-        var active = (online === true || online === 'true');
-        return '<span class="dot' + (active ? '' : ' inactive') + '" title="' +
-            (active ? T.online : T.offline) + '"></span>';
-    }
-
-    /* ── device extraction ── */
-    function extractDevices(states) {
-        var devices = {};
-        var prefix  = NS + '.';
-        Object.keys(states).forEach(function (stateId) {
-            if (stateId.indexOf(prefix) !== 0) return;
-            var rest  = stateId.slice(prefix.length);
-            var parts = rest.split('.');
-            if (parts.length < 2) return;
-            var uuid = parts[0];
-            if (EXCLUDED_ROOTS.indexOf(uuid) !== -1) return;
-            if (!devices[uuid]) {
-                devices[uuid] = { uuid: uuid, name: uuid, type: null, states: {} };
-            }
-            var statePath = parts.slice(1).join('.');
-            devices[uuid].states[statePath] = states[stateId];
-        });
-
-        /* Detect device type from available state keys */
-        Object.keys(devices).forEach(function (uuid) {
-            var s = devices[uuid].states;
-            if ('humidity' in s) {
-                devices[uuid].type = 'SENSE';
-            } else if ('flowRate' in s) {
-                devices[uuid].type = 'SENSE_GUARD';
-            } else if ('remainingCo2' in s || 'remainingFilter' in s) {
-                devices[uuid].type = 'BLUE';
-            }
-        });
-
-        return devices;
-    }
-
-    /* ── render sections ── */
-    function setTableHeaders(type) {
-        if (type === 'SENSE') {
-            setText('th-sense-name', T.colName);
-            setText('th-sense-temp', T.colTemp);
-            setText('th-sense-hum',  T.colHumidity);
-            setText('th-sense-bat',  T.colBattery);
-            setText('th-sense-last', T.colLastUpdate);
-        } else if (type === 'SENSE_GUARD') {
-            setText('th-guard-name',  T.colName);
-            setText('th-guard-wtemp', T.colWaterTemp);
-            setText('th-guard-flow',  T.colFlowRate);
-            setText('th-guard-pres',  T.colPressure);
-            setText('th-guard-valve', T.colValve);
-            setText('th-guard-daily', T.colDailyConsump);
-            setText('th-guard-last',  T.colLastUpdate);
-        } else if (type === 'BLUE') {
-            setText('th-blue-name',    T.colName);
-            setText('th-blue-co2',     T.colCo2);
-            setText('th-blue-filter',  T.colFilter);
-            setText('th-blue-co2l',    T.colCo2Liters);
-            setText('th-blue-filterl', T.colFilterLiters);
-            setText('th-blue-last',    T.colLastUpdate);
-        }
-    }
-
-    function renderSenseRow(tbody, device) {
-        var s  = device.states;
-        var tr = tbody.insertRow();
-        /* status */
-        var tdSt = tr.insertCell(); tdSt.className = 'col-status';
-        tdSt.innerHTML = makeDot(getVal(s, 'status.online'));
-        /* name */
-        tr.insertCell().appendChild(el('span', { cls: 'device-name', text: device.name }));
-        /* temperature */
-        var tdT = tr.insertCell(); tdT.className = 'value-cell';
-        tdT.textContent = fmtNum(getVal(s, 'temperature'), 1, '\u00b0C');
-        /* humidity */
-        var tdH = tr.insertCell(); tdH.className = 'value-cell';
-        tdH.textContent = fmtNum(getVal(s, 'humidity'), 0, '%');
-        /* battery */
-        var batVal = getVal(s, 'battery');
-        var tdB = tr.insertCell(); tdB.className = 'value-cell';
-        if (batVal !== null) {
-            tdB.innerHTML = makeProgressBar(batVal);
-        } else {
-            tdB.innerHTML = '<span class="val-na">' + T.na + '</span>';
-        }
-        /* last update */
-        tr.insertCell().textContent = fmtDate(getVal(s, 'lastMeasurement'));
-    }
-
-    function renderGuardRow(tbody, device) {
-        var s  = device.states;
-        var tr = tbody.insertRow();
-        /* status */
-        var tdSt = tr.insertCell(); tdSt.className = 'col-status';
-        tdSt.innerHTML = makeDot(getVal(s, 'status.online'));
-        /* name */
-        tr.insertCell().appendChild(el('span', { cls: 'device-name', text: device.name }));
-        /* water temperature */
-        var tdT = tr.insertCell(); tdT.className = 'value-cell';
-        tdT.textContent = fmtNum(getVal(s, 'temperature'), 1, '\u00b0C');
-        /* flow rate */
-        var tdF = tr.insertCell(); tdF.className = 'value-cell';
-        tdF.textContent = fmtNum(getVal(s, 'flowRate'), 1, 'l/h');
-        /* pressure */
-        var tdP = tr.insertCell(); tdP.className = 'value-cell';
-        tdP.textContent = fmtNum(getVal(s, 'pressure'), 2, 'bar');
-        /* valve */
-        var tdV = tr.insertCell();
-        tdV.innerHTML = makeValveBadge(getVal(s, 'valveOpen'));
-        /* daily consumption */
-        var tdD = tr.insertCell(); tdD.className = 'value-cell';
-        tdD.textContent = fmtNum(getVal(s, 'consumption.daily'), 0, 'l');
-        /* last update */
-        tr.insertCell().textContent = fmtDate(getVal(s, 'lastMeasurement'));
-    }
-
-    function renderBlueRow(tbody, device) {
-        var s  = device.states;
-        var tr = tbody.insertRow();
-        /* status */
-        var tdSt = tr.insertCell(); tdSt.className = 'col-status';
-        tdSt.innerHTML = makeDot(getVal(s, 'status.online'));
-        /* name */
-        tr.insertCell().appendChild(el('span', { cls: 'device-name', text: device.name }));
-        /* remaining CO₂ % */
-        var co2Pct = getVal(s, 'remainingCo2');
-        var tdCo2 = tr.insertCell();
-        tdCo2.innerHTML = co2Pct !== null ? makeProgressBar(co2Pct)
-            : '<span class="val-na">' + T.na + '</span>';
-        /* remaining filter % */
-        var filtPct = getVal(s, 'remainingFilter');
-        var tdFilt = tr.insertCell();
-        tdFilt.innerHTML = filtPct !== null ? makeProgressBar(filtPct)
-            : '<span class="val-na">' + T.na + '</span>';
-        /* CO₂ liters */
-        var tdCo2L = tr.insertCell(); tdCo2L.className = 'value-cell';
-        tdCo2L.textContent = fmtNum(getVal(s, 'remainingCo2Liters'), 1, 'l');
-        /* filter liters */
-        var tdFiltL = tr.insertCell(); tdFiltL.className = 'value-cell';
-        tdFiltL.textContent = fmtNum(getVal(s, 'remainingFilterLiters'), 1, 'l');
-        /* last update */
-        tr.insertCell().textContent = fmtDate(getVal(s, 'lastMeasurement'));
-    }
-
-    function render(devices) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
-
-        setText('intro-text', T.intro);
-        setText('config-btn', T.configBtn);
-
-        var sense = [], guard = [], blue = [];
-        Object.keys(devices).forEach(function (uuid) {
-            var d = devices[uuid];
-            if      (d.type === 'SENSE')       sense.push(d);
-            else if (d.type === 'SENSE_GUARD')  guard.push(d);
-            else if (d.type === 'BLUE')         blue.push(d);
-        });
-
-        /* Sort by name within each group */
-        function byName(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }
-        sense.sort(byName); guard.sort(byName); blue.sort(byName);
-
-        /* Sense section */
-        setText('h-sense', T.hSense);
-        if (sense.length > 0) {
-            setTableHeaders('SENSE');
-            document.getElementById('sense-section').style.display = 'block';
-            var tbodySense = document.getElementById('tbody-sense');
-            tbodySense.innerHTML = '';
-            sense.forEach(function (d) { renderSenseRow(tbodySense, d); });
-        } else {
-            document.getElementById('sense-section').style.display = 'none';
-        }
-
-        /* Sense Guard section */
-        setText('h-guard', T.hGuard);
-        if (guard.length > 0) {
-            setTableHeaders('SENSE_GUARD');
-            document.getElementById('guard-section').style.display = 'block';
-            var tbodyGuard = document.getElementById('tbody-guard');
-            tbodyGuard.innerHTML = '';
-            guard.forEach(function (d) { renderGuardRow(tbodyGuard, d); });
-        } else {
-            document.getElementById('guard-section').style.display = 'none';
-        }
-
-        /* Blue section */
-        setText('h-blue', T.hBlue);
-        if (blue.length > 0) {
-            setTableHeaders('BLUE');
-            document.getElementById('blue-section').style.display = 'block';
-            var tbodyBlue = document.getElementById('tbody-blue');
-            tbodyBlue.innerHTML = '';
-            blue.forEach(function (d) { renderBlueRow(tbodyBlue, d); });
-        } else {
-            document.getElementById('blue-section').style.display = 'none';
-        }
-
-        /* No devices message */
-        var noDiv = document.getElementById('no-devices');
-        if (!sense.length && !guard.length && !blue.length) {
-            noDiv.textContent = T.noDevices;
-            noDiv.style.display = 'block';
-        } else {
-            noDiv.style.display = 'none';
-        }
-
-        document.getElementById('refresh-info').textContent =
-            T.refreshed + new Date().toLocaleTimeString();
-    }
-
-    function showError(msg) {
-        var e = document.getElementById('error-msg');
-        e.textContent = T.error + msg;
-        e.style.display = 'block';
-        document.getElementById('loading').style.display = 'none';
-    }
-
-    /* ── config navigation ── */
-    function openConfig() {
-        var hash = 'tab-instances/config/system.adapter.' + NS;
-        try {
-            var target = (window.parent && window.parent !== window) ? window.parent : window;
-            var base   = target.location.href.split('#')[0];
-            target.location.href = base + '#' + hash;
-        } catch (_) {
-            window.open('/index.html#' + hash, '_blank');
-        }
-    }
-    document.getElementById('config-btn').addEventListener('click', openConfig);
-
-    /* ── load ── */
-    function load() {
-        _getStates(NS + '.*')
-            .then(function (states) {
-                if (!states || Object.keys(states).length === 0) {
-                    render({});
-                    return;
-                }
-                var devices = extractDevices(states);
-                var uuids   = Object.keys(devices);
-                if (!uuids.length) {
-                    render({});
-                    return;
-                }
-                /* Fetch channel objects for human-readable device names */
-                return Promise.all(uuids.map(function (uuid) {
-                    return _getObject(NS + '.' + uuid)
-                        .then(function (obj) {
-                            if (obj && obj.common) {
-                                var n = obj.common.name;
-                                if (n && typeof n === 'object') {
-                                    /* multilingual name object */
-                                    var lk = lang.slice(0, 2);
-                                    n = n[lk] || n.en || n.de || Object.values(n)[0] || uuid;
-                                }
-                                if (n) devices[uuid].name = String(n);
-                            }
-                        })
-                        .catch(function () { /* keep UUID as name */ });
-                })).then(function () {
-                    render(devices);
-                });
-            })
-            .catch(function (err) {
-                showError(err && err.message ? err.message : String(err));
-            });
-    }
-
-    /* ── init ── */
-    document.getElementById('loading').textContent = T.loading;
-
-    initSocket()
-        .then(function () {
-            load();
-            setInterval(load, REFRESH_INTERVAL_MS);
-        })
-        .catch(function (err) {
-            showError(err && err.message ? err.message : T.noConn);
-        });
+(function(){'use strict';
+var STRINGS={
+en:{loading:'Loading\u2026',noConn:'Cannot connect to ioBroker socket.',error:'Error\u202f: ',
+refreshed:'Last\u00a0updated\u202f: ',configBtn:'Configuration',
+intro:'Overview of all connected Grohe water devices.',
+noDevices:'No Grohe devices found. Please check adapter configuration.',
+hSense:'Grohe Sense \u2013 Humidity Sensor',hGuard:'Grohe Sense Guard \u2013 Water Guard',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Drinking Water',
+online:'Online',offline:'Offline',na:'n/a',yes:'Yes',no:'No',
+valveOpen:'Valve: OPEN',valveClosed:'Valve: CLOSED',updateAvailable:'Update available',
+secMeasurements:'Measurements',secConsumption:'Consumption',secPressureMeasure:'Pressure Measurement',
+secStatus:'Status',secNotification:'Latest Notification',secResources:'Resources',
+secStatistics:'Statistics',secDates:'Dates',secDispense:'Dispense Settings',
+temperature:'Temperature',humidity:'Humidity',battery:'Battery',
+waterTemp:'Water Temp.',flowRate:'Flow Rate',pressure:'Pressure',
+daily:'Daily',avgDaily:'Avg. Daily',avgMonthly:'Avg. Monthly',
+total:'Total',lastWithdrawal:'Last Withdrawal',lastMaxFlowRate:'Last Max Flow',
+pressureDrop:'Pressure Drop',leakage:'Leakage',leakageLevel:'Leakage Level',
+measureTime:'Measured At',wifiQuality:'WiFi Quality',
+co2Remaining:'CO\u2082 Remaining',filterRemaining:'Filter Remaining',
+co2Liters:'CO\u2082 (l)',filterLiters:'Filter (l)',
+cyclesCarbonated:'Carbonated Cycles',cyclesStill:'Still Cycles',
+waterRunCarbonated:'Water Run Carbonated',waterRunMedium:'Water Run Medium',
+waterRunStill:'Water Run Still',operatingTime:'Operating Time',
+pumpRunningTime:'Pump Running Time',timeSinceRestart:'Since Restart',maxIdleTime:'Max Idle Time',
+cleaningCount:'Cleanings',filterChangeCount:'Filter Changes',pumpCount:'Pump Cycles',
+powerCutCount:'Power Cuts',lastMeasurement:'Last Measurement',dateCleaning:'Last Cleaning',
+dateCo2:'Last CO\u2082 Replacement',dateFilter:'Last Filter Replacement',
+tapType:'Tap Type',tapAmount:'Amount',tapTypeStill:'Still',tapTypeMedium:'Medium',
+tapTypeCarbonated:'Carbonated',notifMessage:'Message',notifTime:'Time',notifCategory:'Category'},
+de:{loading:'Lade\u2026',noConn:'Verbindung zum ioBroker-Socket nicht m\u00f6glich.',error:'Fehler\u202f: ',
+refreshed:'Zuletzt\u00a0aktualisiert\u202f: ',configBtn:'Konfiguration',
+intro:'\u00dcbersicht aller verbundenen Grohe Wassenger\u00e4te.',
+noDevices:'Keine Grohe-Ger\u00e4te gefunden. Bitte Adapterkonfiguration pr\u00fcfen.',
+hSense:'Grohe Sense \u2013 Feuchtigkeitssensor',hGuard:'Grohe Sense Guard \u2013 Wasserw\u00e4chter',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Trinkwasser',
+online:'Online',offline:'Offline',na:'k.\u202fA.',yes:'Ja',no:'Nein',
+valveOpen:'Ventil: OFFEN',valveClosed:'Ventil: GESCHLOSSEN',updateAvailable:'Update verf\u00fcgbar',
+secMeasurements:'Messungen',secConsumption:'Verbrauch',secPressureMeasure:'Druckmessung',
+secStatus:'Status',secNotification:'Letzte Meldung',secResources:'Ressourcen',
+secStatistics:'Statistik',secDates:'Daten',secDispense:'Zapfeinstellungen',
+temperature:'Temperatur',humidity:'Luftfeuchte',battery:'Akku',
+waterTemp:'Wassertemp.',flowRate:'Durchfluss',pressure:'Druck',
+daily:'T\u00e4glich',avgDaily:'\u00d8 T\u00e4glich',avgMonthly:'\u00d8 Monatlich',
+total:'Gesamt',lastWithdrawal:'Letzter Verbrauch',lastMaxFlowRate:'Letzter Max-Durchfluss',
+pressureDrop:'Druckabfall',leakage:'Leck',leakageLevel:'Leckage-Level',
+measureTime:'Gemessen am',wifiQuality:'WLAN-Qualit\u00e4t',
+co2Remaining:'CO\u2082 verbl.',filterRemaining:'Filter verbl.',
+co2Liters:'CO\u2082 (l)',filterLiters:'Filter (l)',
+cyclesCarbonated:'Sprudelzyklen',cyclesStill:'Still-Zyklen',
+waterRunCarbonated:'Laufzeit Sprudel',waterRunMedium:'Laufzeit Medium',
+waterRunStill:'Laufzeit Still',operatingTime:'Betriebszeit',
+pumpRunningTime:'Pumplaufzeit',timeSinceRestart:'Seit Neustart',maxIdleTime:'Max. Ruhezeit',
+cleaningCount:'Reinigungen',filterChangeCount:'Filterwechsel',pumpCount:'Pumpenzyklen',
+powerCutCount:'Stromausf\u00e4lle',lastMeasurement:'Letzte Messung',dateCleaning:'Letzte Reinigung',
+dateCo2:'Letzter CO\u2082-Wechsel',dateFilter:'Letzter Filterwechsel',
+tapType:'Zapfart',tapAmount:'Menge',tapTypeStill:'Still',tapTypeMedium:'Medium',
+tapTypeCarbonated:'Sprudelnd',notifMessage:'Meldung',notifTime:'Zeit',notifCategory:'Kategorie'},
+es:{loading:'Cargando\u2026',noConn:'No se puede conectar al socket de ioBroker.',error:'Error\u202f: ',
+refreshed:'\u00daltima\u00a0actualizaci\u00f3n\u202f: ',configBtn:'Configuraci\u00f3n',
+intro:'Resumen de todos los dispositivos de agua Grohe conectados.',
+noDevices:'No se encontraron dispositivos Grohe.',
+hSense:'Grohe Sense \u2013 Sensor de humedad',hGuard:'Grohe Sense Guard \u2013 Protecci\u00f3n de agua',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Agua potable',
+online:'En l\u00ednea',offline:'Sin conexi\u00f3n',na:'n/d',yes:'S\u00ed',no:'No',
+valveOpen:'V\u00e1lvula: ABIERTA',valveClosed:'V\u00e1lvula: CERRADA',updateAvailable:'Actualizaci\u00f3n disponible',
+secMeasurements:'Mediciones',secConsumption:'Consumo',secPressureMeasure:'Medici\u00f3n de presi\u00f3n',
+secStatus:'Estado',secNotification:'\u00daltima notificaci\u00f3n',secResources:'Recursos',
+secStatistics:'Estad\u00edsticas',secDates:'Fechas',secDispense:'Ajustes de dispensado',
+temperature:'Temperatura',humidity:'Humedad',battery:'Bater\u00eda',
+waterTemp:'Temp. agua',flowRate:'Caudal',pressure:'Presi\u00f3n',
+daily:'Diario',avgDaily:'Prom. diario',avgMonthly:'Prom. mensual',
+total:'Total',lastWithdrawal:'\u00daltimo consumo',lastMaxFlowRate:'Max caudal',
+pressureDrop:'Ca\u00edda presi\u00f3n',leakage:'Fuga',leakageLevel:'Nivel fuga',
+measureTime:'Medido el',wifiQuality:'Calidad WiFi',
+co2Remaining:'CO\u2082 rest.',filterRemaining:'Filtro rest.',co2Liters:'CO\u2082 (l)',filterLiters:'Filtro (l)',
+cyclesCarbonated:'Ciclos con gas',cyclesStill:'Ciclos sin gas',
+waterRunCarbonated:'Tiempo con gas',waterRunMedium:'Tiempo medio',waterRunStill:'Tiempo sin gas',
+operatingTime:'T. funcionamiento',pumpRunningTime:'T. bomba',timeSinceRestart:'Desde reinicio',
+maxIdleTime:'Max inactividad',cleaningCount:'Limpiezas',filterChangeCount:'Cambios filtro',
+pumpCount:'Ciclos bomba',powerCutCount:'Cortes energ\u00eda',lastMeasurement:'\u00daltima medici\u00f3n',
+dateCleaning:'\u00daltima limpieza',dateCo2:'\u00daltimo CO\u2082',dateFilter:'\u00daltimo filtro',
+tapType:'Tipo grifo',tapAmount:'Cantidad',tapTypeStill:'Sin gas',tapTypeMedium:'Medio',
+tapTypeCarbonated:'Con gas',notifMessage:'Mensaje',notifTime:'Hora',notifCategory:'Categor\u00eda'},
+fr:{loading:'Chargement\u2026',noConn:'Impossible de se connecter au socket ioBroker.',error:'Erreur\u202f: ',
+refreshed:'Derni\u00e8re\u00a0mise\u00a0\u00e0\u00a0jour\u202f: ',configBtn:'Configuration',
+intro:"Vue d\u2019ensemble de tous les appareils d\u2019eau Grohe connect\u00e9s.",
+noDevices:"Aucun appareil Grohe trouv\u00e9.",
+hSense:'Grohe Sense \u2013 Capteur humidit\u00e9',hGuard:'Grohe Sense Guard \u2013 Garde-eau',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Eau potable',
+online:'En\u00a0ligne',offline:'Hors\u00a0ligne',na:'n/d',yes:'Oui',no:'Non',
+valveOpen:'Vanne: OUVERTE',valveClosed:'Vanne: FERM\u00c9E',updateAvailable:'Mise\u00a0\u00e0\u00a0jour dispo',
+secMeasurements:'Mesures',secConsumption:'Consommation',secPressureMeasure:'Mesure pression',
+secStatus:'Statut',secNotification:'Derni\u00e8re notif.',secResources:'Ressources',
+secStatistics:'Statistiques',secDates:'Dates',secDispense:'Distribution',
+temperature:'Temp\u00e9rature',humidity:'Humidit\u00e9',battery:'Batterie',
+waterTemp:'Temp. eau',flowRate:'D\u00e9bit',pressure:'Pression',
+daily:'Journalier',avgDaily:'Moy. journ.',avgMonthly:'Moy. mens.',
+total:'Total',lastWithdrawal:'Dern. conso.',lastMaxFlowRate:'D\u00e9bit max',
+pressureDrop:'Chute pression',leakage:'Fuite',leakageLevel:'Niveau fuite',
+measureTime:'Mesur\u00e9 le',wifiQuality:'Qualit\u00e9 WiFi',
+co2Remaining:'CO\u2082 rest.',filterRemaining:'Filtre rest.',co2Liters:'CO\u2082 (l)',filterLiters:'Filtre (l)',
+cyclesCarbonated:'Cycles gazeux',cyclesStill:'Cycles plats',
+waterRunCarbonated:'Dur\u00e9e gazeux',waterRunMedium:'Dur\u00e9e moyen',waterRunStill:'Dur\u00e9e plat',
+operatingTime:'T. fonctionnement',pumpRunningTime:'T. pompe',timeSinceRestart:'Depuis red\u00e9marrage',
+maxIdleTime:'Inactivit\u00e9 max',cleaningCount:'Nettoyages',filterChangeCount:'Changements filtre',
+pumpCount:'Cycles pompe',powerCutCount:'Coupures',lastMeasurement:'Derni\u00e8re mesure',
+dateCleaning:'Dern. nettoyage',dateCo2:'Dern. CO\u2082',dateFilter:'Dern. filtre',
+tapType:'Type',tapAmount:'Quantit\u00e9',tapTypeStill:'Plat',tapTypeMedium:'Moyen',
+tapTypeCarbonated:'Gazeux',notifMessage:'Message',notifTime:'Heure',notifCategory:'Cat\u00e9gorie'},
+it:{loading:'Caricamento\u2026',noConn:'Impossibile connettersi al socket ioBroker.',error:'Errore\u202f: ',
+refreshed:'Ultimo\u00a0aggiornamento\u202f: ',configBtn:'Configurazione',
+intro:'Panoramica di tutti i dispositivi acqua Grohe connessi.',
+noDevices:"Nessun dispositivo Grohe trovato.",
+hSense:'Grohe Sense \u2013 Sensore umidit\u00e0',hGuard:'Grohe Sense Guard \u2013 Protezione acqua',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Acqua potabile',
+online:'Online',offline:'Offline',na:'n/d',yes:'S\u00ec',no:'No',
+valveOpen:'Valvola: APERTA',valveClosed:'Valvola: CHIUSA',updateAvailable:'Aggiornamento disponibile',
+secMeasurements:'Misurazioni',secConsumption:'Consumo',secPressureMeasure:'Misurazione pressione',
+secStatus:'Stato',secNotification:'Ultima notifica',secResources:'Risorse',
+secStatistics:'Statistiche',secDates:'Date',secDispense:'Erogazione',
+temperature:'Temperatura',humidity:'Umidit\u00e0',battery:'Batteria',
+waterTemp:'Temp. acqua',flowRate:'Portata',pressure:'Pressione',
+daily:'Giornaliero',avgDaily:'Media giorn.',avgMonthly:'Media mens.',
+total:'Totale',lastWithdrawal:'Ultimo consumo',lastMaxFlowRate:'Portata max',
+pressureDrop:'Calo pressione',leakage:'Perdita',leakageLevel:'Livello perdita',
+measureTime:'Misurato il',wifiQuality:'Qualit\u00e0 WiFi',
+co2Remaining:'CO\u2082 rim.',filterRemaining:'Filtro rim.',co2Liters:'CO\u2082 (l)',filterLiters:'Filtro (l)',
+cyclesCarbonated:'Cicli frizzante',cyclesStill:'Cicli naturale',
+waterRunCarbonated:'T. frizzante',waterRunMedium:'T. medio',waterRunStill:'T. naturale',
+operatingTime:'T. funzionamento',pumpRunningTime:'T. pompa',timeSinceRestart:'Dal riavvio',
+maxIdleTime:'Inattivit\u00e0 max',cleaningCount:'Pulizie',filterChangeCount:'Cambi filtro',
+pumpCount:'Cicli pompa',powerCutCount:'Interruzioni',lastMeasurement:'Ultima misurazione',
+dateCleaning:'Ultima pulizia',dateCo2:'Ultima sost. CO\u2082',dateFilter:'Ultima sost. filtro',
+tapType:'Tipo acqua',tapAmount:'Quantit\u00e0',tapTypeStill:'Naturale',tapTypeMedium:'Medio',
+tapTypeCarbonated:'Frizzante',notifMessage:'Messaggio',notifTime:'Ora',notifCategory:'Categoria'},
+nl:{loading:'Laden\u2026',noConn:'Kan geen verbinding maken met ioBroker-socket.',error:'Fout\u202f: ',
+refreshed:'Laatste\u00a0update\u202f: ',configBtn:'Configuratie',
+intro:'Overzicht van alle verbonden Grohe waterapparaten.',noDevices:'Geen Grohe-apparaten gevonden.',
+hSense:'Grohe Sense \u2013 Vochtigheidssensor',hGuard:'Grohe Sense Guard \u2013 Waterbewaker',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Drinkwater',
+online:'Online',offline:'Offline',na:'n.v.t.',yes:'Ja',no:'Nee',
+valveOpen:'Klep: OPEN',valveClosed:'Klep: GESLOTEN',updateAvailable:'Update beschikbaar',
+secMeasurements:'Metingen',secConsumption:'Verbruik',secPressureMeasure:'Drukmeting',
+secStatus:'Status',secNotification:'Laatste melding',secResources:'Middelen',
+secStatistics:'Statistieken',secDates:'Datums',secDispense:'Tap-instellingen',
+temperature:'Temperatuur',humidity:'Vochtigheid',battery:'Batterij',
+waterTemp:'Watertemp.',flowRate:'Debiet',pressure:'Druk',
+daily:'Dagelijks',avgDaily:'Gem. dagelijks',avgMonthly:'Gem. maandelijks',
+total:'Totaal',lastWithdrawal:'Laatste verbruik',lastMaxFlowRate:'Max debiet',
+pressureDrop:'Drukval',leakage:'Lek',leakageLevel:'Lekniveau',
+measureTime:'Gemeten op',wifiQuality:'WiFi-kwaliteit',
+co2Remaining:'CO\u2082 rest.',filterRemaining:'Filter rest.',co2Liters:'CO\u2082 (l)',filterLiters:'Filter (l)',
+cyclesCarbonated:'Koolzuurcycli',cyclesStill:'Stille cycli',
+waterRunCarbonated:'Koolzuurtijd',waterRunMedium:'Mediumtijd',waterRunStill:'Stiltijd',
+operatingTime:'Bedrijfstijd',pumpRunningTime:'Pomptijd',timeSinceRestart:'Sinds herstart',
+maxIdleTime:'Max inactief',cleaningCount:'Reinigingen',filterChangeCount:'Filterwissels',
+pumpCount:'Pompcycli',powerCutCount:'Stroomstoringen',lastMeasurement:'Laatste meting',
+dateCleaning:'Laatste reiniging',dateCo2:'Laatste CO\u2082-wissel',dateFilter:'Laatste filterwissel',
+tapType:'Kraantype',tapAmount:'Hoeveelheid',tapTypeStill:'Stil',tapTypeMedium:'Medium',
+tapTypeCarbonated:'Koolzuur',notifMessage:'Melding',notifTime:'Tijd',notifCategory:'Categorie'},
+pl:{loading:'\u0141adowanie\u2026',noConn:'Nie mo\u017cna po\u0142\u0105czy\u0107 si\u0119 z gniazdem ioBroker.',error:'B\u0142\u0105d\u202f: ',
+refreshed:'Ostatnia\u00a0aktualizacja\u202f: ',configBtn:'Konfiguracja',
+intro:'Przegl\u0105d urz\u0105dze\u0144 wodnych Grohe.',noDevices:'Nie znaleziono urz\u0105dze\u0144 Grohe.',
+hSense:'Grohe Sense \u2013 Czujnik wilgotno\u015bci',hGuard:'Grohe Sense Guard \u2013 Stra\u017cnik wody',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 Woda pitna',
+online:'Online',offline:'Offline',na:'b.d.',yes:'Tak',no:'Nie',
+valveOpen:'Zaw\u00f3r: OTWARTY',valveClosed:'Zaw\u00f3r: ZAMKNI\u0118TY',updateAvailable:'Aktualizacja dost\u0119pna',
+secMeasurements:'Pomiary',secConsumption:'Zu\u017cycie',secPressureMeasure:'Pomiar ci\u015bnienia',
+secStatus:'Status',secNotification:'Ostatnia wiadomo\u015b\u0107',secResources:'Zasoby',
+secStatistics:'Statystyki',secDates:'Daty',secDispense:'Ustawienia kranu',
+temperature:'Temperatura',humidity:'Wilgotno\u015b\u0107',battery:'Bateria',
+waterTemp:'Temp. wody',flowRate:'Przep\u0142yw',pressure:'Ci\u015bnienie',
+daily:'Dzienny',avgDaily:'\u015ar. dzienny',avgMonthly:'\u015ar. miesi\u0119czny',
+total:'Razem',lastWithdrawal:'Ostatnie zu\u017cycie',lastMaxFlowRate:'Max przep\u0142yw',
+pressureDrop:'Spadek ci\u015bnienia',leakage:'Wyciek',leakageLevel:'Poziom wycieku',
+measureTime:'Zmierzono',wifiQuality:'Jako\u015b\u0107 WiFi',
+co2Remaining:'CO\u2082 poz.',filterRemaining:'Filtr poz.',co2Liters:'CO\u2082 (l)',filterLiters:'Filtr (l)',
+cyclesCarbonated:'Cykle gazowane',cyclesStill:'Cykle niegazowane',
+waterRunCarbonated:'Czas gazowany',waterRunMedium:'\u015arednio',waterRunStill:'Czas niegazowany',
+operatingTime:'Czas pracy',pumpRunningTime:'Czas pompy',timeSinceRestart:'Od restartu',
+maxIdleTime:'Max bezczynno\u015b\u0107',cleaningCount:'Czyszczenia',filterChangeCount:'Wymiany filtra',
+pumpCount:'Cykle pompy',powerCutCount:'Przerwy zasilania',lastMeasurement:'Ostatni pomiar',
+dateCleaning:'Ostatnie czyszczenie',dateCo2:'Ostatnia wymiana CO\u2082',dateFilter:'Ostatnia wymiana filtra',
+tapType:'Typ wody',tapAmount:'Ilo\u015b\u0107',tapTypeStill:'Niegazowana',tapTypeMedium:'\u015arednio',
+tapTypeCarbonated:'Gazowana',notifMessage:'Wiadomo\u015b\u0107',notifTime:'Czas',notifCategory:'Kategoria'},
+pt:{loading:'A\u00a0carregar\u2026',noConn:'N\u00e3o \u00e9 poss\u00edvel ligar ao socket ioBroker.',error:'Erro\u202f: ',
+refreshed:'\u00daltima\u00a0atualiza\u00e7\u00e3o\u202f: ',configBtn:'Configura\u00e7\u00e3o',
+intro:'Vis\u00e3o geral dos dispositivos de \u00e1gua Grohe.',noDevices:'Nenhum dispositivo Grohe encontrado.',
+hSense:'Grohe Sense \u2013 Sensor de humidade',hGuard:'Grohe Sense Guard \u2013 Prote\u00e7\u00e3o de \u00e1gua',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 \u00c1gua pot\u00e1vel',
+online:'Online',offline:'Offline',na:'n/d',yes:'Sim',no:'N\u00e3o',
+valveOpen:'V\u00e1lvula: ABERTA',valveClosed:'V\u00e1lvula: FECHADA',updateAvailable:'Atualiza\u00e7\u00e3o dispon\u00edvel',
+secMeasurements:'Medi\u00e7\u00f5es',secConsumption:'Consumo',secPressureMeasure:'Medida de press\u00e3o',
+secStatus:'Estado',secNotification:'\u00daltima notifica\u00e7\u00e3o',secResources:'Recursos',
+secStatistics:'Estat\u00edsticas',secDates:'Datas',secDispense:'Configura\u00e7\u00f5es',
+temperature:'Temperatura',humidity:'Humidade',battery:'Bateria',
+waterTemp:'Temp. \u00e1gua',flowRate:'Caudal',pressure:'Press\u00e3o',
+daily:'Di\u00e1rio',avgDaily:'M\u00e9d. di\u00e1ria',avgMonthly:'M\u00e9d. mensal',
+total:'Total',lastWithdrawal:'\u00dalt. consumo',lastMaxFlowRate:'Caudal m\u00e1x.',
+pressureDrop:'Queda de press\u00e3o',leakage:'Fuga',leakageLevel:'N\u00edvel fuga',
+measureTime:'Medido em',wifiQuality:'Qualidade WiFi',
+co2Remaining:'CO\u2082 rest.',filterRemaining:'Filtro rest.',co2Liters:'CO\u2082 (l)',filterLiters:'Filtro (l)',
+cyclesCarbonated:'Ciclos com g\u00e1s',cyclesStill:'Ciclos sem g\u00e1s',
+waterRunCarbonated:'T. com g\u00e1s',waterRunMedium:'T. m\u00e9dio',waterRunStill:'T. sem g\u00e1s',
+operatingTime:'T. funcionamento',pumpRunningTime:'T. bomba',timeSinceRestart:'Desde reinic.',
+maxIdleTime:'M\u00e1x inativo',cleaningCount:'Limpezas',filterChangeCount:'Substitui\u00e7\u00f5es',
+pumpCount:'Ciclos bomba',powerCutCount:'Cortes energia',lastMeasurement:'\u00daltima leitura',
+dateCleaning:'\u00dalt. limpeza',dateCo2:'\u00dalt. CO\u2082',dateFilter:'\u00dalt. filtro',
+tapType:'Tipo \u00e1gua',tapAmount:'Quantidade',tapTypeStill:'Sem g\u00e1s',tapTypeMedium:'M\u00e9dia',
+tapTypeCarbonated:'Com g\u00e1s',notifMessage:'Mensagem',notifTime:'Hora',notifCategory:'Categoria'},
+ru:{loading:'\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026',noConn:'\u041d\u0435\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f \u043a \u0441\u043e\u043a\u0435\u0442\u0443 ioBroker.',
+error:'\u041e\u0448\u0438\u0431\u043a\u0430\u202f: ',refreshed:'\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e\u202f: ',configBtn:'\u041a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u044f',
+intro:'\u041e\u0431\u0437\u043e\u0440 \u0432\u043e\u0434\u043d\u044b\u0445 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432 Grohe.',noDevices:'\u0423\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430 Grohe \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b.',
+hSense:'Grohe Sense \u2013 \u0414\u0430\u0442\u0447\u0438\u043a \u0432\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u0438',hGuard:'Grohe Sense Guard \u2013 \u0417\u0430\u0449\u0438\u0442\u0430 \u0432\u043e\u0434\u044b',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 \u041f\u0438\u0442\u044c\u0435\u0432\u0430\u044f \u0432\u043e\u0434\u0430',
+online:'\u041e\u043d\u043b\u0430\u0439\u043d',offline:'\u041e\u0444\u043b\u0430\u0439\u043d',na:'\u043d/\u0434',yes:'\u0414\u0430',no:'\u041d\u0435\u0442',
+valveOpen:'\u041a\u043b\u0430\u043f\u0430\u043d: \u041e\u0422\u041a\u0420\u042b\u0422',valveClosed:'\u041a\u043b\u0430\u043f\u0430\u043d: \u0417\u0410\u041a\u0420\u042b\u0422',
+updateAvailable:'\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u043e \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435',
+secMeasurements:'\u0418\u0437\u043c\u0435\u0440\u0435\u043d\u0438\u044f',secConsumption:'\u041f\u043e\u0442\u0440\u0435\u0431\u043b\u0435\u043d\u0438\u0435',
+secPressureMeasure:'\u0418\u0437\u043c\u0435\u0440\u0435\u043d\u0438\u0435 \u0434\u0430\u0432\u043b\u0435\u043d\u0438\u044f',secStatus:'\u0421\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435',
+secNotification:'\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0435',secResources:'\u0420\u0435\u0441\u0443\u0440\u0441\u044b',
+secStatistics:'\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430',secDates:'\u0414\u0430\u0442\u044b',secDispense:'\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043d\u0430\u043b\u0438\u0432\u0430',
+temperature:'\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430',humidity:'\u0412\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u044c',battery:'\u0410\u043a\u043a\u0443\u043c',
+waterTemp:'\u0422\u0435\u043c\u043f. \u0432\u043e\u0434\u044b',flowRate:'\u0420\u0430\u0441\u0445\u043e\u0434',pressure:'\u0414\u0430\u0432\u043b\u0435\u043d\u0438\u0435',
+daily:'\u0412 \u0434\u0435\u043d\u044c',avgDaily:'\u0421\u0440. \u0432 \u0434\u0435\u043d\u044c',avgMonthly:'\u0421\u0440. \u0432 \u043c\u0435\u0441.',
+total:'\u0412\u0441\u0435\u0433\u043e',lastWithdrawal:'\u041f\u043e\u0441\u043b. \u043f\u043e\u0442\u0440\u0435\u0431.',lastMaxFlowRate:'\u041c\u0430\u043a\u0441. \u0440\u0430\u0441\u0445\u043e\u0434',
+pressureDrop:'\u041f\u0430\u0434\u0435\u043d\u0438\u0435 \u0434\u0430\u0432\u043b.',leakage:'\u0423\u0442\u0435\u0447\u043a\u0430',leakageLevel:'\u0423\u0440. \u0443\u0442\u0435\u0447\u043a\u0438',
+measureTime:'\u0418\u0437\u043c\u0435\u0440\u0435\u043d\u043e',wifiQuality:'\u041a\u0430\u0447. WiFi',
+co2Remaining:'CO\u2082 \u043e\u0441\u0442.',filterRemaining:'\u0424\u0438\u043b\u044c\u0442\u0440 \u043e\u0441\u0442.',co2Liters:'CO\u2082 (\u043b)',filterLiters:'\u0424\u0438\u043b\u044c\u0442\u0440 (\u043b)',
+cyclesCarbonated:'\u0426\u0438\u043a\u043b\u044b \u0433\u0430\u0437.',cyclesStill:'\u0426\u0438\u043a\u043b\u044b \u0431\u0435\u0437 \u0433\u0430\u0437.',
+waterRunCarbonated:'\u0412\u0440. \u0433\u0430\u0437.',waterRunMedium:'\u0421\u0440\u0435\u0434\u043d.',waterRunStill:'\u0412\u0440. \u0431\u0435\u0437 \u0433\u0430\u0437.',
+operatingTime:'\u0412\u0440\u0435\u043c\u044f \u0440\u0430\u0431.',pumpRunningTime:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0441.',timeSinceRestart:'\u0421 \u043f\u0435\u0440\u0435\u0437.',
+maxIdleTime:'\u041c\u0430\u043a\u0441. \u043f\u0440\u043e\u0441\u0442.',cleaningCount:'\u0427\u0438\u0441\u0442\u043a\u0438',filterChangeCount:'\u0417\u0430\u043c. \u0444\u0438\u043b\u044c\u0442\u0440\u0430',
+pumpCount:'\u0426\u0438\u043a\u043b\u044b \u043d\u0430\u0441.',powerCutCount:'\u041e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f',lastMeasurement:'\u041f\u043e\u0441\u043b. \u0438\u0437\u043c\u0435\u0440.',
+dateCleaning:'\u041f\u043e\u0441\u043b. \u0447\u0438\u0441\u0442\u043a\u0430',dateCo2:'\u041f\u043e\u0441\u043b. CO\u2082',dateFilter:'\u041f\u043e\u0441\u043b. \u0444\u0438\u043b\u044c\u0442\u0440',
+tapType:'\u0422\u0438\u043f \u0432\u043e\u0434\u044b',tapAmount:'\u041e\u0431\u044a\u0435\u043c',tapTypeStill:'\u0411\u0435\u0437 \u0433\u0430\u0437\u0430',tapTypeMedium:'\u0421\u0440\u0435\u0434\u043d.',
+tapTypeCarbonated:'\u0421 \u0433\u0430\u0437\u043e\u043c',notifMessage:'\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435',notifTime:'\u0412\u0440\u0435\u043c\u044f',notifCategory:'\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f'},
+uk:{loading:'\u0417\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u043d\u044f\u2026',noConn:'\u041d\u0435\u043c\u043e\u0436\u043b\u0438\u0432\u043e \u043f\u0456\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u0438\u0441\u044c \u0434\u043e \u0441\u043e\u043a\u0435\u0442\u0430 ioBroker.',
+error:'\u041f\u043e\u043c\u0438\u043b\u043a\u0430\u202f: ',refreshed:'\u041e\u0441\u0442\u0430\u043d\u043d\u0454\u00a0\u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f\u202f: ',configBtn:'\u041a\u043e\u043d\u0444\u0456\u0433\u0443\u0440\u0430\u0446\u0456\u044f',
+intro:'\u041e\u0433\u043b\u044f\u0434 \u0432\u043e\u0434\u043d\u0438\u0445 \u043f\u0440\u0438\u0441\u0442\u0440\u043e\u0457\u0432 Grohe.',noDevices:'\u041f\u0440\u0438\u0441\u0442\u0440\u043e\u0457 Grohe \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.',
+hSense:'Grohe Sense \u2013 \u0414\u0430\u0442\u0447\u0438\u043a \u0432\u043e\u043b\u043e\u0433\u043e\u0441\u0442\u0456',hGuard:'Grohe Sense Guard \u2013 \u0417\u0430\u0445\u0438\u0441\u0442 \u0432\u043e\u0434\u0438',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 \u041f\u0438\u0442\u043d\u0430 \u0432\u043e\u0434\u0430',
+online:'\u041e\u043d\u043b\u0430\u0439\u043d',offline:'\u041e\u0444\u043b\u0430\u0439\u043d',na:'\u043d/\u0434',yes:'\u0422\u0430\u043a',no:'\u041d\u0456',
+valveOpen:'\u041a\u043b\u0430\u043f\u0430\u043d: \u0412\u0406\u0414\u041a\u0420\u0418\u0422\u041e',valveClosed:'\u041a\u043b\u0430\u043f\u0430\u043d: \u0417\u0410\u041a\u0420\u0418\u0422\u041e',
+updateAvailable:'\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u043e \u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f',
+secMeasurements:'\u0412\u0438\u043c\u0456\u0440\u044e\u0432\u0430\u043d\u043d\u044f',secConsumption:'\u0421\u043f\u043e\u0436\u0438\u0432\u0430\u043d\u043d\u044f',
+secPressureMeasure:'\u0412\u0438\u043c\u0456\u0440 \u0442\u0438\u0441\u043a\u0443',secStatus:'\u0421\u0442\u0430\u0442\u0443\u0441',
+secNotification:'\u041e\u0441\u0442\u0430\u043d\u043d\u0454 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b.',secResources:'\u0420\u0435\u0441\u0443\u0440\u0441\u0438',
+secStatistics:'\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430',secDates:'\u0414\u0430\u0442\u0438',secDispense:'\u041d\u0430\u043b\u0430\u0448\u0442\u0443\u0432\u0430\u043d\u043d\u044f \u043d\u0430\u043b\u0438\u0432\u0443',
+temperature:'\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430',humidity:'\u0412\u043e\u043b\u043e\u0433\u0456\u0441\u0442\u044c',battery:'\u0411\u0430\u0442\u0430\u0440\u0435\u044f',
+waterTemp:'\u0422\u0435\u043c\u043f. \u0432\u043e\u0434\u0438',flowRate:'\u0412\u0438\u0442\u0440\u0430\u0442\u0430',pressure:'\u0422\u0438\u0441\u043a',
+daily:'\u0414\u043e\u0431\u043e\u0432\u043e',avgDaily:'\u0421\u0435\u0440. \u0434\u043e\u0431.',avgMonthly:'\u0421\u0435\u0440. \u043c\u0456\u0441.',
+total:'\u0412\u0441\u044c\u043e\u0433\u043e',lastWithdrawal:'\u041e\u0441\u0442. \u0441\u043f\u043e\u0436.',lastMaxFlowRate:'\u041c\u0430\u043a\u0441 \u0432\u0438\u0442\u0440.',
+pressureDrop:'\u041f\u0430\u0434\u0456\u043d\u043d\u044f \u0442\u0438\u0441\u043a\u0443',leakage:'\u0412\u0438\u0442\u0456\u043a',leakageLevel:'\u0420\u0456\u0432. \u0432\u0438\u0442\u0456\u043a\u0443',
+measureTime:'\u0412\u0438\u043c\u0456\u0440\u044f\u043d\u043e',wifiQuality:'\u042f\u043a\u0456\u0441\u0442\u044c WiFi',
+co2Remaining:'CO\u2082 \u0437\u0430\u043b.',filterRemaining:'\u0424\u0456\u043b\u044c\u0442\u0440 \u0437\u0430\u043b.',co2Liters:'CO\u2082 (\u043b)',filterLiters:'\u0424\u0456\u043b\u044c\u0442\u0440 (\u043b)',
+cyclesCarbonated:'\u0426\u0438\u043a\u043b\u0438 \u0433\u0430\u0437.',cyclesStill:'\u0426\u0438\u043a\u043b\u0438 \u0431\u0435\u0437 \u0433\u0430\u0437.',
+waterRunCarbonated:'\u0427\u0430\u0441 \u0433\u0430\u0437.',waterRunMedium:'\u0421\u0435\u0440.',waterRunStill:'\u0427\u0430\u0441 \u0431\u0435\u0437 \u0433\u0430\u0437.',
+operatingTime:'\u0427\u0430\u0441 \u0440\u043e\u0431.',pumpRunningTime:'\u0427\u0430\u0441 \u043d\u0430\u0441.',timeSinceRestart:'\u0417 \u043f\u0435\u0440\u0435\u0437.',
+maxIdleTime:'\u041c\u0430\u043a\u0441 \u043f\u0440\u043e\u0441\u0442.',cleaningCount:'\u0427\u0438\u0449\u0435\u043d\u043d\u044f',filterChangeCount:'\u0417\u0430\u043c\u0456\u043d\u0438 \u0444\u0456\u043b\u044c\u0442\u0440\u0430',
+pumpCount:'\u0426\u0438\u043a\u043b\u0438 \u043d\u0430\u0441.',powerCutCount:'\u0412\u0456\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u043d\u044f',lastMeasurement:'\u041e\u0441\u0442. \u0432\u0438\u043c\u0456\u0440.',
+dateCleaning:'\u041e\u0441\u0442. \u0447\u0438\u0449\u0435\u043d\u043d\u044f',dateCo2:'\u041e\u0441\u0442. CO\u2082',dateFilter:'\u041e\u0441\u0442. \u0444\u0456\u043b\u044c\u0442\u0440',
+tapType:'\u0422\u0438\u043f \u0432\u043e\u0434\u0438',tapAmount:'\u041e\u0431\u2019\u0454\u043c',tapTypeStill:'\u0411\u0435\u0437 \u0433\u0430\u0437\u0443',tapTypeMedium:'\u0421\u0435\u0440.',
+tapTypeCarbonated:'\u0417 \u0433\u0430\u0437\u043e\u043c',notifMessage:'\u041f\u043e\u0432\u0456\u0434\u043e\u043c\u043b.',notifTime:'\u0427\u0430\u0441',notifCategory:'\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044f'},
+'zh-cn':{loading:'\u52a0\u8f7d\u4e2d\u2026',noConn:'\u65e0\u6cd5\u8fde\u63a5\u5230 ioBroker \u5957\u63a5\u5b57\u3002',
+error:'\u9519\u8bef\uff1a',refreshed:'\u6700\u540e\u66f4\u65b0\uff1a',configBtn:'\u914d\u7f6e',
+intro:'\u6240\u6709\u5df2\u8fde\u63a5\u7684 Grohe \u6c34\u8bbe\u5907\u6982\u89c8\u3002',noDevices:'\u672a\u627e\u5230 Grohe \u8bbe\u5907\u3002',
+hSense:'Grohe Sense \u2013 \u6e7f\u5ea6\u4f20\u611f\u5668',hGuard:'Grohe Sense Guard \u2013 \u6c34\u4fdd\u62a4',
+hBlue:'Grohe Blue Home\u00a0/ Professional \u2013 \u996e\u7528\u6c34',
+online:'\u5728\u7ebf',offline:'\u79bb\u7ebf',na:'N/A',yes:'\u662f',no:'\u5426',
+valveOpen:'\u9600\uff1a\u5f00\u542f',valveClosed:'\u9600\uff1a\u5173\u95ed',updateAvailable:'\u6709\u53ef\u7528\u66f4\u65b0',
+secMeasurements:'\u6d4b\u91cf',secConsumption:'\u7528\u91cf',secPressureMeasure:'\u538b\u529b\u6d4b\u91cf',
+secStatus:'\u72b6\u6001',secNotification:'\u6700\u65b0\u901a\u77e5',secResources:'\u8d44\u6e90',
+secStatistics:'\u7edf\u8ba1',secDates:'\u65e5\u671f',secDispense:'\u51fa\u6c34\u8bbe\u7f6e',
+temperature:'\u6e29\u5ea6',humidity:'\u6e7f\u5ea6',battery:'\u7535\u6c60',
+waterTemp:'\u6c34\u6e29',flowRate:'\u6d41\u91cf',pressure:'\u538b\u529b',
+daily:'\u6bcf\u65e5',avgDaily:'\u5e73\u5747\u65e5',avgMonthly:'\u5e73\u5747\u6708',
+total:'\u603b\u8ba1',lastWithdrawal:'\u4e0a\u6b21\u7528\u91cf',lastMaxFlowRate:'\u6700\u5927\u6d41\u91cf',
+pressureDrop:'\u538b\u964d',leakage:'\u6f0f\u6c34',leakageLevel:'\u6f0f\u6c34\u7b49\u7ea7',
+measureTime:'\u6d4b\u91cf\u65f6\u95f4',wifiQuality:'WiFi\u8d28\u91cf',
+co2Remaining:'CO\u2082\u5269\u4f59',filterRemaining:'\u6ee4\u82af\u5269\u4f59',co2Liters:'CO\u2082 (l)',filterLiters:'\u6ee4\u82af (l)',
+cyclesCarbonated:'\u6c7d\u6c34\u5faa\u73af',cyclesStill:'\u9759\u6c34\u5faa\u73af',
+waterRunCarbonated:'\u6c7d\u6c34\u65f6\u95f4',waterRunMedium:'\u4e2d\u95f4\u65f6\u95f4',waterRunStill:'\u9759\u6c34\u65f6\u95f4',
+operatingTime:'\u8fd0\u884c\u65f6\u95f4',pumpRunningTime:'\u6cf5\u8fd0\u884c\u65f6\u95f4',timeSinceRestart:'\u81ea\u91cd\u542f',
+maxIdleTime:'\u6700\u5927\u7a7a\u95f2',cleaningCount:'\u6e05\u6d01\u6b21\u6570',filterChangeCount:'\u6ee4\u82af\u66f4\u6362',
+pumpCount:'\u6cf5\u5faa\u73af',powerCutCount:'\u65ad\u7535\u6b21\u6570',lastMeasurement:'\u6700\u540e\u6d4b\u91cf',
+dateCleaning:'\u6700\u540e\u6e05\u6d01',dateCo2:'\u6700\u540e CO\u2082 \u66f4\u6362',dateFilter:'\u6700\u540e\u6ee4\u82af\u66f4\u6362',
+tapType:'\u51fa\u6c34\u7c7b\u578b',tapAmount:'\u6c34\u91cf',tapTypeStill:'\u9759\u6c34',tapTypeMedium:'\u4e2d\u95f4',
+tapTypeCarbonated:'\u6c7d\u6c34',notifMessage:'\u6d88\u606f',notifTime:'\u65f6\u95f4',notifCategory:'\u7c7b\u522b'}
+};
+var lang=(navigator.language||'en').replace('-','_').toLowerCase();
+var T=STRINGS[lang]||STRINGS[lang.slice(0,2)]||STRINGS.en;
+var SOCKET_TIMEOUT_MS=8000,REFRESH_INTERVAL_MS=5000;
+var params=new URLSearchParams(window.location.search);
+var instance=parseInt(params.get('instance')||'0',10);
+if(isNaN(instance)||instance<0)instance=0;
+var NS='grohe-smarthome.'+instance;
+var EXCLUDED_ROOTS=['info','auth'];
+var _sock=null;
+function _getObject(id){var ps=_sock;if(ps&&typeof ps.getObject==='function')return ps.getObject(id);
+return new Promise(function(res,rej){ps.emit('getObject',id,function(err,obj){err?rej(new Error(err)):res(obj);});});}
+function _getStates(pat){var ps=_sock;if(ps&&typeof ps.getStates==='function')return ps.getStates(pat);
+return new Promise(function(res,rej){ps.emit('getForeignStates',pat,function(err,st){err?rej(new Error(err)):res(st||{});});});}
+function initSocket(){
+try{var ps=window.parent&&window.parent!==window&&window.parent.socket;
+if(ps&&(typeof ps.getObject==='function'||typeof ps.emit==='function')){_sock=ps;return Promise.resolve();}}catch(_e){}
+if(typeof io==='undefined')return Promise.reject(new Error(T.noConn));
+return new Promise(function(resolve,reject){try{var s=io.connect();
+var addL=typeof s.once==='function'?s.once.bind(s):typeof s.on==='function'?s.on.bind(s):null;
+if(!addL)return reject(new Error(T.noConn));
+if(s.connected){_sock=s;return resolve();}
+var done=false;
+addL('connect',function(){if(done)return;done=true;_sock=s;resolve();});
+addL('connect_error',function(e){if(done)return;done=true;reject(e);});
+setTimeout(function(){if(!done){done=true;reject(new Error('Socket timeout'));}},SOCKET_TIMEOUT_MS);
+}catch(e){reject(e);}});}
+function getVal(st,k){var s=st[k];if(!s||s.val===null||s.val===undefined)return null;return s.val;}
+function fmtNum(v,d,u){if(v===null||v===undefined)return null;var n=parseFloat(v);if(isNaN(n))return null;
+return n.toFixed(d)+(u?'\u202f'+u:'');}
+function fmtDate(v){if(!v)return null;try{var d=new Date(v);if(isNaN(d.getTime()))return String(v);return d.toLocaleString();}catch(_e){return String(v);}}
+function fmtBool(v){if(v===null||v===undefined)return null;return v?T.yes:T.no;}
+function fmtTapType(v){if(v===1)return T.tapTypeStill;if(v===2)return T.tapTypeMedium;if(v===3)return T.tapTypeCarbonated;return v!==null?String(v):null;}
+function makeDot(online){var a=(online===true||online==='true');
+var d=document.createElement('span');d.className='dot'+(a?'':' inactive');d.title=a?T.online:T.offline;return d;}
+function makeProgressBar(val){var pct=Math.max(0,Math.min(100,parseFloat(val)||0));
+var color=pct<20?'var(--danger)':pct<50?'var(--warn)':'var(--accent)';
+var div=document.createElement('div');div.className='progress-wrap';
+div.innerHTML='<div class="progress-track"><div class="progress-fill" style="width:'+pct.toFixed(0)+'%;background:'+color+'"></div></div>'
++'<span class="progress-label" style="color:'+color+'">'+pct.toFixed(0)+'\u202f%</span>';return div;}
+function makeSection(title){var sec=document.createElement('div');sec.className='data-section';
+var t=document.createElement('div');t.className='sec-title';t.textContent=title;sec.appendChild(t);
+var g=document.createElement('div');g.className='prop-grid';sec.appendChild(g);return{sec:sec,grid:g};}
+function addProp(grid,label,value,cls){if(value===null||value===undefined)return;
+var item=document.createElement('div');item.className='prop-item';
+var lbl=document.createElement('div');lbl.className='prop-label';lbl.textContent=label;
+var val=document.createElement('div');val.className='prop-value'+(cls?' '+cls:'');val.textContent=value;
+item.appendChild(lbl);item.appendChild(val);grid.appendChild(item);}
+function addPropNode(grid,label,node){var item=document.createElement('div');item.className='prop-item';
+var lbl=document.createElement('div');lbl.className='prop-label';lbl.textContent=label;
+item.appendChild(lbl);item.appendChild(node);grid.appendChild(item);}
+function appendStatusSection(card,s){var g=makeSection(T.secStatus);
+var online=getVal(s,'status.online');
+addProp(g.grid,T.online,online===null?T.na:(online?T.online:T.offline),online?'ok':'danger');
+var upd=getVal(s,'status.updateAvailable');
+if(upd!==null)addProp(g.grid,T.updateAvailable,fmtBool(upd),upd?'warn':null);
+var wifi=getVal(s,'status.wifiQuality');if(wifi!==null)addProp(g.grid,T.wifiQuality,String(wifi));
+card.appendChild(g.sec);}
+function appendNotifSection(card,s){var msg=getVal(s,'notifications.latestMessage');if(!msg)return;
+var g=makeSection(T.secNotification);
+var catNum=getVal(s,'notifications.latestCategory');
+var catName=getVal(s,'notifications.latestCategoryName')||'';
+var catCls=catNum===30?'alarm':catNum===20?'warning':'info';
+var row=document.createElement('div');row.className='notif-row';
+var msgDiv=document.createElement('div');msgDiv.className='notif-message';
+if(catName){var badge=document.createElement('span');badge.className='notif-category '+catCls;badge.textContent=catName;msgDiv.appendChild(badge);}
+var sp=document.createElement('span');sp.textContent=msg;msgDiv.appendChild(sp);row.appendChild(msgDiv);
+var ts=fmtDate(getVal(s,'notifications.latestTimestamp'));
+if(ts){var td=document.createElement('div');td.className='notif-time';td.textContent=ts;row.appendChild(td);}
+g.sec.removeChild(g.grid);g.sec.appendChild(row);card.appendChild(g.sec);}
+function buildHeader(device,s,extra){var hdr=document.createElement('div');hdr.className='card-header';
+hdr.appendChild(makeDot(getVal(s,'status.online')));
+var ns=document.createElement('span');ns.className='card-device-name';ns.textContent=device.name;hdr.appendChild(ns);
+if(extra)hdr.appendChild(extra);
+var upd=getVal(s,'status.updateAvailable');
+if(upd){var ub=document.createElement('span');ub.className='update-badge';ub.textContent=T.updateAvailable;hdr.appendChild(ub);}
+return hdr;}
+function buildSenseCard(device){var s=device.states;
+var card=document.createElement('div');card.className='device-card';
+card.appendChild(buildHeader(device,s,null));
+var body=document.createElement('div');body.className='card-body';
+var gm=makeSection(T.secMeasurements);
+addProp(gm.grid,T.temperature,fmtNum(getVal(s,'temperature'),1,'\u00b0C'));
+addProp(gm.grid,T.humidity,fmtNum(getVal(s,'humidity'),0,'%'));
+var bat=getVal(s,'battery');if(bat!==null)addPropNode(gm.grid,T.battery,makeProgressBar(bat));
+addProp(gm.grid,T.lastMeasurement,fmtDate(getVal(s,'lastMeasurement')));
+body.appendChild(gm.sec);appendStatusSection(body,s);appendNotifSection(body,s);
+card.appendChild(body);return card;}
+function buildGuardCard(device){var s=device.states;
+var card=document.createElement('div');card.className='device-card';
+var valveVal=getVal(s,'valveOpen'),vb=null;
+if(valveVal!==null){vb=document.createElement('span');vb.className='valve-badge '+(valveVal?'valve-badge-open':'valve-badge-closed');
+var vd=document.createElement('span');vd.className='valve-badge-dot';vb.appendChild(vd);
+vb.appendChild(document.createTextNode(valveVal?T.valveOpen:T.valveClosed));}
+card.appendChild(buildHeader(device,s,vb));
+var body=document.createElement('div');body.className='card-body';
+var gm=makeSection(T.secMeasurements);
+addProp(gm.grid,T.waterTemp,fmtNum(getVal(s,'temperature'),1,'\u00b0C'));
+addProp(gm.grid,T.flowRate,fmtNum(getVal(s,'flowRate'),1,'l/h'));
+addProp(gm.grid,T.pressure,fmtNum(getVal(s,'pressure'),2,'bar'));
+addProp(gm.grid,T.lastMeasurement,fmtDate(getVal(s,'lastMeasurement')));
+body.appendChild(gm.sec);
+var gc=makeSection(T.secConsumption);
+addProp(gc.grid,T.daily,fmtNum(getVal(s,'consumption.daily'),1,'l'));
+addProp(gc.grid,T.avgDaily,fmtNum(getVal(s,'consumption.averageDaily'),1,'l'));
+addProp(gc.grid,T.avgMonthly,fmtNum(getVal(s,'consumption.averageMonthly'),1,'l'));
+addProp(gc.grid,T.total,fmtNum(getVal(s,'consumption.totalWaterConsumption'),1,'l'));
+addProp(gc.grid,T.lastWithdrawal,fmtNum(getVal(s,'consumption.lastWaterConsumption'),1,'l'));
+addProp(gc.grid,T.lastMaxFlowRate,fmtNum(getVal(s,'consumption.lastMaxFlowRate'),1,'l/h'));
+body.appendChild(gc.sec);
+var pmDrop=getVal(s,'pressureMeasurement.dropOfPressure');
+if(pmDrop!==null){var gp=makeSection(T.secPressureMeasure);
+addProp(gp.grid,T.pressureDrop,fmtNum(pmDrop,3,'bar'));
+var isLeak=getVal(s,'pressureMeasurement.isLeakage');
+if(isLeak!==null)addProp(gp.grid,T.leakage,fmtBool(isLeak),isLeak?'danger':'ok');
+addProp(gp.grid,T.leakageLevel,getVal(s,'pressureMeasurement.leakageLevel'));
+addProp(gp.grid,T.measureTime,fmtDate(getVal(s,'pressureMeasurement.startTime')));
+body.appendChild(gp.sec);}
+appendStatusSection(body,s);appendNotifSection(body,s);card.appendChild(body);return card;}
+function buildBlueCard(device){var s=device.states;
+var card=document.createElement('div');card.className='device-card';
+card.appendChild(buildHeader(device,s,null));
+var body=document.createElement('div');body.className='card-body';
+var gr=makeSection(T.secResources);
+var co2Pct=getVal(s,'remainingCo2');
+var co2L=fmtNum(getVal(s,'remainingCo2Liters'),1,'l');
+if(co2Pct!==null)addPropNode(gr.grid,T.co2Remaining+(co2L?' ('+co2L+')':''),makeProgressBar(co2Pct));
+var filtPct=getVal(s,'remainingFilter');
+var filtL=fmtNum(getVal(s,'remainingFilterLiters'),1,'l');
+if(filtPct!==null)addPropNode(gr.grid,T.filterRemaining+(filtL?' ('+filtL+')':''),makeProgressBar(filtPct));
+body.appendChild(gr.sec);
+var gs=makeSection(T.secStatistics);
+addProp(gs.grid,T.cyclesCarbonated,fmtNum(getVal(s,'cyclesCarbonated'),0,''));
+addProp(gs.grid,T.cyclesStill,fmtNum(getVal(s,'cyclesStill'),0,''));
+addProp(gs.grid,T.waterRunCarbonated,fmtNum(getVal(s,'waterRunningCarbonated'),0,'min'));
+addProp(gs.grid,T.waterRunMedium,fmtNum(getVal(s,'waterRunningMedium'),0,'min'));
+addProp(gs.grid,T.waterRunStill,fmtNum(getVal(s,'waterRunningStill'),0,'min'));
+addProp(gs.grid,T.operatingTime,fmtNum(getVal(s,'operatingTime'),0,'min'));
+addProp(gs.grid,T.pumpRunningTime,fmtNum(getVal(s,'pumpRunningTime'),0,'min'));
+addProp(gs.grid,T.timeSinceRestart,fmtNum(getVal(s,'timeSinceRestart'),0,'min'));
+addProp(gs.grid,T.maxIdleTime,fmtNum(getVal(s,'maxIdleTime'),0,'min'));
+addProp(gs.grid,T.cleaningCount,fmtNum(getVal(s,'cleaningCount'),0,''));
+addProp(gs.grid,T.filterChangeCount,fmtNum(getVal(s,'filterChangeCount'),0,''));
+addProp(gs.grid,T.pumpCount,fmtNum(getVal(s,'pumpCount'),0,''));
+addProp(gs.grid,T.powerCutCount,fmtNum(getVal(s,'powerCutCount'),0,''));
+body.appendChild(gs.sec);
+var gd=makeSection(T.secDates);
+addProp(gd.grid,T.lastMeasurement,fmtDate(getVal(s,'lastMeasurement')));
+addProp(gd.grid,T.dateCleaning,fmtDate(getVal(s,'dateCleaning')));
+addProp(gd.grid,T.dateCo2,fmtDate(getVal(s,'dateCo2Replacement')));
+addProp(gd.grid,T.dateFilter,fmtDate(getVal(s,'dateFilterReplacement')));
+body.appendChild(gd.sec);
+var tapT=getVal(s,'controls.tapType'),tapA=getVal(s,'controls.tapAmount');
+if(tapT!==null||tapA!==null){var gdi=makeSection(T.secDispense);
+addProp(gdi.grid,T.tapType,fmtTapType(tapT));
+if(tapA!==null)addProp(gdi.grid,T.tapAmount,tapA+'\u202fml');
+body.appendChild(gdi.sec);}
+appendStatusSection(body,s);appendNotifSection(body,s);card.appendChild(body);return card;}
+function extractDevices(states){var devices={},prefix=NS+'.';
+Object.keys(states).forEach(function(sid){if(sid.indexOf(prefix)!==0)return;
+var rest=sid.slice(prefix.length),parts=rest.split('.');if(parts.length<2)return;
+var uuid=parts[0];if(EXCLUDED_ROOTS.indexOf(uuid)!==-1)return;
+if(!devices[uuid])devices[uuid]={uuid:uuid,name:uuid,type:null,states:{}};
+devices[uuid].states[parts.slice(1).join('.')]=states[sid];});
+Object.keys(devices).forEach(function(uuid){var s=devices[uuid].states;
+if('humidity' in s)devices[uuid].type='SENSE';
+else if('flowRate' in s)devices[uuid].type='SENSE_GUARD';
+else if('remainingCo2' in s||'remainingFilter' in s)devices[uuid].type='BLUE';});
+return devices;}
+function render(devices){
+document.getElementById('loading').style.display='none';
+document.getElementById('content').style.display='block';
+document.getElementById('intro-text').textContent=T.intro;
+document.getElementById('config-btn').textContent='\u2699\ufe0f '+T.configBtn;
+document.getElementById('h-sense').textContent=T.hSense;
+document.getElementById('h-guard').textContent=T.hGuard;
+document.getElementById('h-blue').textContent=T.hBlue;
+var sense=[],guard=[],blue=[];
+Object.keys(devices).forEach(function(uuid){var d=devices[uuid];
+if(d.type==='SENSE')sense.push(d);else if(d.type==='SENSE_GUARD')guard.push(d);else if(d.type==='BLUE')blue.push(d);});
+function byName(a,b){return a.name<b.name?-1:a.name>b.name?1:0;}
+sense.sort(byName);guard.sort(byName);blue.sort(byName);
+function renderGroup(gid,cid,list,builder){var grp=document.getElementById(gid),cont=document.getElementById(cid);
+cont.innerHTML='';if(list.length>0){list.forEach(function(d){cont.appendChild(builder(d));});grp.style.display='block';}
+else grp.style.display='none';}
+renderGroup('sense-group','sense-cards',sense,buildSenseCard);
+renderGroup('guard-group','guard-cards',guard,buildGuardCard);
+renderGroup('blue-group','blue-cards',blue,buildBlueCard);
+var noDiv=document.getElementById('no-devices');
+if(!sense.length&&!guard.length&&!blue.length){noDiv.textContent=T.noDevices;noDiv.style.display='block';}
+else noDiv.style.display='none';
+document.getElementById('refresh-info').textContent=T.refreshed+new Date().toLocaleTimeString();}
+function showError(msg){var e=document.getElementById('error-msg');e.textContent=T.error+msg;e.style.display='block';
+document.getElementById('loading').style.display='none';}
+function openConfig(){var hash='tab-instances/config/system.adapter.'+NS;
+try{var target=(window.parent&&window.parent!==window)?window.parent:window;
+target.location.href=target.location.href.split('#')[0]+'#'+hash;}
+catch(_e){window.open('/index.html#'+hash,'_blank');}}
+document.getElementById('config-btn').addEventListener('click',openConfig);
+function load(){_getStates(NS+'.*').then(function(states){
+if(!states||Object.keys(states).length===0){render({});return;}
+var devices=extractDevices(states);var uuids=Object.keys(devices);
+if(!uuids.length){render({});return;}
+return Promise.all(uuids.map(function(uuid){
+return _getObject(NS+'.'+uuid).then(function(obj){
+if(obj&&obj.common){var n=obj.common.name;
+if(n&&typeof n==='object'){var lk=lang.slice(0,2);n=n[lk]||n.en||n.de||Object.values(n)[0]||uuid;}
+if(n)devices[uuid].name=String(n);}}).catch(function(){});
+})).then(function(){render(devices);});
+}).catch(function(err){showError(err&&err.message?err.message:String(err));});}
+document.getElementById('loading').textContent=T.loading;
+initSocket().then(function(){load();setInterval(load,REFRESH_INTERVAL_MS);})
+.catch(function(err){showError(err&&err.message?err.message:T.noConn);});
 }());
 </script>
 </body>
