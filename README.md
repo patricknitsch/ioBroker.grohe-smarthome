@@ -39,7 +39,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.3.0 (2026-03-18)
 
 * (claude/patricknitsch) Add card-based device overview tab with controls
 * (claude/patricknitsch) Add Valve, Pressure Measurement and Dispense controls in admin tab

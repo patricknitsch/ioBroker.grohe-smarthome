@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.2.6",
+    "version": "0.3.0",
     "news": {
+      "0.3.0": {
+        "en": "Add card-based device overview tab with controls\nAdd Valve, Pressure Measurement and Dispense controls in admin tab\nDisable controls when device is offline\nAdjust color scheme in admin tab (white/black based on light/dark mode)\nUpdate Packages",
+        "de": "Kartenbasierte Geräteübersicht Tab mit Bedienelementen hinzufügen\nVentil-, Druckmess- und Dosiersteuerungen in Admin-Tab hinzufügen\nDeaktivieren Sie die Steuerung, wenn das Gerät offline ist\nFarbschema in Admin-Tab anpassen (weiß/schwarz basierend auf Licht/Dunkel-Modus)\nPakete aktualisieren",
+        "ru": "Добавьте вкладку обзора устройств на основе карт с элементами управления\nДобавить Valve, измерение давления и контроль диспетчеризации в вкладке admin\nОтключить элементы управления, когда устройство отключено\nНастройка цветовой схемы во вкладке администратора (белый / черный на основе светлого / темного режима)\nОбновление пакетов",
+        "pt": "Adicionar a aba de visão geral do dispositivo baseada em cartões com controles\nAdicione controles de Válvula, Medição de Pressão e Dispense na guia de administração\nDesactivar os controlos quando o dispositivo estiver desligado\nAjuste o esquema de cores na aba de administração (branco/preto com base no modo luz/escuro)\nAtualizar pacotes",
+        "nl": "Op kaarten gebaseerd overzichtstabblad met bedieningselementen toevoegen\nVoeg klep, drukmeting en dispense controles in admin tabblad\nBedieningen uitschakelen wanneer het apparaat offline is\nKleurschema aanpassen in admin tab (wit/zwart op basis van licht/donker modus)\nPakketten bijwerken",
+        "fr": "Ajouter l'onglet aperçu de l'appareil avec les contrôles\nAjouter les commandes de vanne, de mesure de pression et de distribution dans l'onglet admin\nDésactiver les contrôles lorsque l'appareil est hors ligne\nRégler le schéma de couleurs dans l'onglet admin (blanc/noir basé sur le mode lumière/obscurité)\nMettre à jour les paquets",
+        "it": "Aggiungere la scheda panoramica del dispositivo basata sulla scheda con i controlli\nAggiungi Valvola, Misura pressione e controllo di erogazione nella scheda admin\nDisattivare i controlli quando il dispositivo è offline\nRegolare lo schema di colore nella scheda admin (bianco/nero in base alla modalità luce / buio)\nPacchetti di aggiornamento",
+        "es": "Añadir ficha vista de dispositivo basado en la tarjeta con controles\nAgregue controles de medición y dispensación de válvulas, presión en la pestaña administración\nControles deshabilitados cuando el dispositivo está fuera de línea\nAjuste el esquema de color en la pestaña admin (blanco/negro basado en el modo de luz / oscuro)\nPaquetes de actualización",
+        "pl": "Dodaj kartę podglądu urządzenia z urządzeniami sterującymi\nDodaj zawór, pomiar ciśnienia i regulatory dyspensy w zakładce admin\nWyłącz sterowanie, gdy urządzenie jest wyłączone\nDostosuj schemat kolorów w zakładce admin (biały / czarny na podstawie trybu światła / ciemności)\nAktualizacja pakietów",
+        "uk": "Додати вкладку на основі пристрою на основі картки з управліннями\nДодавання клапана, вимірювання тиску та управління дозацією в вкладці адміністратора\nУвімкнути керування при вимкненні пристрою\nРегульувати колірну гамму в вкладці адміністратора (білий/чорний на основі світло-темного режиму)\nОновлення пакетів",
+        "zh-cn": "添加带有控件的基于卡的设备概览标签\n在管理标签中添加阀、 压力测量和断层控制\n设备下线时禁用控制\n调整管理标签中的颜色方案(基于光/暗模式的白色/黑色)\n更新软件包"
+      },
       "0.2.6": {
         "en": "Fix measurement \"Filter\" for Blue Systems\nFix permanent dispense without Trigger",
         "de": "Fixmessung \"Filter\" für Blaue Systeme\nDauerspende ohne Trigger beheben",
@@ -80,19 +93,6 @@
         "pl": "Zmień dziennik pomiaru",
         "uk": "Журнал змін для вимірювання",
         "zh-cn": "更改测量日志"
-      },
-      "0.2.0": {
-        "en": "Extend Error Handling for noon and midnight",
-        "de": "Extend Error Handling für Mittag und Mitternacht",
-        "ru": "Обработка ошибок в полдень и полночь",
-        "pt": "Estender o Tratamento de Erros para o meio- dia e a meia- noite",
-        "nl": "Extend Error Handling voor middag en middernacht",
-        "fr": "Prolonger la manipulation des erreurs pour midi et minuit",
-        "it": "Estendere la gestione degli errori per mezzogiorno e mezzanotte",
-        "es": "Extender el manejo de errores para mediodía y medianoche",
-        "pl": "Rozszerzenie błędów obsługi na południe i północ",
-        "uk": "Продовжити поломку для он-лайн",
-        "zh-cn": "将错误处理延伸至中午和午夜"
       }
     },
     "titleLang": {
@@ -151,16 +151,16 @@
       "singleton": false,
       "name": {
         "en": "Device Overview",
-        "de": "Ger\u00e4te\u00fcbersicht",
-        "ru": "\u041e\u0431\u0437\u043e\u0440 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432",
-        "pt": "Vis\u00e3o geral dos dispositivos",
+        "de": "Geräteübersicht",
+        "ru": "Обзор устройств",
+        "pt": "Visão geral dos dispositivos",
         "nl": "Apparaatoverzicht",
-        "fr": "Aper\u00e7u des appareils",
+        "fr": "Aperçu des appareils",
         "it": "Panoramica dispositivi",
         "es": "Resumen de dispositivos",
-        "pl": "Przegl\u0105d urz\u0105dze\u0144",
-        "uk": "\u041e\u0433\u043b\u044f\u0434 \u043f\u0440\u0438\u0441\u0442\u0440\u043e\u0457\u0432",
-        "zh-cn": "\u8bbe\u5907\u6982\u89c8"
+        "pl": "Przegląd urządzeń",
+        "uk": "Огляд пристроїв",
+        "zh-cn": "设备概览"
       },
       "link": "",
       "fa-icon": "tint"
