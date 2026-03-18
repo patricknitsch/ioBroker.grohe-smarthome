@@ -17,7 +17,7 @@ Der Adapter meldet sich über den OIDC/Keycloak-Login von Grohe an, speichert ei
 
 Der Adapter enthält einen eingebauten **Geräteübersicht-Tab**, der direkt in der ioBroker-Admin-Oberfläche aufgerufen werden kann.
 
-<img src="../../admin/grohe-smarthome.png" alt="Grohe Smarthome" width="100"/>
+<img src="../../docs/img/tab-light.png" alt="Admin-Tab – heller Modus (Sense Guard)" width="420"/> <img src="../../docs/img/tab-dark.png" alt="Admin-Tab – dunkler Modus (Blue Home)" width="420"/>
 
 ### Was der Tab anzeigt
 

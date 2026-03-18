@@ -17,7 +17,7 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 
 The adapter includes a built-in **device overview tab** accessible directly in the ioBroker admin UI.
 
-<img src="../../admin/grohe-smarthome.png" alt="Grohe Smarthome" width="100"/>
+<img src="../../docs/img/tab-light.png" alt="Admin tab – light mode (Sense Guard)" width="420"/> <img src="../../docs/img/tab-dark.png" alt="Admin tab – dark mode (Blue Home)" width="420"/>
 
 ### What the tab shows
 
