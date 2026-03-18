@@ -116,6 +116,16 @@
         #toast.show{transform:translateX(-50%) translateY(0)}
         #toast.error{background:var(--danger)}
         #toast.success{background:var(--success)}
+        /* ── CONFIRM MODAL ── */
+        .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;
+            display:flex;align-items:center;justify-content:center;}
+        .confirm-box{background:var(--card-bg);border-radius:8px;padding:24px 28px;
+            max-width:340px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,.3);}
+        .confirm-msg{margin-bottom:20px;font-size:.97em;line-height:1.4;color:var(--text);}
+        .confirm-btns{display:flex;gap:10px;justify-content:flex-end;}
+        .btn-secondary{background:var(--border);color:var(--text);}
+        .btn-secondary:hover:not(:disabled){filter:brightness(.9);}
+        .btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
         @media(max-width:480px){#main{padding:10px}}
     </style>
 </head>
@@ -500,6 +510,24 @@ var _toastTimer=null;
 function showToast(msg,type){var el=document.getElementById('toast');el.textContent=msg;
 el.className='show'+(type?' '+type:'');clearTimeout(_toastTimer);
 _toastTimer=setTimeout(function(){el.className='';},3000);}
+function _confirm(msg,cb){
+var ov=document.createElement('div');ov.className='confirm-overlay';
+var box=document.createElement('div');box.className='confirm-box';
+box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label',msg);
+var msgEl=document.createElement('div');msgEl.className='confirm-msg';msgEl.textContent=msg;
+var btns=document.createElement('div');btns.className='confirm-btns';
+var btnCancel=document.createElement('button');btnCancel.type='button';btnCancel.className='btn btn-secondary';btnCancel.textContent=T.no;
+var btnOk=document.createElement('button');btnOk.type='button';btnOk.className='btn btn-primary';btnOk.textContent=T.yes;
+function close(){document.removeEventListener('keydown',onKey);if(ov.parentNode)ov.parentNode.removeChild(ov);}
+function onKey(e){if(e.key==='Escape'&&ov.parentNode)close();}
+btnOk.addEventListener('click',function(){close();cb();});
+btnCancel.addEventListener('click',close);
+ov.addEventListener('click',function(e){if(e.target===ov)close();});
+document.addEventListener('keydown',onKey);
+btns.appendChild(btnCancel);btns.appendChild(btnOk);
+box.appendChild(msgEl);box.appendChild(btns);
+ov.appendChild(box);document.body.appendChild(ov);
+btnCancel.focus();}
 function _sendState(id,val,successMsg){showToast(T.toastSending);
 return _setState(id,val).then(function(){showToast(successMsg||T.toastSent,'success');})
 .catch(function(e){showToast(T.toastError+(e&&e.message?e.message:String(e)),'error');});}
@@ -527,9 +555,9 @@ var sec=document.createElement('div');sec.className='ctrl-section';
 var title=document.createElement('div');title.className='sec-title';title.textContent=T.secControls;sec.appendChild(title);
 if(!online){var hint=document.createElement('div');hint.className='offline-hint';hint.textContent='\u26a0\ufe0f '+T.offlineHint;sec.appendChild(hint);}
 var row=document.createElement('div');row.className='ctrl-btns';
-var btnOpen=_makeBtn('\ud83d\udfe2 '+T.btnValveOpen,'success',function(){if(!confirm(T.confirmAction))return;_sendState(NS+'.'+uuid+'.controls.valveOpen',true,T.btnValveOpen+': OK');});
-var btnClose=_makeBtn('\ud83d\udd34 '+T.btnValveClose,'danger',function(){if(!confirm(T.confirmAction))return;_sendState(NS+'.'+uuid+'.controls.valveOpen',false,T.btnValveClose+': OK');});
-var btnMeasure=_makeBtn('\ud83d\udcca '+T.btnMeasure,'primary',function(){if(!confirm(T.confirmAction))return;_sendState(NS+'.'+uuid+'.controls.pressureMeasurement',true,T.btnMeasure+': OK');});
+var btnOpen=_makeBtn('\ud83d\udfe2 '+T.btnValveOpen,'success',function(){_confirm(T.confirmAction,function(){_sendState(NS+'.'+uuid+'.controls.valveOpen',true,T.btnValveOpen+': OK');});});
+var btnClose=_makeBtn('\ud83d\udd34 '+T.btnValveClose,'danger',function(){_confirm(T.confirmAction,function(){_sendState(NS+'.'+uuid+'.controls.valveOpen',false,T.btnValveClose+': OK');});});
+var btnMeasure=_makeBtn('\ud83d\udcca '+T.btnMeasure,'primary',function(){_confirm(T.confirmAction,function(){_sendState(NS+'.'+uuid+'.controls.pressureMeasurement',true,T.btnMeasure+': OK');});});
 if(!online){btnOpen.disabled=true;btnClose.disabled=true;btnMeasure.disabled=true;}
 row.appendChild(btnOpen);row.appendChild(btnClose);row.appendChild(btnMeasure);
 sec.appendChild(row);card.appendChild(sec);}
@@ -553,15 +581,14 @@ ainp.min=50;ainp.max=2000;ainp.step=50;ainp.disabled=!online;
 var curAmt=getVal(s,'controls.tapAmount');ainp.value=curAmt!==null?curAmt:200;
 ag.appendChild(ainp);frow.appendChild(ag);sec.appendChild(frow);
 var brow=document.createElement('div');brow.className='ctrl-btns';
-var btnD=_makeBtn('\ud83d\udca7 '+T.btnDispense,'success',function(){
-if(!confirm(T.confirmAction))return;
+var btnD=_makeBtn('\ud83d\udca7 '+T.btnDispense,'success',function(){_confirm(T.confirmAction,function(){
 _setState(NS+'.'+uuid+'.controls.tapType',parseInt(tsel.value)||1).then(function(){
 return _setState(NS+'.'+uuid+'.controls.tapAmount',parseInt(ainp.value)||200);}).then(function(){
-return _sendState(NS+'.'+uuid+'.controls.dispenseTrigger',true,T.btnDispense+': OK');}).catch(function(e){showToast(T.toastError+(e&&e.message?e.message:String(e)),'error');});});
+return _sendState(NS+'.'+uuid+'.controls.dispenseTrigger',true,T.btnDispense+': OK');}).catch(function(e){showToast(T.toastError+(e&&e.message?e.message:String(e)),'error');});});});
 var btnCo2=_makeBtn('\u267b\ufe0f '+T.btnResetCo2,'primary',function(){
-if(!confirm(T.confirmReset+' (CO\u2082)'))return;_sendState(NS+'.'+uuid+'.controls.co2EmptyTrigger',true,T.btnResetCo2+': OK');});
+_confirm(T.confirmReset+' (CO\u2082)',function(){_sendState(NS+'.'+uuid+'.controls.co2EmptyTrigger',true,T.btnResetCo2+': OK');});});
 var btnFilt=_makeBtn('\ud83d\udebf '+T.btnResetFilter,'primary',function(){
-if(!confirm(T.confirmReset+' (Filter)'))return;_sendState(NS+'.'+uuid+'.controls.filterEmptyTrigger',true,T.btnResetFilter+': OK');});
+_confirm(T.confirmReset+' (Filter)',function(){_sendState(NS+'.'+uuid+'.controls.filterEmptyTrigger',true,T.btnResetFilter+': OK');});});
 if(!online){btnD.disabled=true;btnCo2.disabled=true;btnFilt.disabled=true;}
 brow.appendChild(btnD);brow.appendChild(btnCo2);brow.appendChild(btnFilt);
 sec.appendChild(brow);card.appendChild(sec);}
