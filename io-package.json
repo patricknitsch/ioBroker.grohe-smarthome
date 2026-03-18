@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "news": {
+      "0.3.1": {
+        "en": "Fix admin tab controls not triggered after confirmation – replace native `confirm()` with custom modal dialog (works inside ioBroker iframe)\nFix 4 wrong state IDs in admin tab (Close Valve, Pressure Measurement, Reset CO₂, Reset Filter)",
+        "de": "Admin-Tab-Steuerelemente nicht nach der Bestätigung ausgelöst – ersetzen native `confirm()` durch benutzerdefinierte Modal Dialog (Arbeiten innerhalb ioBroker iframe)\nFix 4 falsche Zustands-IDs in Admin-Tab (Close Valve, Druckmessung, CO2, Alle Filter zurücksetzen)",
+        "ru": "Исправьте элементы управления вкладкой администратора, не срабатывающие после подтверждения - замените нативную «подтвердить» пользовательским модальным диалогом (работает внутри iframe ioBroker)\nИсправить 4 неправильных идентификатора состояния во вкладке администратора (закрыть клапан, измерение давления, сброс CO2, сброс фильтра)",
+        "pt": "Corrigir controles de tabulação de administrador não acionados após a confirmação – substitua `confirm()' nativo por diálogo modal personalizado (funciona dentro do iframe ioBroker)\nCorrigir 4 IDs de estado errados na guia de administração (válvula de fecho, medição de pressão, reiniciar o filtro de CO2)",
+        "nl": "Repareren admin tabblad controles niet geactiveerd na bevestiging \nFix 4 verkeerde status-ID's in het tabblad admin (Sluitenklep, Drukmeting, Reset CO2, Reset Filter)",
+        "fr": "Correction des commandes des onglets d'administration non déclenchées après confirmation – remplacer le natif `confirm()` par la boîte de dialogue modale personnalisée (travaille à l'intérieur de ioBroker iframe)\nCorrection de 4 identifiants d'état erroné dans l'onglet admin (Fermer Valve, Mesure de pression, Réinitialiser le CO2, Réinitialiser le filtre)",
+        "it": "Fissare i controlli della scheda admin non attivati dopo la conferma – sostituire `confirm()` nativo con la finestra di dialogo modale personalizzata (lavori all'interno ioBroker iframe)\nFissare 4 ID di stato errato nella scheda di amministrazione (Valvola di spostamento, Misura di pressione, Reset CO2, Reset Filter)",
+        "es": "Controles de la pestaña de administración fijo no activados después de la confirmación – reemplazar el `confirm()` nativo con diálogo modal personalizado (trabajos dentro de ioBroker iframe)\nFijar 4 IDs estatales incorrectos en la pestaña admin (Cerrar válvula, Medición de presión, Reiniciar CO2, Reiniciar filtro)",
+        "pl": "Poprawianie kontroli zakładki admin nie uruchomione po potwierdzeniu - zastąpić natywne \"potwierdź ()\" własnym dialogiem modalnym (działa wewnątrz iframe iBroker)\nPoprawiono 4 błędne identyfikatory stanu w zakładce admin (Zamknij zawór, Pomiar ciśnienia, Reset CO, Reset Filter)",
+        "uk": "Виправлення керування вкладками адміністратора не викликається після підтвердження – замінити рідну `confirm()` з індивідуальним модним діалогом (працює всередині ioBroker iframe)\nФіксувати 4 невірних державних ідентифікаторів у вкладці адміністратора (Клаговий клапан, вимірювання тиску, Заміна CO2, Фільтр заміщення)",
+        "zh-cn": "修复确认后不会触发的管理员标签控制 - 用自定义模式对话框( ioBroker iframe 内部的工作) 替换本地“ 确认() ”\n在管理标签中修复4个错误的状态ID( 关闭阀、 压力测量、 重置CO2、 重置过滤器)"
+      },
       "0.3.0": {
         "en": "Add card-based device overview tab with controls\nAdd Valve, Pressure Measurement and Dispense controls in admin tab\nDisable controls when device is offline\nAdjust color scheme in admin tab (white/black based on light/dark mode)\nUpdate Packages",
         "de": "Kartenbasierte Geräteübersicht Tab mit Bedienelementen hinzufügen\nVentil-, Druckmess- und Dosiersteuerungen in Admin-Tab hinzufügen\nDeaktivieren Sie die Steuerung, wenn das Gerät offline ist\nFarbschema in Admin-Tab anpassen (weiß/schwarz basierend auf Licht/Dunkel-Modus)\nPakete aktualisieren",
@@ -80,19 +93,6 @@
         "pl": "Popraw problem z jsonConfig i Interval",
         "uk": "Виправлення проблеми з jsonConfig і Interval",
         "zh-cn": "解决 JsonConfig 和 Interval 的问题"
-      },
-      "0.2.1": {
-        "en": "Change Log for measurement",
-        "de": "Change Log zur Messung",
-        "ru": "Изменить журнал для измерения",
-        "pt": "Alterar o Log para medição",
-        "nl": "Logboek voor meting wijzigen",
-        "fr": "Modifier le journal pour la mesure",
-        "it": "Cambia Log per la misurazione",
-        "es": "Change Log for measurement",
-        "pl": "Zmień dziennik pomiaru",
-        "uk": "Журнал змін для вимірювання",
-        "zh-cn": "更改测量日志"
       }
     },
     "titleLang": {
