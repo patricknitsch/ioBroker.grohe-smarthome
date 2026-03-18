@@ -25,6 +25,7 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome**. Special thanks goes to **Flo-Schilli**. 
 
 ---
+
 ## Documentation
 
 [🇺🇸 Documentation](./docs/en/README.md)

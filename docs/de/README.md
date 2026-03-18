@@ -13,6 +13,53 @@ Der Adapter meldet sich über den OIDC/Keycloak-Login von Grohe an, speichert ei
 
 ---
 
+## Admin-Tab
+
+Der Adapter enthält einen eingebauten **Geräteübersicht-Tab**, der direkt in der ioBroker-Admin-Oberfläche aufgerufen werden kann.
+
+<img src="../../docs/img/tab-light.png" alt="Admin-Tab – heller Modus (Sense Guard)" width="420"/> <img src="../../docs/img/tab-dark.png" alt="Admin-Tab – dunkler Modus (Blue Home)" width="420"/>
+
+### Was der Tab anzeigt
+
+Im Toolbar-Dropdown ein registriertes Grohe-Gerät auswählen, um die zugehörige **Gerätekarte** anzuzeigen:
+
+| Bereich | Inhalt |
+|---|---|
+| **Kopfzeile** | Gerätename, Online-/Offline-Indikator, Ventil-Badge (Sense Guard), Firmware-Update-Badge |
+| **Status** | Online-Status, WLAN-Qualität, Update-Verfügbarkeit |
+| **Messungen** | Temperatur, Luftfeuchtigkeit, Akku (Sense); Wassertemperatur, Durchfluss, Druck (Guard) |
+| **Verbrauch** | Täglich, Ø täglich/monatlich, Gesamtverbrauch, letzter Verbrauch, letzter Max-Durchfluss (Guard) |
+| **Druckmessung** | Druckabfall, Leck-Flag, Leckage-Level, Messzeitpunkt (Guard) |
+| **Ressourcen** | Verbleibende CO₂- und Filtermenge (% + Liter) mit Fortschrittsbalken (Blue) |
+| **Statistik** | Zyklen, Laufzeiten, Pumpen-/Reinigungs-/Filterzähler (Blue) |
+| **Daten** | Letzte Reinigung, letzter CO₂-/Filterwechsel, letzte Messung (Blue) |
+| **Letzte Meldung** | Kategorie, Meldungstext, Zeitstempel |
+| **Steuerungen** | Gerätespezifische Schaltflächen und Eingaben (siehe unten) |
+
+### Steuerungen
+
+Steuerungen werden **automatisch deaktiviert**, wenn das Gerät als offline gemeldet wird.
+
+**Grohe Sense Guard**
+- Ventil öffnen / Ventil schließen
+- Druckmessung starten
+
+**Grohe Blue Home / Professional**
+- Zapfart wählen: Still / Medium / Sprudelnd
+- Menge in ml eingeben
+- Zapfvorgang auslösen
+- CO₂-Zähler zurücksetzen
+- Filter-Zähler zurücksetzen
+
+### Weitere Tab-Funktionen
+
+- **Hell-/Dunkelmodus** – folgt automatisch dem ioBroker-Admin-Design
+- **Mehrsprachig** – EN, DE, ES, FR, IT, NL
+- **Aktualisierungszeitstempel** – zeigt an, wann die angezeigten Daten zuletzt aktualisiert wurden
+- **Direktlink** zur Adapterkonfiguration über die Schaltfläche *Konfiguration* in der Toolbar
+
+---
+
 ## Funktionen
 
 - Cloud-Login mit **E-Mail/Passwort** (initial) und automatischer **Token-Erneuerung**
