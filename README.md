@@ -45,6 +45,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 * (claude/patricknitsch) Add Valve, Pressure Measurement and Dispense controls in admin tab
 * (claude/patricknitsch) Disable controls when device is offline
 * (claude/patricknitsch) Adjust color scheme in admin tab (white/black based on light/dark mode)
+* (patricknitsch) Update Packages
 
 ### 0.2.6 (2026-03-11)
 
