@@ -13,6 +13,53 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 
 ---
 
+## Admin Tab
+
+The adapter includes a built-in **device overview tab** accessible directly in the ioBroker admin UI.
+
+<img src="../../admin/grohe-smarthome.png" alt="Grohe Smarthome" width="100"/>
+
+### What the tab shows
+
+Select a registered Grohe appliance from the toolbar dropdown to display its **device card**:
+
+| Section | Content |
+|---|---|
+| **Header** | Device name, online/offline indicator, valve badge (Sense Guard), firmware update badge |
+| **Status** | Online status, WiFi quality, update availability |
+| **Measurements** | Temperature, humidity, battery (Sense); water temperature, flow rate, pressure (Guard) |
+| **Consumption** | Daily, average daily/monthly, total water consumption, last withdrawal, last max flow rate (Guard) |
+| **Pressure Measurement** | Pressure drop, leakage flag, leakage level, measurement timestamp (Guard) |
+| **Resources** | CO₂ and filter remaining (% + litres) with progress bars (Blue) |
+| **Statistics** | Cycles, run times, pump/cleaning/filter counts (Blue) |
+| **Dates** | Last cleaning, last CO₂ / filter replacement, last measurement (Blue) |
+| **Latest Notification** | Category, message text, timestamp |
+| **Controls** | Device-specific buttons and inputs (see below) |
+
+### Controls
+
+Controls are **automatically disabled** when the device is reported offline.
+
+**Grohe Sense Guard**
+- Open valve / Close valve
+- Start pressure measurement
+
+**Grohe Blue Home / Professional**
+- Select tap type: Still / Medium / Carbonated
+- Enter amount in ml
+- Trigger dispense
+- Reset CO₂ counter
+- Reset filter counter
+
+### Other tab features
+
+- **Light / dark mode** – follows the ioBroker admin theme automatically
+- **Multilingual** – EN, DE, ES, FR, IT, NL
+- **Refresh timestamp** – shows when the displayed data was last updated
+- **Quick link** to the adapter configuration page via the *Configuration* toolbar button
+
+---
+
 ## Features
 
 - Cloud login with **email/password** (initial) and automatic **token refresh**

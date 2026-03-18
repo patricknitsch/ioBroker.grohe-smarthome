@@ -25,6 +25,33 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome**. Special thanks goes to **Flo-Schilli**. 
 
 ---
+
+## Admin Tab
+
+The adapter includes a built-in **device overview tab** accessible directly in the ioBroker admin UI.
+
+<img src="admin/grohe-smarthome.png" alt="Grohe Smarthome" width="100"/>
+
+### Features
+
+- **Device selector** – choose any registered Grohe appliance from the toolbar dropdown
+- **Real-time device cards** showing:
+  - Online/offline status, WiFi quality, and firmware update availability
+  - Current measurements (temperature, humidity, flow rate, pressure, battery, …)
+  - Consumption statistics (Sense Guard: daily, average, total water consumption)
+  - Pressure measurement results (Sense Guard)
+  - Remaining resources with progress bars (Blue: CO₂ %, filter %)
+  - Usage statistics and maintenance dates (Blue)
+  - Latest notification (message, category, timestamp)
+- **Controls** (disabled automatically when the device is offline):
+  - **Sense Guard**: Open valve / Close valve / Start pressure measurement
+  - **Blue Home / Professional**: Select tap type (still / medium / carbonated), set amount (ml), trigger dispense, reset CO₂, reset filter
+- **Light/dark mode** – automatically follows the ioBroker admin theme
+- **Multilingual** – EN, DE, ES, FR, IT, NL
+- **Quick link** to the adapter configuration page
+
+---
+
 ## Documentation
 
 [🇺🇸 Documentation](./docs/en/README.md)
