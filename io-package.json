@@ -162,8 +162,7 @@
         "uk": "Огляд пристроїв",
         "zh-cn": "设备概览"
       },
-      "link": "",
-      "fa-icon": "tint"
+      "link": ""
     },
     "dependencies": [
       {
