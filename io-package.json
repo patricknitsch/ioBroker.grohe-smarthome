@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "news": {
+      "0.3.2": {
+        "en": "Update Admin Tap for Blue systems\nFix Isues from RepoChecker",
+        "de": "Admin Tap für blaue Systeme aktualisieren\nFix Isues von RepoChecker",
+        "ru": "Обновление Admin Tap для систем Blue\nИсправить проблемы от RepoChecker",
+        "pt": "Atualizar a torneira de administração para sistemas azuis\nCorrigir issues do RepoChecker",
+        "nl": "Admin tap voor blauwe systemen bijwerken\nFix Isues van RepoChecker",
+        "fr": "Mettre à jour Admin Tap pour les systèmes bleus\nCorrection des émissions de RepoChecker",
+        "it": "Aggiornamento Admin Tap per sistemi blu\nRiparare Isues da RepoChecker",
+        "es": "Actualizar Grifo de Admin para sistemas Azules\nIsues fijados de RepoChecker",
+        "pl": "Aktualizacja Admin Tap dla systemów niebieskich\nPoprawia poprawność z RepoChecker",
+        "uk": "Update Admin Tap для систем Blue\nВиправлення доходів від RepoChecker",
+        "zh-cn": "更新蓝色系统的管理磁带\n从 RepoChecker 中修补 Isues"
+      },
       "0.3.1": {
         "en": "Fix admin tab controls not triggered after confirmation – replace native `confirm()` with custom modal dialog (works inside ioBroker iframe)\nFix 4 wrong state IDs in admin tab (Close Valve, Pressure Measurement, Reset CO₂, Reset Filter)",
         "de": "Admin-Tab-Steuerelemente nicht nach der Bestätigung ausgelöst – ersetzen native `confirm()` durch benutzerdefinierte Modal Dialog (Arbeiten innerhalb ioBroker iframe)\nFix 4 falsche Zustands-IDs in Admin-Tab (Close Valve, Druckmessung, CO2, Alle Filter zurücksetzen)",
@@ -80,19 +93,6 @@
         "pl": "Nie naprawiaj poprawnych wiadomości",
         "uk": "Виправлення не коректних повідомлень",
         "zh-cn": "校正没有正确的信件"
-      },
-      "0.2.2": {
-        "en": "Fix Problem with jsonConfig and Interval",
-        "de": "Problem mit jsonConfig und Intervall behoben",
-        "ru": "Исправьте проблему с помощью jsonConfig и Interval",
-        "pt": "Corrigir problema com jsonConfig e intervalo",
-        "nl": "Fix Probleem met jsonConfig en Interval",
-        "fr": "Correction du problème avec jsonConfig et Interval",
-        "it": "Problema risolto con jsonConfig e Interval",
-        "es": "Problema de fijación con jsonConfig e Interval",
-        "pl": "Popraw problem z jsonConfig i Interval",
-        "uk": "Виправлення проблеми з jsonConfig і Interval",
-        "zh-cn": "解决 JsonConfig 和 Interval 的问题"
       }
     },
     "titleLang": {

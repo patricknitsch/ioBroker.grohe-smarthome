@@ -39,8 +39,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.3.2 (2026-03-21)
 
 * (copilot) Update Admin Tap for Blue systems
 * (patricknitsch) Fix Isues from RepoChecker
