@@ -573,17 +573,19 @@ var tsel=document.createElement('select');tsel.className='ctrl-select';tsel.disa
 [[1,T.tapTypeStill],[2,T.tapTypeMedium],[3,T.tapTypeCarbonated]].forEach(function(kv){
 var o=document.createElement('option');o.value=kv[0];o.textContent=kv[1];tsel.appendChild(o);});
 var curType=getVal(s,'controls.tapType');if(curType)tsel.value=curType;
+tsel.addEventListener('change',function(){_setState(NS+'.'+uuid+'.controls.tapType',parseInt(tsel.value,10)||1).catch(function(e){showToast(T.toastError+T.tapType+': '+(e&&e.message?e.message:String(e)),'error');});});
 tg.appendChild(tsel);frow.appendChild(tg);
 var ag=document.createElement('div');ag.className='ctrl-field-group';
 var al=document.createElement('div');al.className='ctrl-field-label';al.textContent=T.tapAmount+' (ml)';ag.appendChild(al);
 var ainp=document.createElement('input');ainp.type='number';ainp.className='ctrl-input';
 ainp.min=50;ainp.max=2000;ainp.step=50;ainp.disabled=!online;
-var curAmt=getVal(s,'controls.tapAmount');ainp.value=curAmt!==null?curAmt:200;
+var curAmt=getVal(s,'controls.tapAmount');ainp.value=(curAmt!==null&&curAmt>0)?curAmt:250;
+ainp.addEventListener('change',function(){var v=parseInt(ainp.value,10);_setState(NS+'.'+uuid+'.controls.tapAmount',v>0?v:250).catch(function(e){showToast(T.toastError+T.tapAmount+': '+(e&&e.message?e.message:String(e)),'error');});});
 ag.appendChild(ainp);frow.appendChild(ag);sec.appendChild(frow);
 var brow=document.createElement('div');brow.className='ctrl-btns';
 var btnD=_makeBtn('\ud83d\udca7 '+T.btnDispense,'success',function(){_confirm(T.confirmAction,function(){
-_setState(NS+'.'+uuid+'.controls.tapType',parseInt(tsel.value)||1).then(function(){
-return _setState(NS+'.'+uuid+'.controls.tapAmount',parseInt(ainp.value)||200);}).then(function(){
+_setState(NS+'.'+uuid+'.controls.tapType',parseInt(tsel.value,10)||1).then(function(){
+return _setState(NS+'.'+uuid+'.controls.tapAmount',parseInt(ainp.value,10)||250);}).then(function(){
 return _sendState(NS+'.'+uuid+'.controls.dispenseTrigger',true,T.btnDispense+': OK');}).catch(function(e){showToast(T.toastError+(e&&e.message?e.message:String(e)),'error');});});});
 var btnCo2=_makeBtn('\u267b\ufe0f '+T.btnResetCo2,'primary',function(){
 _confirm(T.confirmReset+' (CO\u2082)',function(){_sendState(NS+'.'+uuid+'.controls.resetCo2',true,T.btnResetCo2+': OK');});});
