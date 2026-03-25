@@ -44,7 +44,7 @@ Steuerungen werden **automatisch deaktiviert**, wenn das Gerät als offline geme
 - Ventil öffnen / Ventil schließen
 - Druckmessung starten
 
-**Grohe Blue Home / Professional** *(Work in Progress – Zapffunktion befindet sich noch in Entwicklung)*
+**Grohe Blue Home / Professional**
 - Zapfart wählen: Still / Medium / Sprudelnd
 - Menge in ml eingeben (50–2000 ml, Vielfache von 50)
 - Zapfvorgang auslösen
@@ -252,8 +252,6 @@ Steuerungen:
 ```
 
 Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, startet den Zapfvorgang und setzt `dispenseTrigger` anschließend wieder auf `false`. Nach dem Zapfvorgang werden `tapType` und `tapAmount` automatisch auf `0` zurückgesetzt, um eine unbeabsichtigte Wiederverwendung der Werte in nachfolgenden Polling-Zyklen zu verhindern. Sie werden auch bei jedem Adapterstart auf `0` zurückgesetzt.
-
-> **⚠️ Work in Progress:** Die Zapffunktion für Grohe-Blue-Geräte befindet sich noch in Entwicklung und kann unerwartetes Verhalten zeigen. Der Wert von `tapAmount` wird automatisch auf den gültigen Bereich 50–2000 ml begrenzt und auf das nächste Vielfache von 50 gerundet.
 
 > **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Senden des Befehls startet eine **Hintergrund-Verifizierung**, die den `/details`-Endpunkt alle 10 Sekunden erneut abfragt (bis zu 3 Versuche / maximal 30 Sekunden insgesamt), bis ein neuerer Messwert-Timestamp erscheint. Nach Erkennung werden alle States aktualisiert. So wird sichergestellt, dass Werte wie `remainingFilter` und `remainingCo2` die aktuellen Gerätedaten widerspiegeln. Nach dem Start des Adapters kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte angezeigt werden.
 

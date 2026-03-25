@@ -17,14 +17,12 @@ It supports:
 
 - **Grohe Sense** (type `101`)
 - **Grohe Sense Guard** (type `103`)
-- **Grohe Blue Home** (type `104`) *(Work in Progress – dispense function may behave unexpectedly)*
-- **Grohe Blue Professional** (type `105`) *(Work in Progress – dispense function may behave unexpectedly)*
+- **Grohe Blue Home** (type `104`)
+- **Grohe Blue Professional** (type `105`)
 
 The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token encrypted** in a state, and polls the Grohe cloud API on a configurable interval.
 
 Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome**. Special thanks goes to **Flo-Schilli**. 
-
-> **⚠️ Work in Progress:** The dispense function for Grohe Blue devices is still under development and may behave unexpectedly. The `tapAmount` value is automatically clamped to the valid range of 50–2000 ml and rounded to the nearest multiple of 50.
 
 ---
 
