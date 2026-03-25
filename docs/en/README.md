@@ -44,9 +44,9 @@ Controls are **automatically disabled** when the device is reported offline. Eac
 - Open valve / Close valve
 - Start pressure measurement
 
-**Grohe Blue Home / Professional**
+**Grohe Blue Home / Professional** *(Work in Progress – dispense function may behave unexpectedly)*
 - Select tap type: Still / Medium / Carbonated
-- Enter amount in ml
+- Enter amount in ml (50–2000 ml, multiples of 50)
 - Trigger dispense
 - Reset CO₂ counter
 - Reset filter counter
@@ -244,7 +244,7 @@ Controls:
 
 ```
 <applianceId>.controls.tapType            (number)  1=still, 2=medium, 3=carbonated
-<applianceId>.controls.tapAmount          (number)  amount in ml (multiples of 50 recommended)
+<applianceId>.controls.tapAmount          (number)  amount in ml (50–2000, multiples of 50)
 <applianceId>.controls.dispenseTrigger    (boolean button)
 
 <applianceId>.controls.resetCo2           (boolean button)
@@ -252,6 +252,8 @@ Controls:
 ```
 
 When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`. After the dispense, `tapType` and `tapAmount` are automatically reset to `0` to prevent unintended re-use of the values in subsequent polling cycles. They are also reset to `0` each time the adapter starts.
+
+> **⚠️ Work in Progress:** The dispense function for Grohe Blue devices is still under development and may behave unexpectedly. The value of `tapAmount` is automatically clamped to the valid range of 50–2000 ml and rounded to the nearest multiple of 50.
 
 > **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After the command is sent, a **background verify loop** re-polls the `/details` endpoint every 10 seconds (up to 3 attempts / 30 seconds total) until a newer measurement timestamp appears. Once detected, the states are updated. This ensures that values like `remainingFilter` and `remainingCo2` reflect the latest device data. After starting the adapter, it may take 1–2 poll cycles before current values are displayed.
 
