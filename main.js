@@ -588,19 +588,49 @@ class GroheSmarthome extends utils.Adapter {
 	}
 
 	/**
+	 * Calculate the corrected remaining filter percentage.
+	 *
+	 * The Grohe API returns a `remaining_filter` value that can be higher than
+	 * the real value.  The official Grohe app applies the following cap:
+	 *
+	 *   timeBasedPct = 100 − (daysSinceReplacement / 360 × 100)
+	 *
+	 * and then uses min(apiPct, timeBasedPct).  We mirror that logic here.
+	 * See: https://github.com/patricknitsch/ioBroker.grohe-smarthome/issues/28
+	 *
+	 * @param {number|undefined} apiPct  The raw percentage from the API.
+	 * @param {string|undefined} dateOfFilterReplacement  ISO date string of the last filter replacement.
+	 * @returns {number|undefined} The corrected percentage, or apiPct when correction is not possible.
+	 */
+	_calcFilterPct(apiPct, dateOfFilterReplacement) {
+		if (typeof apiPct !== 'number' || !dateOfFilterReplacement) {
+			return apiPct;
+		}
+		const replacementDate = new Date(dateOfFilterReplacement);
+		if (isNaN(replacementDate.getTime())) {
+			return apiPct;
+		}
+		const daysSince = (Date.now() - replacementDate.getTime()) / (1000 * 60 * 60 * 24);
+		const timeBasedPct = Math.max(0, 100 - (daysSince / 360) * 100);
+		return Math.min(apiPct, timeBasedPct);
+	}
+
+	/**
 	 * Write all Blue device measurement states.
 	 * Called both from the normal poll (/details data) and from the
 	 * background verify loop when fresh data arrives after a measurement command.
 	 */
 	async _updateBlueStates(id, m, status, appliance) {
+		const correctedFilterPct = this._calcFilterPct(m.remaining_filter, m.date_of_filter_replacement);
+
 		this.log.debug(
-			`Blue ${id} raw: remaining_filter=${m.remaining_filter}, remaining_filter_liters=${m.remaining_filter_liters}, ` +
+			`Blue ${id} raw: remaining_filter=${m.remaining_filter} (corrected=${correctedFilterPct}), remaining_filter_liters=${m.remaining_filter_liters}, ` +
 				`remaining_co2=${m.remaining_co2}, remaining_co2_liters=${m.remaining_co2_liters}, timestamp=${m.timestamp}`,
 		);
 
 		// CO2 & Filter
 		await this._setNum(id, 'remainingCo2', 'Remaining CO₂', '%', 'value.fill', m.remaining_co2);
-		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', m.remaining_filter);
+		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', correctedFilterPct);
 		await this._setNum(
 			id,
 			'remainingCo2Liters',
