@@ -40,7 +40,8 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
-- (copilot) Adapter requires node.js >= 22 now
+* (copilot) Adapter requires node.js >= 22 now
+* (copilot) Update Dependencies
 
 ### 0.3.3 (2026-03-25)
 
