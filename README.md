@@ -129,6 +129,8 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 * (claude) Optional raw measurement data states
 * (claude) i18n support (EN/DE) for admin UI
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
