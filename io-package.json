@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.3.3",
+    "version": "0.3.4",
     "news": {
+      "0.3.4": {
+        "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
+        "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
+        "ru": "Адаптер требует node.js >= 22 сейчас\nОбновление зависимостей",
+        "pt": "Adaptador requer nod.js >= 22 agora\nAtualizar dependências",
+        "nl": "Voor de adapter zijn node.js < 22 nu nodig\nAfhankelijkheden bijwerken",
+        "fr": "Adaptateur nécessite node.js >= 22 maintenant\nMettre à jour les dépendances",
+        "it": "Adattatore richiede node.js >= 22 ora\nDipendenze di aggiornamento",
+        "es": "Adaptador requiere node.js ю= 22 ahora\nDependencias de actualización",
+        "pl": "Adapter wymaga node.js > = 22\nAktualizuj zależności",
+        "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлення залежності",
+        "zh-cn": "适配器需要节点.js 现在22\n更新依赖关系"
+      },
       "0.3.3": {
         "en": "Clamp tapAmount between 50 and 2000 ml.",
         "de": "Clamp TapAmount zwischen 50 und 2000 ml.",
@@ -80,19 +93,6 @@
         "pl": "Aktualizacja pakietu administracyjnego",
         "uk": "Оновлення пакету адміністратора",
         "zh-cn": "更新管理软件包"
-      },
-      "0.2.4": {
-        "en": "Fix Points for Latest Repo\nUpdate Packages",
-        "de": "Fixpunkte für den neuesten Repo\nPakete aktualisieren",
-        "ru": "Настройка очков для последнего репо\nОбновление пакетов",
-        "pt": "Corrigir pontos para o último recurso\nAtualizar pacotes",
-        "nl": "Fix punten voor de laatste repo\nPakketten bijwerken",
-        "fr": "Correction de points pour la dernière repo\nMettre à jour les paquets",
-        "it": "Punti di fissaggio per ultimo Repo\nPacchetti di aggiornamento",
-        "es": "Puntos de fijación para la última repo\nPaquetes de actualización",
-        "pl": "Napraw punkty dla najnowszej repo\nAktualizacja pakietów",
-        "uk": "Виправлення точок для останнього репо\nОновлення пакетів",
-        "zh-cn": "最新Repo 的固定点\n更新软件包"
       }
     },
     "titleLang": {
