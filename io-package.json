@@ -378,7 +378,7 @@
     "notifyStatus": false,
     "notifyWarnings": false,
     "notifyErrors": true,
-    "notifyEnabled": false,
+    "notifyEnabled": true,
     "notifyUseTelegram": false,
     "notifyUserTelegram": "",
     "notifyUsePushover": false,

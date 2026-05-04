@@ -95,7 +95,16 @@ In the adapter instance settings:
 
 The adapter integrates with the **ioBroker Notification Manager**. Notifications can be forwarded to any configured channel (Telegram, e-mail, Pushover, etc.).
 
-Five notification categories can be enabled or disabled independently in the adapter settings:
+### Enabling notifications
+
+All notification functionality is controlled by a single **master switch** (*Enable notifications*) in the adapter settings. When disabled, no notifications are sent at all. When enabled, you can configure:
+
+1. **Notification categories** – which Grohe events are forwarded to the ioBroker Notification Manager (admin dashboard).
+2. **Direct push providers** (optional) – additionally send push messages directly via Telegram, Pushover, WhatsApp, Email, Signal, Matrix, or Synology Chat. Each provider has its own checkbox and is opt-in.
+
+### Notification categories
+
+Five notification categories can be enabled or disabled independently:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -104,6 +113,24 @@ Five notification categories can be enabled or disabled independently in the ada
 | **Device status notifications** (`notifyStatus`) | ❌ off | Sends a notification when a Grohe device transitions from online → offline or offline → online |
 | **Device warning notifications** (`notifyWarnings`) | ❌ off | Sends a notification for non-critical cat-20 warnings (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.) |
 | **Connection error notifications** (`notifyErrors`) | ✅ on | Sends a notification when the adapter fails to reach the Grohe API (e.g. HTTP 401, 403) and again when the connection is restored |
+
+> **Note:** All category checkboxes are only visible and configurable when the master switch (*Enable notifications*) is turned on.
+
+### Direct push providers
+
+When *Enable notifications* is on, an optional **Direct push providers** section appears below the categories. Enable any provider to also receive push messages:
+
+| Provider | ioBroker adapter required |
+|---|---|
+| Telegram | `telegram` |
+| Pushover | `pushover` |
+| WhatsApp | `whatsapp-cmb` |
+| Email | `email` |
+| Signal | `signal-cmb` |
+| Matrix | `matrix-org` |
+| Synology Chat | `synochat` |
+
+The adapter automatically discovers the first running instance of each enabled provider — no manual instance configuration needed.
 
 ### Notification categories in detail
 
@@ -383,5 +410,6 @@ Core modules:
 - `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling)
 - `lib/groheClient.js`: Grohe API wrapper with authenticated requests
 - `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
+- `lib/notificationManager.js`: Central notification dispatcher – gates all notification logic on `notifyEnabled`, registers with the ioBroker Notification Manager, and optionally forwards to direct push providers (Telegram, Pushover, etc.)
 
 ---

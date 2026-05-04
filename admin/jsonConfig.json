@@ -52,9 +52,22 @@
 			"type": "panel",
 			"label": "notificationsTabLabel",
 			"items": {
+				"notifyEnabled": {
+					"type": "checkbox",
+					"label": "notifyEnabledLabel",
+					"help": "notifyEnabledHelp",
+					"default": true,
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
 				"_notifyHint": {
 					"type": "staticText",
 					"text": "notifyHint",
+					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"style": {
 						"fontSize": "0.85em",
@@ -71,6 +84,7 @@
 				"_categoriesHeader": {
 					"type": "staticText",
 					"text": "notifyCategoriesHeader",
+					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"style": {
 						"fontWeight": "bold",
@@ -87,6 +101,7 @@
 					"label": "notifyAlertsLabel",
 					"help": "notifyAlertsHelp",
 					"default": true,
+					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
 					"sm": 6,
@@ -99,6 +114,7 @@
 					"label": "notifyControlsLabel",
 					"help": "notifyControlsHelp",
 					"default": true,
+					"hidden": "!data.notifyEnabled",
 					"xs": 12,
 					"sm": 6,
 					"md": 4,
@@ -110,6 +126,7 @@
 					"label": "notifyStatusLabel",
 					"help": "notifyStatusHelp",
 					"default": false,
+					"hidden": "!data.notifyEnabled",
 					"xs": 12,
 					"sm": 6,
 					"md": 4,
@@ -121,6 +138,7 @@
 					"label": "notifyWarningsLabel",
 					"help": "notifyWarningsHelp",
 					"default": false,
+					"hidden": "!data.notifyEnabled",
 					"xs": 12,
 					"sm": 6,
 					"md": 4,
@@ -132,6 +150,7 @@
 					"label": "notifyErrorsLabel",
 					"help": "notifyErrorsHelp",
 					"default": true,
+					"hidden": "!data.notifyEnabled",
 					"xs": 12,
 					"sm": 6,
 					"md": 4,
@@ -141,23 +160,12 @@
 				"_providersHeader": {
 					"type": "staticText",
 					"text": "notifyProvidersHeader",
+					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"style": {
 						"fontWeight": "bold",
 						"marginTop": 16
 					},
-					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
-				},
-				"notifyEnabled": {
-					"type": "checkbox",
-					"label": "notifyEnabledLabel",
-					"help": "notifyEnabledHelp",
-					"default": false,
-					"newLine": true,
 					"xs": 12,
 					"sm": 12,
 					"md": 12,

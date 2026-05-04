@@ -95,6 +95,15 @@ In den Instanz-Einstellungen des Adapters:
 
 Der Adapter ist in den **ioBroker Notification Manager** integriert. Benachrichtigungen können an beliebige konfigurierte Kanäle weitergeleitet werden (Telegram, E-Mail, Pushover usw.).
 
+### Benachrichtigungen aktivieren
+
+Alle Benachrichtigungsfunktionen werden über einen einzigen **Master-Schalter** (*Benachrichtigungen aktivieren*) in den Adaptereinstellungen gesteuert. Wenn dieser deaktiviert ist, werden keinerlei Benachrichtigungen gesendet. Wenn er aktiviert ist, können Sie konfigurieren:
+
+1. **Benachrichtigungskategorien** – welche Grohe-Ereignisse an den ioBroker Notification Manager (Admin-Dashboard) weitergeleitet werden.
+2. **Direkte Push-Anbieter** (optional) – zusätzlich Push-Nachrichten direkt über Telegram, Pushover, WhatsApp, E-Mail, Signal, Matrix oder Synology Chat senden. Jeder Anbieter hat eine eigene Checkbox und muss explizit aktiviert werden.
+
+### Benachrichtigungskategorien
+
 In den Adaptereinstellungen lassen sich fünf Benachrichtigungskategorien unabhängig voneinander aktivieren oder deaktivieren:
 
 | Einstellung | Standard | Beschreibung |
@@ -104,6 +113,24 @@ In den Adaptereinstellungen lassen sich fünf Benachrichtigungskategorien unabh�
 | **Gerätestatusbenachrichtigungen** (`notifyStatus`) | ❌ aus | Sendet eine Benachrichtigung, wenn ein Grohe-Gerät von Online nach Offline wechselt oder umgekehrt |
 | **Gerätewarnungs-Benachrichtigungen** (`notifyWarnings`) | ❌ aus | Sendet eine Benachrichtigung bei nicht-kritischen Kategorie-20-Warnungen (Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.) |
 | **Verbindungsfehler-Benachrichtigungen** (`notifyErrors`) | ✅ an | Sendet eine Benachrichtigung wenn der Adapter die Grohe-API nicht erreichen kann (z.B. HTTP 401, 403) und erneut wenn die Verbindung wiederhergestellt wird |
+
+> **Hinweis:** Alle Kategorie-Checkboxen sind nur sichtbar und konfigurierbar, wenn der Master-Schalter (*Benachrichtigungen aktivieren*) eingeschaltet ist.
+
+### Direkte Push-Anbieter
+
+Wenn *Benachrichtigungen aktivieren* eingeschaltet ist, erscheint unterhalb der Kategorien ein optionaler Abschnitt **Direkte Push-Anbieter**. Aktivieren Sie einen oder mehrere Anbieter, um zusätzlich Push-Nachrichten zu erhalten:
+
+| Anbieter | Erforderlicher ioBroker-Adapter |
+|---|---|
+| Telegram | `telegram` |
+| Pushover | `pushover` |
+| WhatsApp | `whatsapp-cmb` |
+| E-Mail | `email` |
+| Signal | `signal-cmb` |
+| Matrix | `matrix-org` |
+| Synology Chat | `synochat` |
+
+Der Adapter erkennt automatisch die erste laufende Instanz jedes aktivierten Anbieters – keine manuelle Instanzkonfiguration erforderlich.
 
 ### Benachrichtigungskategorien im Detail
 
@@ -383,3 +410,4 @@ Zentrale Module:
 - `main.js`: ioBroker-Adapterlogik (Objekte, Polling, State-Updates, Befehle)
 - `lib/groheClient.js`: Grohe-API-Wrapper mit authentifizierten Requests
 - `lib/auth.js`: OAuth/Keycloak-Login und -Refresh (manuelle Redirect-Kette, Cookie-Jar)
+- `lib/notificationManager.js`: Zentraler Benachrichtigungs-Dispatcher – steuert alle Benachrichtigungslogik über `notifyEnabled`, registriert beim ioBroker Notification Manager und leitet optional an direkte Push-Anbieter (Telegram, Pushover usw.) weiter
