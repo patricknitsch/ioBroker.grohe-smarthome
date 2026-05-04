@@ -381,9 +381,7 @@ class GroheSmarthome extends utils.Adapter {
 			});
 
 			const reason =
-				err?.response?.status === 403
-					? getMessages(this.systemLang).phrases.http403Reason
-					: err.message;
+				err?.response?.status === 403 ? getMessages(this.systemLang).phrases.http403Reason : err.message;
 			this.log.warn(
 				`Polling failed: ${reason}. ` +
 					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
