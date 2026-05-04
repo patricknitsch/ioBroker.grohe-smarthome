@@ -3,6 +3,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const GroheClient = require('./lib/groheClient');
+const { sendNotification } = require('./lib/notificationManager');
 
 // Device type constants (same as GroheTypes in Python grohe package)
 const GROHE_SENSE = 101;
@@ -235,11 +236,7 @@ class GroheSmarthome extends utils.Adapter {
 			this.log.warn(`Initialization failed: ${err.message}`);
 			if (this.config.notifyErrors !== false) {
 				const message = `Grohe Smarthome: Initialization failed – ${err.message}`;
-				try {
-					await this.registerNotification('grohe-smarthome', 'errors', message);
-				} catch (notifyErr) {
-					this.log.warn(`registerNotification (errors) failed: ${notifyErr.message}`);
-				}
+				await sendNotification(this, 'errors', message);
 			}
 		}
 	}
@@ -296,15 +293,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (this._inConnectionError) {
 				this._inConnectionError = false;
 				if (this.config.notifyErrors !== false) {
-					try {
-						await this.registerNotification(
-							'grohe-smarthome',
-							'errors',
-							'Grohe Smarthome: Connection to Grohe API restored',
-						);
-					} catch (notifyErr) {
-						this.log.warn(`registerNotification (errors/recovery) failed: ${notifyErr.message}`);
-					}
+					await sendNotification(this, 'errors', 'Grohe Smarthome: Connection to Grohe API restored');
 				}
 			}
 
@@ -376,15 +365,7 @@ class GroheSmarthome extends utils.Adapter {
 				this._inConnectionError = true;
 				const httpStatus = err?.response?.status;
 				const msgReason = httpStatus ? `HTTP ${httpStatus}: ${reason}` : reason;
-				try {
-					await this.registerNotification(
-						'grohe-smarthome',
-						'errors',
-						`Grohe Smarthome: Connection to Grohe API failed – ${msgReason}`,
-					);
-				} catch (notifyErr) {
-					this.log.warn(`registerNotification (errors) failed: ${notifyErr.message}`);
-				}
+				await sendNotification(this, 'errors', `Grohe Smarthome: Connection to Grohe API failed – ${msgReason}`);
 			}
 		}
 	}
@@ -875,11 +856,7 @@ class GroheSmarthome extends utils.Adapter {
 			const stateStr = newState ? 'opened' : 'closed';
 			const message = `[${deviceName}] Valve ${stateStr}`;
 			this.log.debug(`Sending valve notification: ${message}`);
-			try {
-				await this.registerNotification('grohe-smarthome', 'controls', message);
-			} catch (err) {
-				this.log.warn(`registerNotification (controls) failed: ${err.message}`);
-			}
+			await sendNotification(this, 'controls', message);
 		}
 	}
 
@@ -914,11 +891,7 @@ class GroheSmarthome extends utils.Adapter {
 			const stateStr = newState ? 'online' : 'offline';
 			const message = `[${deviceName}] Device is ${stateStr}`;
 			this.log.debug(`Sending status notification: ${message}`);
-			try {
-				await this.registerNotification('grohe-smarthome', 'status', message);
-			} catch (err) {
-				this.log.warn(`registerNotification (status) failed: ${err.message}`);
-			}
+			await sendNotification(this, 'status', message);
 		}
 	}
 
@@ -1026,11 +999,7 @@ class GroheSmarthome extends utils.Adapter {
 				const deviceName = dev?.name || id;
 				const message = `[${deviceName}] ${catName}: ${typeText}`;
 				this.log.debug(`Sending alert notification: ${message}`);
-				try {
-					await this.registerNotification('grohe-smarthome', 'alerts', message);
-				} catch (err) {
-					this.log.warn(`registerNotification (alerts) failed: ${err.message}`);
-				}
+				await sendNotification(this, 'alerts', message);
 			}
 		}
 
@@ -1040,11 +1009,7 @@ class GroheSmarthome extends utils.Adapter {
 				const deviceName = dev?.name || id;
 				const message = `[${deviceName}] ${catName}: ${typeText}`;
 				this.log.debug(`Sending warning notification: ${message}`);
-				try {
-					await this.registerNotification('grohe-smarthome', 'warnings', message);
-				} catch (err) {
-					this.log.warn(`registerNotification (warnings) failed: ${err.message}`);
-				}
+				await sendNotification(this, 'warnings', message);
 			}
 		}
 	}

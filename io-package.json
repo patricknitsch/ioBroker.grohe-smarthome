@@ -377,7 +377,23 @@
     "notifyControls": true,
     "notifyStatus": false,
     "notifyWarnings": false,
-    "notifyErrors": true
+    "notifyErrors": true,
+    "notifyEnabled": false,
+    "notifyUseTelegram": false,
+    "notifyUserTelegram": "",
+    "notifyUsePushover": false,
+    "notifyTitlePushover": "Grohe Smarthome",
+    "notifyDevicePushover": "",
+    "notifyUseWhatsapp": false,
+    "notifyPhoneWhatsapp": "",
+    "notifyUseEmail": false,
+    "notifyToEmail": "",
+    "notifySubjectEmail": "Grohe Smarthome ioBroker",
+    "notifyUseSignal": false,
+    "notifyPhoneSignal": "",
+    "notifyUseMatrix": false,
+    "notifyUseSynochat": false,
+    "notifyChannelSynochat": ""
   },
   "protectedNative": [
     "password"
