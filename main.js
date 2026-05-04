@@ -4,6 +4,7 @@
 const utils = require('@iobroker/adapter-core');
 const GroheClient = require('./lib/groheClient');
 const { sendNotification } = require('./lib/notificationManager');
+const { getMessages } = require('./lib/notificationMessages');
 
 // Device type constants (same as GroheTypes in Python grohe package)
 const GROHE_SENSE = 101;
@@ -11,6 +12,15 @@ const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
 
+/**
+ * Notification type lookup – maps (category, type) to human-readable English text.
+ * Used for writing ioBroker *states* (always in English so scripts remain stable).
+ * Notification *messages* (sent via Notification Manager / push providers) use
+ * getMessages(this.systemLang) from lib/notificationMessages.js so they appear in
+ * the ioBroker system language.
+ *
+ * Source: ha-grohe_smarthome notifications.yaml
+ */
 const NOTIFICATION_CATEGORIES = {
 	0: 'Advertisement',
 	10: 'Information',
@@ -19,11 +29,6 @@ const NOTIFICATION_CATEGORIES = {
 	40: 'WebURL',
 };
 
-/**
- * Notification type lookup – maps (category, type) to human-readable text.
- * The Grohe API does NOT return message text; all clients build it client-side.
- * Source: ha-grohe_smarthome notifications.yaml
- */
 const NOTIFICATION_TYPES = {
 	// Information (10)
 	'10_10': 'Installation successful',
@@ -102,6 +107,9 @@ class GroheSmarthome extends utils.Adapter {
 		this.pollTimer = null;
 		this.baseInterval = Math.max(60, Number(this.config.pollInterval) || 300);
 
+		/** ioBroker system language – read from system.config at startup, used for notification messages. */
+		this.systemLang = 'en';
+
 		/** Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name } */
 		this.devices = new Map();
 
@@ -171,6 +179,15 @@ class GroheSmarthome extends utils.Adapter {
 	async onReady() {
 		await this.setState('info.connection', { val: false, ack: true });
 
+		// Read ioBroker system language for localised notification messages
+		try {
+			const sysConfig = await this.getForeignObjectAsync('system.config');
+			this.systemLang = sysConfig?.common?.language || 'en';
+		} catch {
+			this.systemLang = 'en';
+		}
+		this.log.debug(`System language: ${this.systemLang}`);
+
 		await this.setObjectNotExistsAsync('auth.refreshToken', {
 			type: 'state',
 			common: { name: 'Refresh Token (encrypted)', type: 'string', role: 'text', read: true, write: false },
@@ -235,7 +252,8 @@ class GroheSmarthome extends utils.Adapter {
 			await this.setState('info.connection', { val: false, ack: true });
 			this.log.warn(`Initialization failed: ${err.message}`);
 			if (this.config.notifyErrors !== false) {
-				const message = `Grohe Smarthome: Initialization failed – ${err.message}`;
+				const msgs = getMessages(this.systemLang);
+				const message = `${msgs.phrases.initFailed} – ${err.message}`;
 				await sendNotification(this, 'errors', message);
 			}
 		}
@@ -293,7 +311,8 @@ class GroheSmarthome extends utils.Adapter {
 			if (this._inConnectionError) {
 				this._inConnectionError = false;
 				if (this.config.notifyErrors !== false) {
-					await sendNotification(this, 'errors', 'Grohe Smarthome: Connection to Grohe API restored');
+					const msgs = getMessages(this.systemLang);
+					await sendNotification(this, 'errors', msgs.phrases.connectionRestored);
 				}
 			}
 
@@ -365,7 +384,8 @@ class GroheSmarthome extends utils.Adapter {
 				this._inConnectionError = true;
 				const httpStatus = err?.response?.status;
 				const msgReason = httpStatus ? `HTTP ${httpStatus}: ${reason}` : reason;
-				await sendNotification(this, 'errors', `Grohe Smarthome: Connection to Grohe API failed – ${msgReason}`);
+				const msgs = getMessages(this.systemLang);
+				await sendNotification(this, 'errors', `${msgs.phrases.connectionFailed} – ${msgReason}`);
 			}
 		}
 	}
@@ -853,8 +873,9 @@ class GroheSmarthome extends utils.Adapter {
 		this.lastValveState.set(applianceId, newState);
 
 		if (this.config.notifyControls !== false) {
-			const stateStr = newState ? 'opened' : 'closed';
-			const message = `[${deviceName}] Valve ${stateStr}`;
+			const msgs = getMessages(this.systemLang);
+			const stateText = newState ? msgs.phrases.valveOpened : msgs.phrases.valveClosed;
+			const message = `[${deviceName}] ${stateText}`;
 			this.log.debug(`Sending valve notification: ${message}`);
 			await sendNotification(this, 'controls', message);
 		}
@@ -888,8 +909,9 @@ class GroheSmarthome extends utils.Adapter {
 		this.lastOnlineState.set(applianceId, newState);
 
 		if (this.config.notifyStatus !== false) {
-			const stateStr = newState ? 'online' : 'offline';
-			const message = `[${deviceName}] Device is ${stateStr}`;
+			const msgs = getMessages(this.systemLang);
+			const stateText = newState ? msgs.phrases.deviceOnline : msgs.phrases.deviceOffline;
+			const message = `[${deviceName}] ${stateText}`;
 			this.log.debug(`Sending status notification: ${message}`);
 			await sendNotification(this, 'status', message);
 		}
@@ -937,10 +959,9 @@ class GroheSmarthome extends utils.Adapter {
 		const latest = notifications[0];
 		const cat = latest.category;
 		const type = latest.type ?? latest.notification_type;
-		const catName = NOTIFICATION_CATEGORIES[cat] || `Category ${cat}`;
 
-		// Look up the human-readable notification text from the type map.
-		// The Grohe API does not return message text – all clients build it locally.
+		// English strings for ioBroker states (scripts rely on these being stable/English)
+		const catName = NOTIFICATION_CATEGORIES[cat] || `Category ${cat}`;
 		const key = `${cat}_${type}`;
 		const typeText = NOTIFICATION_TYPES[key] || `Unknown (${key})`;
 
@@ -993,11 +1014,16 @@ class GroheSmarthome extends utils.Adapter {
 		const isCriticalWarning = cat === 20 && CRITICAL_WARNING_TYPES.has(Number(type));
 		const isNonCriticalWarning = cat === 20 && !CRITICAL_WARNING_TYPES.has(Number(type));
 
+		// Localised strings for notification messages (Notification Manager + push providers)
+		const msgs = getMessages(this.systemLang);
+		const catNameLocal = msgs.categories[cat] || catName;
+		const typeTextLocal = msgs.types[key] || typeText;
+
 		if (this.config.notifyAlerts !== false) {
 			if (isAlarm || isCriticalWarning) {
 				const dev = this.devices.get(id);
 				const deviceName = dev?.name || id;
-				const message = `[${deviceName}] ${catName}: ${typeText}`;
+				const message = `[${deviceName}] ${catNameLocal}: ${typeTextLocal}`;
 				this.log.debug(`Sending alert notification: ${message}`);
 				await sendNotification(this, 'alerts', message);
 			}
@@ -1007,7 +1033,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (isNonCriticalWarning) {
 				const dev = this.devices.get(id);
 				const deviceName = dev?.name || id;
-				const message = `[${deviceName}] ${catName}: ${typeText}`;
+				const message = `[${deviceName}] ${catNameLocal}: ${typeTextLocal}`;
 				this.log.debug(`Sending warning notification: ${message}`);
 				await sendNotification(this, 'warnings', message);
 			}
