@@ -40,11 +40,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
-### 0.4.0 (2026-05-04)
-* (copilot) Add Notification Manager with 4 configurable notification categories
-* (copilot) Add provider integrations: Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat
-* (copilot) Localized push notifications in 11 languages
-* (copilot) Convert admin config to tabbed layout (Settings + Notifications)
+* (copilot) Add Notification Manager
 
 ### 0.3.4 (2026-05-03)
 * (copilot) Adapter requires node.js >= 22 now
