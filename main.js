@@ -372,7 +372,7 @@ class GroheSmarthome extends utils.Adapter {
 
 			const reason =
 				err?.response?.status === 403
-					? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
+					? getMessages(this.systemLang).phrases.http403Reason
 					: err.message;
 			this.log.warn(
 				`Polling failed: ${reason}. ` +
