@@ -91,6 +91,52 @@ In den Instanz-Einstellungen des Adapters:
 
 ---
 
+## Benachrichtigungsverwaltung
+
+Der Adapter ist in den **ioBroker Notification Manager** integriert. Benachrichtigungen können an beliebige konfigurierte Kanäle weitergeleitet werden (Telegram, E-Mail, Pushover usw.).
+
+In den Adaptereinstellungen lassen sich drei Benachrichtigungskategorien unabhängig voneinander aktivieren oder deaktivieren:
+
+| Einstellung | Standard | Beschreibung |
+|---|---|---|
+| **Kritische Alarm-Benachrichtigungen** (`notifyAlerts`) | ✅ an | Sendet eine Benachrichtigung bei Grohe-Alarmen (Kategorie 30: Überschwemmung, Sensorfehler, Wasserabsperrung) und ausgewählten Warnungen (Kategorie 20: ungewöhnlicher Verbrauch / Absperrung, Druckabfall, Leckverdacht) |
+| **Ventil- und Steuerungsbenachrichtigungen** (`notifyControls`) | ✅ an | Sendet eine Benachrichtigung, wenn das Sense-Guard-Ventil seinen Status wechselt (geöffnet / geschlossen) – erkannt sowohl im regulären Polling-Zyklus als auch unmittelbar nach einem Benutzerbefehl |
+| **Gerätestatusbenachrichtigungen** (`notifyStatus`) | ❌ aus | Sendet eine Benachrichtigung, wenn ein Grohe-Gerät von Online nach Offline wechselt oder umgekehrt |
+
+### Benachrichtigungskategorien im Detail
+
+#### Kritische Meldungen (`alerts`)
+
+Folgende Grohe-Benachrichtigungstypen werden dieser Kategorie zugeordnet:
+
+| Grohe-Kategorie | Typ-Code | Meldung |
+|---|---|---|
+| Alarm (30) | alle | Überschwemmung erkannt – Wasser ABGESPERRT; Sensorfehler; Systemfehler; extrem hohe Durchflussrate; maximales Volumen erreicht; Wasser von Sense erkannt; … |
+| Warnung (20) | 320 | Ungewöhnlicher Wasserverbrauch – Wasser ABGESPERRT |
+| Warnung (20) | 321 | Ungewöhnlicher Wasserverbrauch – Wasser noch EIN |
+| Warnung (20) | 330 | Druckabfall bei Leitungsprüfung erkannt |
+| Warnung (20) | 383 | Potenzielle Leckage erkannt |
+| Warnung (20) | 385 | Wasserdruckabfälle erkannt – Schweregrad gestiegen |
+| Warnung (20) | 420 | Mehrfache Druckabfälle – Wasserversorgung abgesperrt |
+
+Andere Warnungstypen (Batterie, Temperatur, Luftfeuchtigkeit, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.) lösen **keine** Alarm-Benachrichtigung aus; sie sind weiterhin nur in den States des `notifications`-Kanals sichtbar.
+
+#### Ventil- und Steuerungsbenachrichtigungen (`controls`)
+
+Wird bei jedem Ventilstatuswechsel (offen → geschlossen oder geschlossen → offen) für **Grohe-Sense-Guard**-Geräte ausgelöst. Die Benachrichtigung wird gesendet:
+- Wenn der Ventilstatus während des **regulären Polling-Zyklus** als geändert erkannt wird (alle 3 Polls).
+- Unmittelbar nach einem **Benutzerbefehl** (Öffnen/Schließen), sobald das Ergebnis durch den API-Readback bestätigt ist.
+
+#### Gerätestatusbenachrichtigungen (`status`)
+
+Wird ausgelöst, wenn ein Gerät zwischen Online- und Offline-Zustand wechselt (erkannt über den `/status`-Endpunkt, der alle 5 Polls abgefragt wird).
+
+### Unterdrückung beim Start
+
+Beim ersten Start (oder Neustart) des Adapters wird der aktuelle Zustand jedes Geräts **lautlos gelernt**. Benachrichtigungen werden nur für **nachfolgende Änderungen** gesendet. Dadurch wird ein Schwall falscher Benachrichtigungen bei jedem Neustart verhindert.
+
+---
+
 ## Authentifizierung und Token-Handling
 
 Beim Start:

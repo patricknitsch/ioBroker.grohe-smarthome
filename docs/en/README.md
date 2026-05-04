@@ -91,6 +91,52 @@ In the adapter instance settings:
 
 ---
 
+## Notification Management
+
+The adapter integrates with the **ioBroker Notification Manager**. Notifications can be forwarded to any configured channel (Telegram, e-mail, Pushover, etc.).
+
+Three notification categories can be enabled or disabled independently in the adapter settings:
+
+| Setting | Default | Description |
+|---|---|---|
+| **Critical alert notifications** (`notifyAlerts`) | ✅ on | Sends a notification for Grohe alarms (category 30: flooding, sensor errors, water shut-off) and selected high-priority warnings (category 20: unusual water consumption / shut-off, pressure drops, potential leak) |
+| **Valve and control notifications** (`notifyControls`) | ✅ on | Sends a notification whenever the Sense Guard valve changes state (opened / closed) – detected both during the regular poll cycle and immediately after a user-triggered command |
+| **Device status notifications** (`notifyStatus`) | ❌ off | Sends a notification when a Grohe device transitions from online → offline or offline → online |
+
+### Notification categories in detail
+
+#### Critical alerts (`alerts`)
+
+The following Grohe notification types route to this category:
+
+| Grohe category | Type code | Message |
+|---|---|---|
+| Alarm (30) | all | Flooding detected – water SHUT OFF; sensor errors; system errors; extremely high flow rate; maximum volume reached; water detected by Sense; … |
+| Warning (20) | 320 | Unusual water consumption – water SHUT OFF |
+| Warning (20) | 321 | Unusual water consumption – water still ON |
+| Warning (20) | 330 | Pressure drop detected during pipe check |
+| Warning (20) | 383 | Potential leak detected |
+| Warning (20) | 385 | Water pressure drops detected – severity increased |
+| Warning (20) | 420 | Multiple pressure drops – water supply switched off |
+
+Other warning types (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.) do **not** trigger an alert notification; they remain visible only in the `notifications` channel states.
+
+#### Valve & control notifications (`controls`)
+
+Triggered on every valve state transition (open → closed or closed → open) for **Grohe Sense Guard** devices. The notification is sent:
+- When the valve state is detected as changed during the **regular poll cycle** (every 3rd poll).
+- Immediately after a **user command** (open/close) once the result is confirmed by the API readback.
+
+#### Device status notifications (`status`)
+
+Triggered when a device transitions between online and offline states (detected via the `/status` endpoint, polled every 5th cycle).
+
+### Startup suppression
+
+On the first adapter start (or restart) the current state of every device is **learned silently**. Notifications are only sent for **subsequent changes**. This prevents a flood of spurious notifications on every restart.
+
+---
+
 ## Authentication and Token Handling
 
 On startup:
