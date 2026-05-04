@@ -1,21 +1,8 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.4.0",
+    "version": "0.3.4",
     "news": {
-      "0.4.0": {
-        "en": "Add Notification Manager with 4 configurable notification categories and 7 provider integrations (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "de": "Benachrichtigungs-Manager hinzugefügt mit 4 konfigurierbaren Kategorien und 7 Anbieter-Integrationen (Telegram, Pushover, WhatsApp, E-Mail, Signal, Matrix, Synology Chat)",
-        "ru": "Добавлен менеджер уведомлений с 4 настраиваемыми категориями и 7 провайдерами (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "pt": "Adicionado Gestor de Notificações com 4 categorias configuráveis e 7 integrações de fornecedores (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "nl": "Notificatiebeheer toegevoegd met 4 configureerbare categorieën en 7 providerintegraties (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "fr": "Gestionnaire de notifications ajouté avec 4 catégories configurables et 7 intégrations de fournisseurs (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "it": "Aggiunto Notification Manager con 4 categorie configurabili e 7 integrazioni provider (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "es": "Añadido Gestor de Notificaciones con 4 categorías configurables y 7 integraciones de proveedores (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "pl": "Dodano menedżera powiadomień z 4 konfigurowalnymi kategoriami i 7 integracjami dostawców (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "uk": "Додано менеджер сповіщень з 4 налаштовуваними категоріями та 7 інтеграціями провайдерів (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)",
-        "zh-cn": "添加通知管理器，包含4个可配置的通知类别和7个提供商集成（Telegram、Pushover、WhatsApp、Email、Signal、Matrix、Synology Chat）"
-      },
       "0.3.4": {
         "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
         "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
