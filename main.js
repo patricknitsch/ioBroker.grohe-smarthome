@@ -935,13 +935,19 @@ class GroheSmarthome extends utils.Adapter {
 		// On first startup the timestamp is learned silently to avoid replaying old events.
 		const ts = latest.timestamp;
 		if (!ts) {
+			// Initialize devices without current notifications with a sentinel so the first
+			// real notification after startup is delivered instead of being suppressed.
+			if (!this.lastNotificationTs.has(id)) {
+				this.lastNotificationTs.set(id, null);
+			}
 			return;
 		}
 
 		const lastTs = this.lastNotificationTs.get(id);
 
 		if (lastTs === undefined) {
-			// First startup – learn current state silently, do not notify
+			// First startup with an existing notification – learn current state silently,
+			// do not notify
 			this.lastNotificationTs.set(id, ts);
 			return;
 		}
