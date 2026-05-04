@@ -861,7 +861,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.lastOnlineState.set(applianceId, newState);
 
-		if (this.config.notifyStatus) {
+		if (this.config.notifyStatus !== false) {
 			const stateStr = newState ? 'online' : 'offline';
 			const message = `[${deviceName}] Device is ${stateStr}`;
 			this.log.debug(`Sending status notification: ${message}`);
@@ -954,7 +954,13 @@ class GroheSmarthome extends utils.Adapter {
 
 		if (this.config.notifyAlerts !== false) {
 			// Grohe category 30 = Alarm (always critical)
-			// Grohe category 20 = Warning; only specific types qualify as critical alerts
+			// Grohe category 20 = Warning; the following types are treated as critical alerts:
+			//   320 – Unusual water consumption, water SHUT OFF
+			//   321 – Unusual water consumption, water still ON
+			//   330 – Pressure drop detected during pipe check
+			//   383 – Potential leak detected
+			//   385 – Water pressure drops detected (severity increased)
+			//   420 – Multiple pressure drops, water supply switched off
 			const CRITICAL_WARNING_TYPES = new Set([320, 321, 330, 383, 385, 420]);
 			const isAlarm = cat === 30;
 			const isCriticalWarning = cat === 20 && CRITICAL_WARNING_TYPES.has(Number(type));
