@@ -198,6 +198,22 @@ class GroheSmarthome extends utils.Adapter {
 		}
 		this.log.debug(`System language: ${this.systemLang}`);
 
+		// Sync notification categories into the host's DB object so that all categories
+		// defined in io-package.json are recognised by the NotificationHandler.
+		// This is needed when categories are added without a full adapter reinstall
+		// (e.g. during development or after an iobroker upload that only refreshes admin files).
+		try {
+			const ioPackage = require('./io-package.json');
+			const notifications = ioPackage?.common?.notifications;
+			if (notifications) {
+				await this.extendForeignObjectAsync(`system.adapter.${this.name}`, {
+					common: { notifications },
+				});
+			}
+		} catch (err) {
+			this.log.debug(`Could not sync notification categories: ${err.message}`);
+		}
+
 		await this.setObjectNotExistsAsync('auth.refreshToken', {
 			type: 'state',
 			common: { name: 'Refresh Token (encrypted)', type: 'string', role: 'text', read: true, write: false },
