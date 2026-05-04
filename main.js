@@ -383,7 +383,11 @@ class GroheSmarthome extends utils.Adapter {
 			if (!this._inConnectionError && this.config.notifyErrors !== false) {
 				this._inConnectionError = true;
 				const httpStatus = err?.response?.status;
-				const msgReason = httpStatus ? `HTTP ${httpStatus}: ${reason}` : reason;
+				const statusPrefix = httpStatus ? `HTTP ${httpStatus}` : '';
+				const msgReason =
+					httpStatus && !(typeof reason === 'string' && reason.startsWith(statusPrefix))
+						? `${statusPrefix}: ${reason}`
+						: reason;
 				const msgs = getMessages(this.systemLang);
 				await sendNotification(this, 'errors', `${msgs.phrases.connectionFailed} – ${msgReason}`);
 			}
