@@ -369,7 +369,12 @@ class GroheSmarthome extends utils.Adapter {
 					status: httpStatus || '?',
 					reason: notifReason,
 				});
-				await sendNotification(this, localReason);
+				const localRetry = getNotificationMessage(this, 'pollingRetry', {
+					time: nextTryStr,
+					interval: this.currentPollInterval,
+					errors: this.consecutiveErrors,
+				});
+				await sendNotification(this, `${localReason}\n${localRetry}`);
 			}
 		}
 	}
