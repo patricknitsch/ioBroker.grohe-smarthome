@@ -198,16 +198,36 @@ class GroheSmarthome extends utils.Adapter {
 		}
 		this.log.debug(`System language: ${this.systemLang}`);
 
-		// Sync notification categories into the host's DB object so that all categories
-		// defined in io-package.json are recognised by the NotificationHandler.
-		// This is needed when categories are added without a full adapter reinstall
-		// (e.g. during development or after an iobroker upload that only refreshes admin files).
+		// Determine which notification categories the host's NotificationHandler already has
+		// loaded (from the DB object it read at its own startup).  We cache this set and use
+		// it to gate registerNotification() calls: calling registerNotification() for an
+		// unknown category causes the host to log a spurious warning.
+		//
+		// We also attempt to update the DB object with the full set from io-package.json so
+		// that any newly-added categories (e.g. 'errors') are available after the NEXT host
+		// restart without requiring a full adapter reinstall.
+		this._registeredNotifCategories = null; // null means "unknown – try anyway"
 		try {
 			const ioPackage = require('./io-package.json');
-			const notifications = ioPackage?.common?.notifications;
-			if (notifications) {
+			const wantedNotifications = ioPackage?.common?.notifications;
+
+			// --- Step 1: snapshot what the host already knows (pre-update DB state) --------
+			const currentObj = await this.getForeignObjectAsync(`system.adapter.${this.name}`);
+			const knownCategories = new Set();
+			for (const scope of currentObj?.common?.notifications ?? []) {
+				for (const cat of scope.categories ?? []) {
+					if (cat.category) {
+						knownCategories.add(cat.category);
+					}
+				}
+			}
+			this._registeredNotifCategories = knownCategories;
+			this.log.debug(`Registered notification categories (host): ${[...knownCategories].join(', ') || '(none)'}`);
+
+			// --- Step 2: update DB so next host restart includes all current categories -----
+			if (wantedNotifications) {
 				await this.extendForeignObjectAsync(`system.adapter.${this.name}`, {
-					common: { notifications },
+					common: { notifications: wantedNotifications },
 				});
 			}
 		} catch (err) {
@@ -981,6 +1001,11 @@ class GroheSmarthome extends utils.Adapter {
 	async _updateLatestNotification(id, appliance) {
 		const notifications = appliance.notifications || [];
 		if (notifications.length === 0) {
+			// Initialize the sentinel so the first real notification that arrives later
+			// is delivered instead of being silently suppressed by the 'learn' branch.
+			if (!this.lastNotificationTs.has(id)) {
+				this.lastNotificationTs.set(id, null);
+			}
 			return;
 		}
 
