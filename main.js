@@ -3,6 +3,8 @@
 
 const utils = require('@iobroker/adapter-core');
 const GroheClient = require('./lib/groheClient');
+const { sendNotification } = require('./lib/notificationManager');
+const { getNotificationMessage, getLocalizedNotificationType } = require('./lib/notificationMessages');
 
 // Device type constants (same as GroheTypes in Python grohe package)
 const GROHE_SENSE = 101;
@@ -136,6 +138,24 @@ class GroheSmarthome extends utils.Adapter {
 		 */
 		this._blueRefreshRunning = new Map();
 
+		/**
+		 * Tracks the timestamp of the last seen Grohe notification per device.
+		 * Used to detect new notifications and avoid sending duplicates.
+		 * Maps applianceId -> ISO timestamp string.
+		 * Reset on adapter restart (any missed notifications during downtime are skipped).
+		 */
+		this._notifLastSeen = new Map();
+
+		/**
+		 * Tracks the last known online status per device for change detection.
+		 * Maps applianceId -> boolean (true = online, false = offline).
+		 * Reset on adapter restart.
+		 */
+		this._deviceOnlineState = new Map();
+
+		/** ioBroker system language, read at startup from system.config */
+		this.systemLanguage = 'en';
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -147,6 +167,15 @@ class GroheSmarthome extends utils.Adapter {
 
 	async onReady() {
 		await this.setState('info.connection', { val: false, ack: true });
+
+		// Read ioBroker system language for localised notifications
+		try {
+			const sysConfig = await this.getForeignObjectAsync('system.config');
+			this.systemLanguage = sysConfig?.common?.language || 'en';
+			this.log.debug(`System language: ${this.systemLanguage}`);
+		} catch {
+			this.systemLanguage = 'en';
+		}
 
 		await this.setObjectNotExistsAsync('auth.refreshToken', {
 			type: 'state',
@@ -258,6 +287,12 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(
 					`Polling recovered after ${this.consecutiveErrors} error(s), interval reset to ${this.baseInterval}s`,
 				);
+				if (this.config.notifyEnabled && this.config.notifyOnConnError) {
+					await sendNotification(
+						this,
+						getNotificationMessage(this, 'pollingRecovered', { count: this.consecutiveErrors }),
+					);
+				}
 				this.consecutiveErrors = 0;
 				this.currentPollInterval = this.baseInterval;
 			}
@@ -316,14 +351,26 @@ class GroheSmarthome extends utils.Adapter {
 				second: '2-digit',
 			});
 
+			const httpStatus = err?.response?.status;
 			const reason =
-				err?.response?.status === 403
+				httpStatus === 403
 					? 'HTTP 403 (Forbidden). This may be caused by too frequent polling or the Grohe app/account may need checking'
 					: err.message;
 			this.log.warn(
 				`Polling failed: ${reason}. ` +
 					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
 			);
+
+			// Send connection-error notification on every polling failure
+			if (this.config.notifyEnabled && this.config.notifyOnConnError) {
+				const localReason = httpStatus
+					? getNotificationMessage(this, 'pollingError', { status: httpStatus, reason: err.message })
+					: getNotificationMessage(this, 'pollingError', {
+							status: '?',
+							reason: err.message,
+						});
+				await sendNotification(this, localReason);
+			}
 		}
 	}
 
@@ -794,6 +841,19 @@ class GroheSmarthome extends utils.Adapter {
 			if (status.wifi_quality !== undefined) {
 				await this._setNum(`${id}.status`, 'wifiQuality', 'WiFi quality', '', 'value', status.wifi_quality);
 			}
+
+			// Detect online/offline changes and send control notifications
+			if (this.config.notifyEnabled && this.config.notifyOnControl && status.connection !== undefined) {
+				const prev = this._deviceOnlineState.get(id);
+				const cur = Boolean(status.connection);
+				if (prev !== undefined && prev !== cur) {
+					const dev = this.devices.get(id);
+					const devName = dev?.name || id;
+					const msgKey = cur ? 'deviceOnline' : 'deviceOffline';
+					await sendNotification(this, getNotificationMessage(this, msgKey, { device: devName }));
+				}
+				this._deviceOnlineState.set(id, cur);
+			}
 		}
 	}
 
@@ -825,6 +885,29 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setNum(`${id}.notifications`, 'latestCategory', 'Category', '', 'value', cat);
 		await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Category name', 'text', catName);
 		await this._setNum(`${id}.notifications`, 'latestType', 'Notification type', '', 'value', type);
+
+		// Push notification for new Grohe alarms (30) and warnings (20)
+		if (this.config.notifyEnabled && latest.timestamp) {
+			const lastSeen = this._notifLastSeen.get(id);
+			if (lastSeen !== latest.timestamp) {
+				this._notifLastSeen.set(id, latest.timestamp);
+
+				// Skip on first startup (lastSeen undefined) to avoid flooding old notifications
+				if (lastSeen !== undefined) {
+					const dev = this.devices.get(id);
+					const devName = dev?.name || id;
+					const localText = getLocalizedNotificationType(this, cat, type);
+
+					if (cat === 30 && this.config.notifyOnAlarms) {
+						const prefix = getNotificationMessage(this, 'alarmPrefix');
+						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
+					} else if (cat === 20 && this.config.notifyOnWarnings) {
+						const prefix = getNotificationMessage(this, 'warningPrefix');
+						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
+					}
+				}
+			}
+		}
 	}
 
 	/* ================================================================== */
@@ -854,6 +937,12 @@ class GroheSmarthome extends utils.Adapter {
 				await this.client.setValve(locationId, roomId, applianceId, true);
 				await this.setState(stateId, { val: false, ack: true });
 				await this._readbackCommand(applianceId, locationId, roomId);
+				if (this.config.notifyEnabled && this.config.notifyOnControl) {
+					await sendNotification(
+						this,
+						getNotificationMessage(this, 'valveOpened', { device: dev.name || applianceId }),
+					);
+				}
 				return;
 			}
 			// Sense Guard: valve close
@@ -862,6 +951,12 @@ class GroheSmarthome extends utils.Adapter {
 				await this.client.setValve(locationId, roomId, applianceId, false);
 				await this.setState(stateId, { val: false, ack: true });
 				await this._readbackCommand(applianceId, locationId, roomId);
+				if (this.config.notifyEnabled && this.config.notifyOnControl) {
+					await sendNotification(
+						this,
+						getNotificationMessage(this, 'valveClosed', { device: dev.name || applianceId }),
+					);
+				}
 				return;
 			}
 			// Sense Guard: pressure measurement
@@ -882,6 +977,22 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Dispensing: type=${tapType} amount=${tapAmount}ml for ${applianceId}`);
 				await this.client.tapWater(locationId, roomId, applianceId, tapType, tapAmount);
 				await this.setState(stateId, { val: false, ack: true });
+				if (this.config.notifyEnabled && this.config.notifyOnControl) {
+					const tapTypeNames = {
+						1: getNotificationMessage(this, 'tapStill'),
+						2: getNotificationMessage(this, 'tapMedium'),
+						3: getNotificationMessage(this, 'tapCarbonated'),
+					};
+					const typeName = tapTypeNames[tapType] || String(tapType);
+					await sendNotification(
+						this,
+						getNotificationMessage(this, 'waterDispensed', {
+							device: dev.name || applianceId,
+							amount: tapAmount,
+							type: typeName,
+						}),
+					);
+				}
 				return;
 			}
 			// Blue: reset CO2

@@ -78,7 +78,9 @@ Steuerungen werden **automatisch deaktiviert**, wenn das Gerät als offline geme
 
 ## Konfiguration
 
-In den Instanz-Einstellungen des Adapters:
+Die Adapterkonfiguration ist in zwei Tabs aufgeteilt:
+
+### Tab „Einstellungen“
 
 - **E-Mail**: E-Mail-Adresse deines Grohe/Ondus-Kontos
 - **Passwort**: Passwort deines Grohe/Ondus-Kontos
@@ -88,6 +90,35 @@ In den Instanz-Einstellungen des Adapters:
 - **Raw-States** (`rawStates`): Wenn aktiviert, schreibt der Adapter alle Messfelder nach `<device>.raw.*`
 
 > Hinweis: Der Adapter speichert das Refresh-Token **nicht** in der Konfiguration, da jede Konfigurationsänderung einen Neustart der Instanz auslöst. Stattdessen wird es in einem State (`auth.refreshToken`) gespeichert und mit den integrierten ioBroker-Verschlüsselungsfunktionen verschlüsselt.
+
+### Tab „Benachrichtigungen“
+
+Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werden. Alle Meldungen werden in der in ioBroker konfigurierten Systemsprache verschickt.
+
+#### Benachrichtigungskategorien
+
+| # | Kategorie | Beispiele |
+|---|---|---|
+| 1 | **Kritische Meldungen** | Überschwemmung erkannt, Sensorfehler, Systemfehler |
+| 2 | **Warnungen** | Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig |
+| 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet/geschlossen, Gerät online/offline, Zapfvorgang |
+| 4 | **Verbindungsfehler** | HTTP Polling-Fehler (z.B. HTTP 403), werden bei jedem Fehler gesendet |
+
+> Hinweis: Verbindungsfehler (Kategorie 4) werden bei jedem einzelnen Polling-Fehler gesendet, nicht nur beim ersten. Das kann zu häufigen Meldungen führen, wenn die API dauerhaft nicht erreichbar ist. Erhöhe das Polling-Intervall, wenn du zu viele solche Benachrichtigungen erhältst.
+
+#### Unterstützte Anbieter
+
+Der Adapter erkennt automatisch die erste laufende Instanz jedes aktivierten Anbieters – eine Instanznummer muss nicht angegeben werden.
+
+| Anbieter | Optionale Konfiguration |
+|---|---|
+| **Telegram** | Benutzer oder Chat-ID (optional) |
+| **Pushover** | Titel, Gerät (optional) |
+| **WhatsApp** (`whatsapp-cmb`) | Telefonnummer (optional) |
+| **E-Mail** | Empfänger, Betreff (optional) |
+| **Signal** (`signal-cmb`) | Telefonnummer (optional) |
+| **Matrix** (`matrix-org`) | Keine weitere Konfiguration |
+| **Synology Chat** | Kanalname (erforderlich) |
 
 ---
 
