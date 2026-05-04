@@ -39,6 +39,11 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+* (copilot) Add Notification Management
+
 ### 0.3.4 (2026-05-03)
 * (copilot) Adapter requires node.js >= 22 now
 * (copilot) Update Dependencies
