@@ -13,5 +13,7 @@
 	"notifyStatusLabel": "Powiadomienia statusu urządzenia",
 	"notifyStatusHelp": "Wysyła powiadomienia ioBroker gdy urządzenie Grohe przechodzi w tryb online lub offline.",
 	"notifyWarningsLabel": "Powiadomienia o ostrzeżeniach urządzenia",
-	"notifyWarningsHelp": "Wysyła powiadomienia ioBroker dla niekrytycznych ostrzeżeń (słaba bateria, temperatura/wilgotność poza zakresem, utrata WiFi, niski filtr Blue/CO₂ itp.)."
+	"notifyWarningsHelp": "Wysyła powiadomienia ioBroker dla niekrytycznych ostrzeżeń (słaba bateria, temperatura/wilgotność poza zakresem, utrata WiFi, niski filtr Blue/CO₂ itp.).",
+	"notifyErrorsLabel": "Powiadomienia o błędach połączenia",
+	"notifyErrorsHelp": "Wysyła powiadomienia ioBroker gdy adapter nie może połączyć się z API Grohe (np. HTTP 401, 403) i po odzyskaniu połączenia."
 }

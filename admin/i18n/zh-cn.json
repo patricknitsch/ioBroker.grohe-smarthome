@@ -13,5 +13,7 @@
 	"notifyStatusLabel": "设备状态通知",
 	"notifyStatusHelp": "当 Grohe 设备上线或离线时发送 ioBroker 通知。",
 	"notifyWarningsLabel": "设备警告通知",
-	"notifyWarningsHelp": "为非严重警告发送 ioBroker 通知（电量低、温度/湿度超出范围、WiFi 丢失、Blue 滤芯/CO₂ 不足等）。"
+	"notifyWarningsHelp": "为非严重警告发送 ioBroker 通知（电量低、温度/湿度超出范围、WiFi 丢失、Blue 滤芯/CO₂ 不足等）。",
+	"notifyErrorsLabel": "连接错误通知",
+	"notifyErrorsHelp": "当适配器无法连接到 Grohe API（如 HTTP 401、403）时及恢复后发送 ioBroker 通知。"
 }

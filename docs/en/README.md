@@ -95,7 +95,7 @@ In the adapter instance settings:
 
 The adapter integrates with the **ioBroker Notification Manager**. Notifications can be forwarded to any configured channel (Telegram, e-mail, Pushover, etc.).
 
-Four notification categories can be enabled or disabled independently in the adapter settings:
+Five notification categories can be enabled or disabled independently in the adapter settings:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -103,6 +103,7 @@ Four notification categories can be enabled or disabled independently in the ada
 | **Valve and control notifications** (`notifyControls`) | ✅ on | Sends a notification whenever the Sense Guard valve changes state (opened / closed) – detected both during the regular poll cycle and immediately after a user-triggered command |
 | **Device status notifications** (`notifyStatus`) | ❌ off | Sends a notification when a Grohe device transitions from online → offline or offline → online |
 | **Device warning notifications** (`notifyWarnings`) | ❌ off | Sends a notification for non-critical cat-20 warnings (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.) |
+| **Connection error notifications** (`notifyErrors`) | ✅ on | Sends a notification when the adapter fails to reach the Grohe API (e.g. HTTP 401, 403) and again when the connection is restored |
 
 ### Notification categories in detail
 
@@ -149,6 +150,15 @@ When `notifyWarnings` is enabled, a notification is sent for every **non-critica
 | 558 | Cleaning needed |
 | 580 | Blue no connection |
 | … | All other cat-20 types not listed in the *alerts* table above |
+
+#### Connection error notifications (`errors`)
+
+When `notifyErrors` is enabled (default: on), the adapter sends a notification whenever it **cannot reach the Grohe API**. To avoid flooding, only the **first failure** after a successful connection triggers a notification. A second notification is sent when the connection is **restored**. Both init-time and poll-time failures are covered.
+
+Example error reasons:
+- `HTTP 403 (Forbidden)` – too-frequent polling, session expired, or account issue
+- `HTTP 401 (Unauthorized)` – invalid or expired credentials
+- Network timeouts or DNS failures
 
 ### Startup suppression
 

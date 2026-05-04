@@ -90,6 +90,17 @@
 			"md": 4,
 			"lg": 4,
 			"xl": 4
+		},
+		"notifyErrors": {
+			"type": "checkbox",
+			"label": "notifyErrorsLabel",
+			"help": "notifyErrorsHelp",
+			"default": true,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 4,
+			"xl": 4
 		}
 	}
 }

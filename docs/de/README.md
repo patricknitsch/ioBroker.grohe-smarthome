@@ -95,7 +95,7 @@ In den Instanz-Einstellungen des Adapters:
 
 Der Adapter ist in den **ioBroker Notification Manager** integriert. Benachrichtigungen können an beliebige konfigurierte Kanäle weitergeleitet werden (Telegram, E-Mail, Pushover usw.).
 
-In den Adaptereinstellungen lassen sich vier Benachrichtigungskategorien unabhängig voneinander aktivieren oder deaktivieren:
+In den Adaptereinstellungen lassen sich fünf Benachrichtigungskategorien unabhängig voneinander aktivieren oder deaktivieren:
 
 | Einstellung | Standard | Beschreibung |
 |---|---|---|
@@ -103,6 +103,7 @@ In den Adaptereinstellungen lassen sich vier Benachrichtigungskategorien unabhä
 | **Ventil- und Steuerungsbenachrichtigungen** (`notifyControls`) | ✅ an | Sendet eine Benachrichtigung, wenn das Sense-Guard-Ventil seinen Status wechselt (geöffnet / geschlossen) – erkannt sowohl im regulären Polling-Zyklus als auch unmittelbar nach einem Benutzerbefehl |
 | **Gerätestatusbenachrichtigungen** (`notifyStatus`) | ❌ aus | Sendet eine Benachrichtigung, wenn ein Grohe-Gerät von Online nach Offline wechselt oder umgekehrt |
 | **Gerätewarnungs-Benachrichtigungen** (`notifyWarnings`) | ❌ aus | Sendet eine Benachrichtigung bei nicht-kritischen Kategorie-20-Warnungen (Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.) |
+| **Verbindungsfehler-Benachrichtigungen** (`notifyErrors`) | ✅ an | Sendet eine Benachrichtigung wenn der Adapter die Grohe-API nicht erreichen kann (z.B. HTTP 401, 403) und erneut wenn die Verbindung wiederhergestellt wird |
 
 ### Benachrichtigungskategorien im Detail
 
@@ -149,6 +150,15 @@ Wenn `notifyWarnings` aktiviert ist, wird für jede **nicht-kritische Kategorie-
 | 558 | Reinigung erforderlich |
 | 580 | Blue keine Verbindung |
 | … | Alle anderen Kat.-20-Typen, die nicht in der *alerts*-Tabelle oben aufgeführt sind |
+
+#### Verbindungsfehler-Benachrichtigungen (`errors`)
+
+Wenn `notifyErrors` aktiviert ist (Standard: an), sendet der Adapter eine Benachrichtigung wenn er die Grohe-API **nicht erreichen kann**. Um Benachrichtigungs-Spam zu vermeiden, wird nur beim **ersten Fehler** nach einer erfolgreichen Verbindung eine Meldung gesendet. Eine zweite Benachrichtigung folgt wenn die Verbindung **wiederhergestellt** ist. Sowohl Init-Fehler als auch Fehler während des Pollings werden erfasst.
+
+Beispiele für Fehlerursachen:
+- `HTTP 403 (Forbidden)` – zu häufiges Polling, abgelaufene Sitzung oder Kontoproblem
+- `HTTP 401 (Unauthorized)` – ungültige oder abgelaufene Anmeldedaten
+- Netzwerk-Timeouts oder DNS-Fehler
 
 ### Unterdrückung beim Start
 

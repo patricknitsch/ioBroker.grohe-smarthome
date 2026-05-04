@@ -13,5 +13,7 @@
 	"notifyStatusLabel": "Apparaatstatusmeldingen",
 	"notifyStatusHelp": "Stuurt ioBroker-meldingen wanneer een Grohe-apparaat online of offline gaat.",
 	"notifyWarningsLabel": "Apparaatwaarschuwingsmeldingen",
-	"notifyWarningsHelp": "Stuurt ioBroker-meldingen voor niet-kritieke waarschuwingen (lage batterij, temperatuur/vochtigheid buiten bereik, WiFi-verlies, lage Blue-filter/CO₂, enz.)."
+	"notifyWarningsHelp": "Stuurt ioBroker-meldingen voor niet-kritieke waarschuwingen (lage batterij, temperatuur/vochtigheid buiten bereik, WiFi-verlies, lage Blue-filter/CO₂, enz.).",
+	"notifyErrorsLabel": "Verbindingsfoutmeldingen",
+	"notifyErrorsHelp": "Stuurt ioBroker-meldingen wanneer de adapter de Grohe API niet kan bereiken (bijv. HTTP 401, 403) en bij herstel."
 }

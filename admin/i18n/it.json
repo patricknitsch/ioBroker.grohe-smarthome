@@ -13,5 +13,7 @@
 	"notifyStatusLabel": "Notifiche stato dispositivo",
 	"notifyStatusHelp": "Invia notifiche ioBroker quando un dispositivo Grohe va online o offline.",
 	"notifyWarningsLabel": "Notifiche di avviso dispositivo",
-	"notifyWarningsHelp": "Invia notifiche ioBroker per avvisi non critici (batteria scarica, temperatura/umidità fuori range, perdita WiFi, filtro Blue/CO₂ basso, ecc.)."
+	"notifyWarningsHelp": "Invia notifiche ioBroker per avvisi non critici (batteria scarica, temperatura/umidità fuori range, perdita WiFi, filtro Blue/CO₂ basso, ecc.).",
+	"notifyErrorsLabel": "Notifiche di errore di connessione",
+	"notifyErrorsHelp": "Invia notifiche ioBroker quando l'adattatore non riesce a raggiungere l'API Grohe (es. HTTP 401, 403) e al ripristino."
 }

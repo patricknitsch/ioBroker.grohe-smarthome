@@ -331,6 +331,38 @@
             },
             "regex": [],
             "limit": 20
+          },
+          {
+            "category": "errors",
+            "name": {
+              "en": "Connection errors",
+              "de": "Verbindungsfehler",
+              "ru": "Ошибки подключения",
+              "pt": "Erros de conexão",
+              "nl": "Verbindingsfouten",
+              "fr": "Erreurs de connexion",
+              "it": "Errori di connessione",
+              "es": "Errores de conexión",
+              "pl": "Błędy połączenia",
+              "uk": "Помилки з'єднання",
+              "zh-cn": "连接错误"
+            },
+            "severity": "alert",
+            "description": {
+              "en": "Notifications when the adapter fails to connect to the Grohe API (e.g. HTTP 401, 403) or recovers from such an error",
+              "de": "Benachrichtigungen wenn der Adapter keine Verbindung zur Grohe-API aufbauen kann (z.B. HTTP 401, 403) oder sich davon erholt",
+              "ru": "Уведомления, когда адаптер не может подключиться к Grohe API (например, HTTP 401, 403) или восстанавливается после ошибки",
+              "pt": "Notificações quando o adaptador falha ao conectar à API Grohe (ex: HTTP 401, 403) ou se recupera de tal erro",
+              "nl": "Meldingen wanneer de adapter geen verbinding kan maken met de Grohe API (bijv. HTTP 401, 403) of herstelt van zo'n fout",
+              "fr": "Notifications lorsque l'adaptateur ne parvient pas à se connecter à l'API Grohe (ex : HTTP 401, 403) ou se remet d'une telle erreur",
+              "it": "Notifiche quando l'adattatore non riesce a connettersi all'API Grohe (es. HTTP 401, 403) o si riprende da tale errore",
+              "es": "Notificaciones cuando el adaptador falla al conectar con la API de Grohe (p.ej. HTTP 401, 403) o se recupera de dicho error",
+              "pl": "Powiadomienia gdy adapter nie może połączyć się z API Grohe (np. HTTP 401, 403) lub odzyskuje po takim błędzie",
+              "uk": "Сповіщення коли адаптер не може підключитися до API Grohe (напр. HTTP 401, 403) або відновлюється після такої помилки",
+              "zh-cn": "当适配器无法连接到 Grohe API（如 HTTP 401、403）或从此类错误恢复时发送通知"
+            },
+            "regex": [],
+            "limit": 10
           }
         ]
       }
@@ -344,7 +376,8 @@
     "notifyAlerts": true,
     "notifyControls": true,
     "notifyStatus": false,
-    "notifyWarnings": false
+    "notifyWarnings": false,
+    "notifyErrors": true
   },
   "protectedNative": [
     "password"

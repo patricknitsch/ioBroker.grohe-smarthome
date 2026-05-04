@@ -122,6 +122,15 @@ class GroheSmarthome extends utils.Adapter {
 		this.currentPollInterval = 0; // set in onReady from config
 
 		/**
+		 * Connection-error notification state.
+		 * true  = adapter is currently in an error/disconnected state and a notification was sent.
+		 * false = adapter is connected (no pending error notification).
+		 * Used to fire notifications only on state transitions (error onset and recovery),
+		 * not on every failed poll cycle.
+		 */
+		this._inConnectionError = false;
+
+		/**
 		 * Total consumption cache per Sense Guard.
 		 * Maps applianceId -> { base: number, lastDay: string }
 		 * base = cumulative from installation_date to yesterday (refreshed once/day).
@@ -224,6 +233,14 @@ class GroheSmarthome extends utils.Adapter {
 		} catch (err) {
 			await this.setState('info.connection', { val: false, ack: true });
 			this.log.warn(`Initialization failed: ${err.message}`);
+			if (this.config.notifyErrors !== false) {
+				const message = `Grohe Smarthome: Initialization failed – ${err.message}`;
+				try {
+					await this.registerNotification('grohe-smarthome', 'errors', message);
+				} catch (notifyErr) {
+					this.log.warn(`registerNotification (errors) failed: ${notifyErr.message}`);
+				}
+			}
 		}
 	}
 
@@ -273,6 +290,22 @@ class GroheSmarthome extends utils.Adapter {
 				);
 				this.consecutiveErrors = 0;
 				this.currentPollInterval = this.baseInterval;
+			}
+
+			// Send recovery notification if adapter was previously in error state
+			if (this._inConnectionError) {
+				this._inConnectionError = false;
+				if (this.config.notifyErrors !== false) {
+					try {
+						await this.registerNotification(
+							'grohe-smarthome',
+							'errors',
+							'Grohe Smarthome: Connection to Grohe API restored',
+						);
+					} catch (notifyErr) {
+						this.log.warn(`registerNotification (errors/recovery) failed: ${notifyErr.message}`);
+					}
+				}
 			}
 
 			const locations = dashboard?.locations || [];
@@ -337,6 +370,22 @@ class GroheSmarthome extends utils.Adapter {
 				`Polling failed: ${reason}. ` +
 					`Next try at ${nextTryStr} (interval: ${this.currentPollInterval}s, errors: ${this.consecutiveErrors})`,
 			);
+
+			// Send error notification only on the first failure (state transition: connected → error)
+			if (!this._inConnectionError && this.config.notifyErrors !== false) {
+				this._inConnectionError = true;
+				const httpStatus = err?.response?.status;
+				const msgReason = httpStatus ? `HTTP ${httpStatus}: ${reason}` : reason;
+				try {
+					await this.registerNotification(
+						'grohe-smarthome',
+						'errors',
+						`Grohe Smarthome: Connection to Grohe API failed – ${msgReason}`,
+					);
+				} catch (notifyErr) {
+					this.log.warn(`registerNotification (errors) failed: ${notifyErr.message}`);
+				}
+			}
 		}
 	}
 
