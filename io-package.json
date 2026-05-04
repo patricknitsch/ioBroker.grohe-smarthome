@@ -173,13 +173,145 @@
       {
         "admin": ">=7.6.20"
       }
+    ],
+    "notifications": [
+      {
+        "scope": "grohe-smarthome",
+        "name": {
+          "en": "Grohe Smarthome",
+          "de": "Grohe Smarthome",
+          "ru": "Grohe Smarthome",
+          "pt": "Grohe Smarthome",
+          "nl": "Grohe Smarthome",
+          "fr": "Grohe Smarthome",
+          "it": "Grohe Smarthome",
+          "es": "Grohe Smarthome",
+          "pl": "Grohe Smarthome",
+          "uk": "Grohe Smarthome",
+          "zh-cn": "Grohe Smarthome"
+        },
+        "description": {
+          "en": "Notifications from Grohe water management devices",
+          "de": "Benachrichtigungen von Grohe Wassermanagement-Geräten",
+          "ru": "Уведомления от устройств управления водой Grohe",
+          "pt": "Notificações de dispositivos de gestão de água Grohe",
+          "nl": "Meldingen van Grohe waterbeheertoestellen",
+          "fr": "Notifications des appareils de gestion d'eau Grohe",
+          "it": "Notifiche dai dispositivi di gestione dell'acqua Grohe",
+          "es": "Notificaciones de los dispositivos de gestión de agua Grohe",
+          "pl": "Powiadomienia z urządzeń do zarządzania wodą Grohe",
+          "uk": "Сповіщення від пристроїв управління водою Grohe",
+          "zh-cn": "来自 Grohe 水管理设备的通知"
+        },
+        "categories": [
+          {
+            "category": "alerts",
+            "name": {
+              "en": "Critical alerts",
+              "de": "Kritische Meldungen",
+              "ru": "Критические оповещения",
+              "pt": "Alertas críticos",
+              "nl": "Kritieke meldingen",
+              "fr": "Alertes critiques",
+              "it": "Avvisi critici",
+              "es": "Alertas críticas",
+              "pl": "Krytyczne alerty",
+              "uk": "Критичні сповіщення",
+              "zh-cn": "严重警报"
+            },
+            "severity": "alert",
+            "description": {
+              "en": "Alarm messages and critical warnings from Grohe devices (flooding, water shut-off, sensor errors)",
+              "de": "Alarm-Meldungen und kritische Warnungen von Grohe-Geräten (Überschwemmung, Wasserabsperrung, Sensorfehler)",
+              "ru": "Сообщения об авариях и критические предупреждения от устройств Grohe (затопление, отключение воды, ошибки датчиков)",
+              "pt": "Mensagens de alarme e avisos críticos dos dispositivos Grohe (inundação, desligamento da água, erros de sensor)",
+              "nl": "Alarmmeldingen en kritieke waarschuwingen van Grohe-apparaten (overstroming, watersluiting, sensorfouten)",
+              "fr": "Messages d'alarme et avertissements critiques des appareils Grohe (inondation, coupure d'eau, erreurs de capteur)",
+              "it": "Messaggi di allarme e avvertimenti critici dai dispositivi Grohe (inondazione, chiusura acqua, errori sensore)",
+              "es": "Mensajes de alarma y advertencias críticas de los dispositivos Grohe (inundación, corte de agua, errores de sensor)",
+              "pl": "Komunikaty alarmowe i krytyczne ostrzeżenia z urządzeń Grohe (zalanie, odcięcie wody, błędy czujników)",
+              "uk": "Аварійні повідомлення та критичні попередження від пристроїв Grohe (затоплення, відключення води, помилки датчиків)",
+              "zh-cn": "来自 Grohe 设备的警报消息和严重警告（洪水、断水、传感器错误）"
+            },
+            "regex": [],
+            "limit": 10
+          },
+          {
+            "category": "controls",
+            "name": {
+              "en": "Valve and control changes",
+              "de": "Ventil- und Steuerungsänderungen",
+              "ru": "Изменения клапана и управления",
+              "pt": "Mudanças de válvula e controlo",
+              "nl": "Klep- en bedieningswijzigingen",
+              "fr": "Changements de vanne et de commande",
+              "it": "Modifiche valvola e controllo",
+              "es": "Cambios de válvula y control",
+              "pl": "Zmiany zaworu i sterowania",
+              "uk": "Зміни клапана та керування",
+              "zh-cn": "阀门和控制变化"
+            },
+            "severity": "notify",
+            "description": {
+              "en": "Notifications on valve state changes and active control actions (open/close valve, pressure measurement)",
+              "de": "Benachrichtigungen bei Ventilstatusänderungen und aktiven Steuerbefehlen (Ventil öffnen/schließen, Druckmessung)",
+              "ru": "Уведомления об изменениях состояния клапана и активных управляющих действиях (открытие/закрытие клапана, измерение давления)",
+              "pt": "Notificações sobre alterações de estado da válvula e acções de controlo activas (abrir/fechar válvula, medição de pressão)",
+              "nl": "Meldingen bij klepstatus­wijzigingen en actieve bedieningsacties (klep openen/sluiten, drukmeting)",
+              "fr": "Notifications sur les changements d'état de la vanne et les actions de commande actives (ouvrir/fermer la vanne, mesure de pression)",
+              "it": "Notifiche sui cambiamenti di stato della valvola e sulle azioni di controllo attive (aprire/chiudere la valvola, misurazione della pressione)",
+              "es": "Notificaciones sobre cambios de estado de la válvula y acciones de control activas (abrir/cerrar válvula, medición de presión)",
+              "pl": "Powiadomienia o zmianach stanu zaworu i aktywnych akcjach sterowania (otwarcie/zamknięcie zaworu, pomiar ciśnienia)",
+              "uk": "Сповіщення про зміни стану клапана та активні дії керування (відкрити/закрити клапан, вимірювання тиску)",
+              "zh-cn": "阀门状态更改和主动控制操作（打开/关闭阀门、压力测量）的通知"
+            },
+            "regex": [],
+            "limit": 10
+          },
+          {
+            "category": "status",
+            "name": {
+              "en": "Device status changes",
+              "de": "Gerätestatusänderungen",
+              "ru": "Изменения статуса устройства",
+              "pt": "Alterações de estado do dispositivo",
+              "nl": "Apparaatstatuswijzigingen",
+              "fr": "Changements d'état de l'appareil",
+              "it": "Modifiche allo stato del dispositivo",
+              "es": "Cambios de estado del dispositivo",
+              "pl": "Zmiany stanu urządzenia",
+              "uk": "Зміни стану пристрою",
+              "zh-cn": "设备状态变化"
+            },
+            "severity": "notify",
+            "description": {
+              "en": "Notifications when a Grohe device goes online or offline",
+              "de": "Benachrichtigungen wenn ein Grohe-Gerät online oder offline geht",
+              "ru": "Уведомления, когда устройство Grohe выходит в сеть или отключается",
+              "pt": "Notificações quando um dispositivo Grohe fica online ou offline",
+              "nl": "Meldingen wanneer een Grohe-apparaat online of offline gaat",
+              "fr": "Notifications lorsqu'un appareil Grohe passe en ligne ou hors ligne",
+              "it": "Notifiche quando un dispositivo Grohe va online o offline",
+              "es": "Notificaciones cuando un dispositivo Grohe se conecta o desconecta",
+              "pl": "Powiadomienia gdy urządzenie Grohe przechodzi w tryb online lub offline",
+              "uk": "Сповіщення, коли пристрій Grohe переходить в онлайн або офлайн режим",
+              "zh-cn": "当 Grohe 设备上线或离线时的通知"
+            },
+            "regex": [],
+            "limit": 10
+          }
+        ]
+      }
     ]
   },
   "native": {
     "email": "",
     "password": "",
     "pollInterval": 300,
-    "rawStates": false
+    "rawStates": false,
+    "notifyAlerts": true,
+    "notifyControls": true,
+    "notifyStatus": false
   },
   "protectedNative": [
     "password"

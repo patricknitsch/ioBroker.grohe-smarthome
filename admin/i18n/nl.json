@@ -3,5 +3,12 @@
 	"Grohe password": "Grohe-wachtwoord",
 	"Polling interval (seconds)": "Polling-interval (seconden)",
 	"pollIntervalHelp": "Te frequent pollen kan HTTP 403-fouten van de Grohe API veroorzaken. Aanbevolen: 300s of hoger. Bij fouten wordt het interval automatisch verhoogd (tot 1u) en hersteld na een succesvolle poll.",
-	"Create raw measurement states": "Onbewerkte meetstatussen aanmaken"
+	"Create raw measurement states": "Onbewerkte meetstatussen aanmaken",
+	"Notification Management": "Meldingsbeheer",
+	"notifyAlertsLabel": "Kritieke alarmmeldingen",
+	"notifyAlertsHelp": "Stuurt ioBroker-meldingen voor kritieke Grohe-alarmen (overstroming, watersluiting, sensorfouten) en waarschuwingen met hoge prioriteit.",
+	"notifyControlsLabel": "Klep- en bedieningsmeldingen",
+	"notifyControlsHelp": "Stuurt ioBroker-meldingen wanneer de klepstatus verandert (open/gesloten) of een actief bedieningscommando wordt geactiveerd.",
+	"notifyStatusLabel": "Apparaatstatusmeldingen",
+	"notifyStatusHelp": "Stuurt ioBroker-meldingen wanneer een Grohe-apparaat online of offline gaat."
 }

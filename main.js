@@ -136,6 +136,19 @@ class GroheSmarthome extends utils.Adapter {
 		 */
 		this._blueRefreshRunning = new Map();
 
+		/**
+		 * Notification tracking – used to detect new notifications and state changes.
+		 * lastNotificationTs: applianceId -> last seen notification timestamp (string)
+		 * lastValveState:     applianceId -> last known valve_open state (boolean)
+		 * lastOnlineState:    applianceId -> last known online/connection state (boolean)
+		 *
+		 * On first startup these are empty so existing states are learned silently
+		 * without firing spurious notifications.
+		 */
+		this.lastNotificationTs = new Map();
+		this.lastValveState = new Map();
+		this.lastOnlineState = new Map();
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -475,6 +488,10 @@ class GroheSmarthome extends utils.Adapter {
 				const cmd = await this.client.getApplianceCommand(locationId, roomId, id);
 				const valveOpen = cmd?.command?.valve_open;
 				await this._setBool(id, 'valveOpen', 'Valve open', 'indicator', valveOpen);
+				// Notify on valve state transitions
+				if (valveOpen !== undefined) {
+					await this._notifyValveStateChange(id, name, valveOpen);
+				}
 			} catch (err) {
 				this.log.warn(`Command query for ${id} failed: ${err.message}`);
 			}
@@ -775,6 +792,88 @@ class GroheSmarthome extends utils.Adapter {
 	}
 
 	/* ================================================================== */
+	/*  Notification helpers                                              */
+	/* ================================================================== */
+
+	/**
+	 * Send an ioBroker notification when the valve state changes.
+	 * Skips the first call per device (initial state learning) to avoid
+	 * spurious notifications on adapter startup.
+	 *
+	 * @param {string} applianceId - The appliance ID
+	 * @param {string} deviceName - Human-readable device name
+	 * @param {boolean} newState - New valve state (true = open, false = closed)
+	 */
+	async _notifyValveStateChange(applianceId, deviceName, newState) {
+		if (newState === undefined || newState === null) {
+			return;
+		}
+		const lastState = this.lastValveState.get(applianceId);
+
+		// First time seeing this device – learn current state silently
+		if (lastState === undefined) {
+			this.lastValveState.set(applianceId, newState);
+			return;
+		}
+
+		if (lastState === newState) {
+			return;
+		}
+
+		this.lastValveState.set(applianceId, newState);
+
+		if (this.config.notifyControls !== false) {
+			const stateStr = newState ? 'opened' : 'closed';
+			const message = `[${deviceName}] Valve ${stateStr}`;
+			this.log.debug(`Sending valve notification: ${message}`);
+			try {
+				await this.registerNotification('grohe-smarthome', 'controls', message);
+			} catch (err) {
+				this.log.warn(`registerNotification (controls) failed: ${err.message}`);
+			}
+		}
+	}
+
+	/**
+	 * Send an ioBroker notification when the device online state changes.
+	 * Skips the first call per device (initial state learning) to avoid
+	 * spurious notifications on adapter startup.
+	 *
+	 * @param {string} applianceId - The appliance ID
+	 * @param {string} deviceName - Human-readable device name
+	 * @param {boolean} newState - New online state (true = online, false = offline)
+	 */
+	async _notifyOnlineStateChange(applianceId, deviceName, newState) {
+		if (newState === undefined || newState === null) {
+			return;
+		}
+		const lastState = this.lastOnlineState.get(applianceId);
+
+		// First time seeing this device – learn current state silently
+		if (lastState === undefined) {
+			this.lastOnlineState.set(applianceId, newState);
+			return;
+		}
+
+		if (lastState === newState) {
+			return;
+		}
+
+		this.lastOnlineState.set(applianceId, newState);
+
+		if (this.config.notifyStatus) {
+			const stateStr = newState ? 'online' : 'offline';
+			const message = `[${deviceName}] Device is ${stateStr}`;
+			this.log.debug(`Sending status notification: ${message}`);
+			try {
+				await this.registerNotification('grohe-smarthome', 'status', message);
+			} catch (err) {
+				this.log.warn(`registerNotification (status) failed: ${err.message}`);
+			}
+		}
+	}
+
+	/* ================================================================== */
 	/*  Status channel (all devices)                                      */
 	/* ================================================================== */
 
@@ -793,6 +892,12 @@ class GroheSmarthome extends utils.Adapter {
 
 			if (status.wifi_quality !== undefined) {
 				await this._setNum(`${id}.status`, 'wifiQuality', 'WiFi quality', '', 'value', status.wifi_quality);
+			}
+
+			// Notify on online/offline transitions
+			if (status.connection !== undefined) {
+				const dev = this.devices.get(id);
+				await this._notifyOnlineStateChange(id, dev?.name || id, status.connection);
 			}
 		}
 	}
@@ -825,6 +930,37 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setNum(`${id}.notifications`, 'latestCategory', 'Category', '', 'value', cat);
 		await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Category name', 'text', catName);
 		await this._setNum(`${id}.notifications`, 'latestType', 'Notification type', '', 'value', type);
+
+		// Send ioBroker notification for new notifications (detected via timestamp change).
+		// On first startup the timestamp is learned silently to avoid replaying old events.
+		const ts = latest.timestamp;
+		const lastTs = this.lastNotificationTs.get(id);
+
+		if (!ts || ts === lastTs) {
+			return;
+		}
+
+		this.lastNotificationTs.set(id, ts);
+
+		if (this.config.notifyAlerts !== false) {
+			// Grohe category 30 = Alarm (always critical)
+			// Grohe category 20 = Warning; only specific types qualify as critical alerts
+			const CRITICAL_WARNING_TYPES = new Set([320, 321, 330, 383, 385, 420]);
+			const isAlarm = cat === 30;
+			const isCriticalWarning = cat === 20 && CRITICAL_WARNING_TYPES.has(Number(type));
+
+			if (isAlarm || isCriticalWarning) {
+				const dev = this.devices.get(id);
+				const deviceName = dev?.name || id;
+				const message = `[${deviceName}] ${catName}: ${typeText}`;
+				this.log.debug(`Sending alert notification: ${message}`);
+				try {
+					await this.registerNotification('grohe-smarthome', 'alerts', message);
+				} catch (err) {
+					this.log.warn(`registerNotification (alerts) failed: ${err.message}`);
+				}
+			}
+		}
 	}
 
 	/* ================================================================== */
@@ -918,6 +1054,11 @@ class GroheSmarthome extends utils.Adapter {
 				const valveOpen = cmd?.command?.valve_open;
 				await this._setBool(applianceId, 'valveOpen', 'Valve open', 'indicator', valveOpen);
 				this.log.debug(`Readback after command: valveOpen=${valveOpen} for ${applianceId}`);
+				// Notify on valve state transition after the command is confirmed
+				if (valveOpen !== undefined) {
+					const dev = this.devices.get(applianceId);
+					await this._notifyValveStateChange(applianceId, dev?.name || applianceId, valveOpen);
+				}
 			}
 		} catch (err) {
 			this.log.warn(`Readback command for ${applianceId} failed: ${err.message}`);
@@ -1153,6 +1294,9 @@ class GroheSmarthome extends utils.Adapter {
 				this.clearTimeout(this.pollTimer);
 			}
 			this._blueRefreshRunning.clear();
+			this.lastNotificationTs.clear();
+			this.lastValveState.clear();
+			this.lastOnlineState.clear();
 			this.client = null;
 			callback();
 		} catch {

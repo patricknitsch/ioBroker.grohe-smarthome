@@ -3,5 +3,12 @@
 	"Grohe password": "Password Grohe",
 	"Polling interval (seconds)": "Intervallo di polling (secondi)",
 	"pollIntervalHelp": "Un polling troppo frequente può causare errori HTTP 403 dall'API Grohe. Consigliato: 300s o superiore. In caso di errori, l'intervallo aumenta automaticamente (fino a 1h) e si ripristina dopo un polling riuscito.",
-	"Create raw measurement states": "Creare stati di misurazione grezzi"
+	"Create raw measurement states": "Creare stati di misurazione grezzi",
+	"Notification Management": "Gestione notifiche",
+	"notifyAlertsLabel": "Notifiche di avvisi critici",
+	"notifyAlertsHelp": "Invia notifiche ioBroker per allarmi critici Grohe (inondazioni, chiusura acqua, errori sensore) e avvertimenti ad alta priorità.",
+	"notifyControlsLabel": "Notifiche valvola e controllo",
+	"notifyControlsHelp": "Invia notifiche ioBroker quando lo stato della valvola cambia (aperta/chiusa) o viene attivato un comando di controllo attivo.",
+	"notifyStatusLabel": "Notifiche stato dispositivo",
+	"notifyStatusHelp": "Invia notifiche ioBroker quando un dispositivo Grohe va online o offline."
 }

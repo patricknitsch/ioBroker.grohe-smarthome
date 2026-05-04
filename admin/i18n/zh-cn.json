@@ -3,5 +3,12 @@
 	"Grohe password": "高仪密码",
 	"Polling interval (seconds)": "轮询间隔（秒）",
 	"pollIntervalHelp": "过于频繁的轮询可能会导致 Grohe API 出现 HTTP 403 错误。建议：300秒或更高。出错时，间隔会自动增加（最多1小时），成功轮询后会重置。",
-	"Create raw measurement states": "创建原始测量状态"
+	"Create raw measurement states": "创建原始测量状态",
+	"Notification Management": "通知管理",
+	"notifyAlertsLabel": "严重警报通知",
+	"notifyAlertsHelp": "为 Grohe 严重警报（洪水、断水、传感器错误）和高优先级警告发送 ioBroker 通知。",
+	"notifyControlsLabel": "阀门和控制通知",
+	"notifyControlsHelp": "当阀门状态改变（打开/关闭）或触发主动控制命令时发送 ioBroker 通知。",
+	"notifyStatusLabel": "设备状态通知",
+	"notifyStatusHelp": "当 Grohe 设备上线或离线时发送 ioBroker 通知。"
 }

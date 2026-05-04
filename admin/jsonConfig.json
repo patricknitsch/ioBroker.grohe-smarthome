@@ -41,6 +41,44 @@
 			"md": 4,
 			"lg": 3,
 			"xl": 2
+		},
+		"_notifHeader": {
+			"type": "header",
+			"text": "Notification Management",
+			"xs": 12
+		},
+		"notifyAlerts": {
+			"type": "checkbox",
+			"label": "notifyAlertsLabel",
+			"help": "notifyAlertsHelp",
+			"default": true,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 4,
+			"xl": 4
+		},
+		"notifyControls": {
+			"type": "checkbox",
+			"label": "notifyControlsLabel",
+			"help": "notifyControlsHelp",
+			"default": true,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 4,
+			"xl": 4
+		},
+		"notifyStatus": {
+			"type": "checkbox",
+			"label": "notifyStatusLabel",
+			"help": "notifyStatusHelp",
+			"default": false,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 4,
+			"xl": 4
 		}
 	}
 }
