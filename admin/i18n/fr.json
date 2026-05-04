@@ -11,5 +11,7 @@
 	"notifyControlsLabel": "Notifications vanne et commande",
 	"notifyControlsHelp": "Envoie des notifications ioBroker lorsque l'état de la vanne change (ouverte/fermée) ou qu'une commande de contrôle active est déclenchée.",
 	"notifyStatusLabel": "Notifications de statut d'appareil",
-	"notifyStatusHelp": "Envoie des notifications ioBroker lorsqu'un appareil Grohe passe en ligne ou hors ligne."
+	"notifyStatusHelp": "Envoie des notifications ioBroker lorsqu'un appareil Grohe passe en ligne ou hors ligne.",
+	"notifyWarningsLabel": "Notifications d'avertissement d'appareil",
+	"notifyWarningsHelp": "Envoie des notifications ioBroker pour les avertissements non critiques (batterie faible, température/humidité hors plage, perte WiFi, filtre Blue/CO₂ bas, etc.)."
 }

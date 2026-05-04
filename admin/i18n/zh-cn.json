@@ -11,5 +11,7 @@
 	"notifyControlsLabel": "阀门和控制通知",
 	"notifyControlsHelp": "当阀门状态改变（打开/关闭）或触发主动控制命令时发送 ioBroker 通知。",
 	"notifyStatusLabel": "设备状态通知",
-	"notifyStatusHelp": "当 Grohe 设备上线或离线时发送 ioBroker 通知。"
+	"notifyStatusHelp": "当 Grohe 设备上线或离线时发送 ioBroker 通知。",
+	"notifyWarningsLabel": "设备警告通知",
+	"notifyWarningsHelp": "为非严重警告发送 ioBroker 通知（电量低、温度/湿度超出范围、WiFi 丢失、Blue 滤芯/CO₂ 不足等）。"
 }

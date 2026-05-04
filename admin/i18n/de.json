@@ -11,5 +11,7 @@
 	"notifyControlsLabel": "Ventil- und Steuerungsbenachrichtigungen",
 	"notifyControlsHelp": "Sendet ioBroker-Benachrichtigungen wenn sich der Ventilstatus ändert (geöffnet/geschlossen) oder ein aktiver Steuerbefehl ausgelöst wird.",
 	"notifyStatusLabel": "Gerätestatusbenachrichtigungen",
-	"notifyStatusHelp": "Sendet ioBroker-Benachrichtigungen wenn ein Grohe-Gerät online oder offline geht."
+	"notifyStatusHelp": "Sendet ioBroker-Benachrichtigungen wenn ein Grohe-Gerät online oder offline geht.",
+	"notifyWarningsLabel": "Gerätewarnungs-Benachrichtigungen",
+	"notifyWarningsHelp": "Sendet ioBroker-Benachrichtigungen bei nicht-kritischen Warnungen (Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.)."
 }

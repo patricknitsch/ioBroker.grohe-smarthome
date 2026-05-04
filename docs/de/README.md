@@ -95,13 +95,14 @@ In den Instanz-Einstellungen des Adapters:
 
 Der Adapter ist in den **ioBroker Notification Manager** integriert. Benachrichtigungen können an beliebige konfigurierte Kanäle weitergeleitet werden (Telegram, E-Mail, Pushover usw.).
 
-In den Adaptereinstellungen lassen sich drei Benachrichtigungskategorien unabhängig voneinander aktivieren oder deaktivieren:
+In den Adaptereinstellungen lassen sich vier Benachrichtigungskategorien unabhängig voneinander aktivieren oder deaktivieren:
 
 | Einstellung | Standard | Beschreibung |
 |---|---|---|
 | **Kritische Alarm-Benachrichtigungen** (`notifyAlerts`) | ✅ an | Sendet eine Benachrichtigung bei Grohe-Alarmen (Kategorie 30: Überschwemmung, Sensorfehler, Wasserabsperrung) und ausgewählten Warnungen (Kategorie 20: ungewöhnlicher Verbrauch / Absperrung, Druckabfall, Leckverdacht) |
 | **Ventil- und Steuerungsbenachrichtigungen** (`notifyControls`) | ✅ an | Sendet eine Benachrichtigung, wenn das Sense-Guard-Ventil seinen Status wechselt (geöffnet / geschlossen) – erkannt sowohl im regulären Polling-Zyklus als auch unmittelbar nach einem Benutzerbefehl |
 | **Gerätestatusbenachrichtigungen** (`notifyStatus`) | ❌ aus | Sendet eine Benachrichtigung, wenn ein Grohe-Gerät von Online nach Offline wechselt oder umgekehrt |
+| **Gerätewarnungs-Benachrichtigungen** (`notifyWarnings`) | ❌ aus | Sendet eine Benachrichtigung bei nicht-kritischen Kategorie-20-Warnungen (Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.) |
 
 ### Benachrichtigungskategorien im Detail
 
@@ -119,7 +120,7 @@ Folgende Grohe-Benachrichtigungstypen werden dieser Kategorie zugeordnet:
 | Warnung (20) | 385 | Wasserdruckabfälle erkannt – Schweregrad gestiegen |
 | Warnung (20) | 420 | Mehrfache Druckabfälle – Wasserversorgung abgesperrt |
 
-Andere Warnungstypen (Batterie, Temperatur, Luftfeuchtigkeit, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.) lösen **keine** Alarm-Benachrichtigung aus; sie sind weiterhin nur in den States des `notifications`-Kanals sichtbar.
+Andere Warnungstypen (Batterie, Temperatur, Luftfeuchtigkeit, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.) lösen **keine** `alerts`-Benachrichtigung aus. Sie können jedoch über die separate Einstellung **Gerätewarnungs-Benachrichtigungen** (`notifyWarnings`) weitergeleitet werden – siehe unten.
 
 #### Ventil- und Steuerungsbenachrichtigungen (`controls`)
 
@@ -130,6 +131,24 @@ Wird bei jedem Ventilstatuswechsel (offen → geschlossen oder geschlossen → o
 #### Gerätestatusbenachrichtigungen (`status`)
 
 Wird ausgelöst, wenn ein Gerät zwischen Online- und Offline-Zustand wechselt (erkannt über den `/status`-Endpunkt, der alle 5 Polls abgefragt wird).
+
+#### Gerätewarnungs-Benachrichtigungen (`warnings`)
+
+Wenn `notifyWarnings` aktiviert ist, wird für jede **nicht-kritische Kategorie-20-Warnung**, die neu empfangen wird (d.h. beim Start des Adapters noch nicht bekannt war), eine Benachrichtigung gesendet. Beispiele:
+
+| Typ-Code | Meldung |
+|---|---|
+| 11 | Batterie ist kritisch niedrig |
+| 12 | Batterie ist leer und muss gewechselt werden |
+| 20 / 21 | Temperatur unter / über dem Grenzwert |
+| 30 / 31 | Luftfeuchtigkeit unter / über dem Grenzwert |
+| 40 | Frostwarnung |
+| 80 / 380 | Sense / Sense Guard hat WLAN verloren |
+| 550 / 551 | Blue Filter / CO₂ niedrig |
+| 552 / 553 | Blue Filter / CO₂ leer |
+| 558 | Reinigung erforderlich |
+| 580 | Blue keine Verbindung |
+| … | Alle anderen Kat.-20-Typen, die nicht in der *alerts*-Tabelle oben aufgeführt sind |
 
 ### Unterdrückung beim Start
 

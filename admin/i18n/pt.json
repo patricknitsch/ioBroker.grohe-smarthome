@@ -11,5 +11,7 @@
 	"notifyControlsLabel": "Notificações de válvula e controlo",
 	"notifyControlsHelp": "Envia notificações ioBroker quando o estado da válvula muda (aberta/fechada) ou um comando de controlo ativo é acionado.",
 	"notifyStatusLabel": "Notificações de estado do dispositivo",
-	"notifyStatusHelp": "Envia notificações ioBroker quando um dispositivo Grohe fica online ou offline."
+	"notifyStatusHelp": "Envia notificações ioBroker quando um dispositivo Grohe fica online ou offline.",
+	"notifyWarningsLabel": "Notificações de aviso do dispositivo",
+	"notifyWarningsHelp": "Envia notificações ioBroker para avisos não críticos (bateria fraca, temperatura/humidade fora do intervalo, perda de WiFi, filtro Blue/CO₂ baixo, etc.)."
 }

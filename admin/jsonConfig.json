@@ -79,6 +79,17 @@
 			"md": 4,
 			"lg": 4,
 			"xl": 4
+		},
+		"notifyWarnings": {
+			"type": "checkbox",
+			"label": "notifyWarningsLabel",
+			"help": "notifyWarningsHelp",
+			"default": false,
+			"xs": 12,
+			"sm": 6,
+			"md": 4,
+			"lg": 4,
+			"xl": 4
 		}
 	}
 }

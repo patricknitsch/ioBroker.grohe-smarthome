@@ -11,5 +11,7 @@
 	"notifyControlsLabel": "Powiadomienia zaworu i sterowania",
 	"notifyControlsHelp": "Wysyła powiadomienia ioBroker gdy stan zaworu zmienia się (otwarty/zamknięty) lub zostaje wyzwolona aktywna komenda sterowania.",
 	"notifyStatusLabel": "Powiadomienia statusu urządzenia",
-	"notifyStatusHelp": "Wysyła powiadomienia ioBroker gdy urządzenie Grohe przechodzi w tryb online lub offline."
+	"notifyStatusHelp": "Wysyła powiadomienia ioBroker gdy urządzenie Grohe przechodzi w tryb online lub offline.",
+	"notifyWarningsLabel": "Powiadomienia o ostrzeżeniach urządzenia",
+	"notifyWarningsHelp": "Wysyła powiadomienia ioBroker dla niekrytycznych ostrzeżeń (słaba bateria, temperatura/wilgotność poza zakresem, utrata WiFi, niski filtr Blue/CO₂ itp.)."
 }

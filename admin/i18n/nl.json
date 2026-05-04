@@ -11,5 +11,7 @@
 	"notifyControlsLabel": "Klep- en bedieningsmeldingen",
 	"notifyControlsHelp": "Stuurt ioBroker-meldingen wanneer de klepstatus verandert (open/gesloten) of een actief bedieningscommando wordt geactiveerd.",
 	"notifyStatusLabel": "Apparaatstatusmeldingen",
-	"notifyStatusHelp": "Stuurt ioBroker-meldingen wanneer een Grohe-apparaat online of offline gaat."
+	"notifyStatusHelp": "Stuurt ioBroker-meldingen wanneer een Grohe-apparaat online of offline gaat.",
+	"notifyWarningsLabel": "Apparaatwaarschuwingsmeldingen",
+	"notifyWarningsHelp": "Stuurt ioBroker-meldingen voor niet-kritieke waarschuwingen (lage batterij, temperatuur/vochtigheid buiten bereik, WiFi-verlies, lage Blue-filter/CO₂, enz.)."
 }

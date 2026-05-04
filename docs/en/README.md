@@ -95,13 +95,14 @@ In the adapter instance settings:
 
 The adapter integrates with the **ioBroker Notification Manager**. Notifications can be forwarded to any configured channel (Telegram, e-mail, Pushover, etc.).
 
-Three notification categories can be enabled or disabled independently in the adapter settings:
+Four notification categories can be enabled or disabled independently in the adapter settings:
 
 | Setting | Default | Description |
 |---|---|---|
 | **Critical alert notifications** (`notifyAlerts`) | ✅ on | Sends a notification for Grohe alarms (category 30: flooding, sensor errors, water shut-off) and selected high-priority warnings (category 20: unusual water consumption / shut-off, pressure drops, potential leak) |
 | **Valve and control notifications** (`notifyControls`) | ✅ on | Sends a notification whenever the Sense Guard valve changes state (opened / closed) – detected both during the regular poll cycle and immediately after a user-triggered command |
 | **Device status notifications** (`notifyStatus`) | ❌ off | Sends a notification when a Grohe device transitions from online → offline or offline → online |
+| **Device warning notifications** (`notifyWarnings`) | ❌ off | Sends a notification for non-critical cat-20 warnings (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.) |
 
 ### Notification categories in detail
 
@@ -119,7 +120,7 @@ The following Grohe notification types route to this category:
 | Warning (20) | 385 | Water pressure drops detected – severity increased |
 | Warning (20) | 420 | Multiple pressure drops – water supply switched off |
 
-Other warning types (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.) do **not** trigger an alert notification; they remain visible only in the `notifications` channel states.
+Other warning types (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.) do **not** trigger an `alerts` notification. They can however be forwarded via the separate **Device warning notifications** (`notifyWarnings`) setting – see below.
 
 #### Valve & control notifications (`controls`)
 
@@ -130,6 +131,24 @@ Triggered on every valve state transition (open → closed or closed → open) f
 #### Device status notifications (`status`)
 
 Triggered when a device transitions between online and offline states (detected via the `/status` endpoint, polled every 5th cycle).
+
+#### Device warning notifications (`warnings`)
+
+When `notifyWarnings` is enabled, a notification is sent for every **non-critical cat-20 warning** that is newly received (i.e. not yet seen when the adapter started). Examples:
+
+| Type code | Message |
+|---|---|
+| 11 | Battery is at critical level |
+| 12 | Battery is empty and must be changed |
+| 20 / 21 | Temperature below / above limit |
+| 30 / 31 | Humidity below / above limit |
+| 40 | Frost warning |
+| 80 / 380 | Sense / Sense Guard lost WiFi |
+| 550 / 551 | Blue filter / CO₂ low |
+| 552 / 553 | Blue filter / CO₂ empty |
+| 558 | Cleaning needed |
+| 580 | Blue no connection |
+| … | All other cat-20 types not listed in the *alerts* table above |
 
 ### Startup suppression
 

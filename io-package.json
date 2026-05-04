@@ -299,6 +299,38 @@
             },
             "regex": [],
             "limit": 10
+          },
+          {
+            "category": "warnings",
+            "name": {
+              "en": "Device warnings",
+              "de": "Gerätewarnungen",
+              "ru": "Предупреждения устройства",
+              "pt": "Avisos do dispositivo",
+              "nl": "Apparaatwaarschuwingen",
+              "fr": "Avertissements de l'appareil",
+              "it": "Avvisi dispositivo",
+              "es": "Advertencias del dispositivo",
+              "pl": "Ostrzeżenia urządzenia",
+              "uk": "Попередження пристрою",
+              "zh-cn": "设备警告"
+            },
+            "severity": "notify",
+            "description": {
+              "en": "Non-critical warnings from Grohe devices (battery low, temperature/humidity out of range, WiFi loss, Blue filter/CO₂ low, etc.)",
+              "de": "Nicht-kritische Warnungen von Grohe-Geräten (Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig usw.)",
+              "ru": "Некритические предупреждения от устройств Grohe (слабая батарея, температура/влажность вне диапазона, потеря WiFi, низкий фильтр/CO₂ Blue и т.д.)",
+              "pt": "Avisos não críticos dos dispositivos Grohe (bateria fraca, temperatura/humidade fora do intervalo, perda de WiFi, filtro Blue/CO₂ baixo, etc.)",
+              "nl": "Niet-kritieke waarschuwingen van Grohe-apparaten (lage batterij, temperatuur/vochtigheid buiten bereik, WiFi-verlies, lage Blue-filter/CO₂, enz.)",
+              "fr": "Avertissements non critiques des appareils Grohe (batterie faible, température/humidité hors plage, perte WiFi, filtre Blue/CO₂ bas, etc.)",
+              "it": "Avvisi non critici dai dispositivi Grohe (batteria scarica, temperatura/umidità fuori range, perdita WiFi, filtro Blue/CO₂ basso, ecc.)",
+              "es": "Advertencias no críticas de los dispositivos Grohe (batería baja, temperatura/humedad fuera de rango, pérdida de WiFi, filtro Blue/CO₂ bajo, etc.)",
+              "pl": "Niekrytyczne ostrzeżenia z urządzeń Grohe (słaba bateria, temperatura/wilgotność poza zakresem, utrata WiFi, niski filtr Blue/CO₂ itp.)",
+              "uk": "Некритичні попередження від пристроїв Grohe (слабка батарея, температура/вологість поза діапазоном, втрата WiFi, низький фільтр Blue/CO₂ тощо)",
+              "zh-cn": "来自 Grohe 设备的非严重警告（电量低、温度/湿度超出范围、WiFi 丢失、Blue 滤芯/CO₂ 不足等）"
+            },
+            "regex": [],
+            "limit": 20
           }
         ]
       }
@@ -311,7 +343,8 @@
     "rawStates": false,
     "notifyAlerts": true,
     "notifyControls": true,
-    "notifyStatus": false
+    "notifyStatus": false,
+    "notifyWarnings": false
   },
   "protectedNative": [
     "password"

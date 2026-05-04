@@ -952,19 +952,20 @@ class GroheSmarthome extends utils.Adapter {
 
 		this.lastNotificationTs.set(id, ts);
 
-		if (this.config.notifyAlerts !== false) {
-			// Grohe category 30 = Alarm (always critical)
-			// Grohe category 20 = Warning; the following types are treated as critical alerts:
-			//   320 – Unusual water consumption, water SHUT OFF
-			//   321 – Unusual water consumption, water still ON
-			//   330 – Pressure drop detected during pipe check
-			//   383 – Potential leak detected
-			//   385 – Water pressure drops detected (severity increased)
-			//   420 – Multiple pressure drops, water supply switched off
-			const CRITICAL_WARNING_TYPES = new Set([320, 321, 330, 383, 385, 420]);
-			const isAlarm = cat === 30;
-			const isCriticalWarning = cat === 20 && CRITICAL_WARNING_TYPES.has(Number(type));
+		// Grohe category 30 = Alarm (always critical)
+		// Grohe category 20 = Warning; the following types are treated as critical alerts:
+		//   320 – Unusual water consumption, water SHUT OFF
+		//   321 – Unusual water consumption, water still ON
+		//   330 – Pressure drop detected during pipe check
+		//   383 – Potential leak detected
+		//   385 – Water pressure drops detected (severity increased)
+		//   420 – Multiple pressure drops, water supply switched off
+		const CRITICAL_WARNING_TYPES = new Set([320, 321, 330, 383, 385, 420]);
+		const isAlarm = cat === 30;
+		const isCriticalWarning = cat === 20 && CRITICAL_WARNING_TYPES.has(Number(type));
+		const isNonCriticalWarning = cat === 20 && !CRITICAL_WARNING_TYPES.has(Number(type));
 
+		if (this.config.notifyAlerts !== false) {
 			if (isAlarm || isCriticalWarning) {
 				const dev = this.devices.get(id);
 				const deviceName = dev?.name || id;
@@ -974,6 +975,20 @@ class GroheSmarthome extends utils.Adapter {
 					await this.registerNotification('grohe-smarthome', 'alerts', message);
 				} catch (err) {
 					this.log.warn(`registerNotification (alerts) failed: ${err.message}`);
+				}
+			}
+		}
+
+		if (this.config.notifyWarnings) {
+			if (isNonCriticalWarning) {
+				const dev = this.devices.get(id);
+				const deviceName = dev?.name || id;
+				const message = `[${deviceName}] ${catName}: ${typeText}`;
+				this.log.debug(`Sending warning notification: ${message}`);
+				try {
+					await this.registerNotification('grohe-smarthome', 'warnings', message);
+				} catch (err) {
+					this.log.warn(`registerNotification (warnings) failed: ${err.message}`);
 				}
 			}
 		}
