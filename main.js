@@ -12,6 +12,16 @@ const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
 
+// Category-20 notification types that are treated as critical (routed to the alerts scope).
+// All other category-20 types are non-critical warnings.
+//   320 – Unusual water consumption, water SHUT OFF
+//   321 – Unusual water consumption, water still ON
+//   330 – Pressure drop detected during pipe check
+//   383 – Potential leak detected
+//   385 – Water pressure drops detected (severity increased)
+//   420 – Multiple pressure drops, water supply switched off
+const CRITICAL_WARNING_TYPES = new Set([320, 321, 330, 383, 385, 420]);
+
 /**
  * Notification type lookup – maps (category, type) to human-readable English text.
  * Used for writing ioBroker *states* (always in English so scripts remain stable).
@@ -1007,13 +1017,6 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Grohe category 30 = Alarm (always critical)
 		// Grohe category 20 = Warning; the following types are treated as critical alerts:
-		//   320 – Unusual water consumption, water SHUT OFF
-		//   321 – Unusual water consumption, water still ON
-		//   330 – Pressure drop detected during pipe check
-		//   383 – Potential leak detected
-		//   385 – Water pressure drops detected (severity increased)
-		//   420 – Multiple pressure drops, water supply switched off
-		const CRITICAL_WARNING_TYPES = new Set([320, 321, 330, 383, 385, 420]);
 		const isAlarm = cat === 30;
 		const isCriticalWarning = cat === 20 && CRITICAL_WARNING_TYPES.has(Number(type));
 		const isNonCriticalWarning = cat === 20 && !CRITICAL_WARNING_TYPES.has(Number(type));
