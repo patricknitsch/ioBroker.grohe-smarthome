@@ -365,7 +365,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (this.config.notifyEnabled && this.config.notifyOnConnError) {
 				const localReason = getNotificationMessage(this, 'pollingError', {
 					status: httpStatus || '?',
-					reason: err.message,
+					reason: reason || String(err),
 				});
 				await sendNotification(this, localReason);
 			}
