@@ -5,6 +5,7 @@
 	"pollIntervalHelp": "Zu häufiges Polling kann zu HTTP 403-Fehlern der Grohe-API führen. Empfohlen: 300s oder höher. Bei Fehlern wird das Intervall automatisch erhöht (bis 1h) und nach erfolgreichem Abruf zurückgesetzt.",
 	"Create raw measurement states": "Rohdaten-States erstellen",
 	"Notification Management": "Benachrichtigungsverwaltung",
+	"notifHeaderText": "Benachrichtigungsverwaltung",
 	"notifyAlertsLabel": "Kritische Alarm-Benachrichtigungen",
 	"notifyAlertsHelp": "Sendet ioBroker-Benachrichtigungen bei kritischen Grohe-Alarmen (Überschwemmung, Wasserabsperrung, Sensorfehler) und wichtigen Warnungen.",
 	"notifyControlsLabel": "Ventil- und Steuerungsbenachrichtigungen",

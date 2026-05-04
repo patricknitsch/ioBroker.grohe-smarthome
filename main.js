@@ -934,9 +934,19 @@ class GroheSmarthome extends utils.Adapter {
 		// Send ioBroker notification for new notifications (detected via timestamp change).
 		// On first startup the timestamp is learned silently to avoid replaying old events.
 		const ts = latest.timestamp;
+		if (!ts) {
+			return;
+		}
+
 		const lastTs = this.lastNotificationTs.get(id);
 
-		if (!ts || ts === lastTs) {
+		if (lastTs === undefined) {
+			// First startup – learn current state silently, do not notify
+			this.lastNotificationTs.set(id, ts);
+			return;
+		}
+
+		if (ts === lastTs) {
 			return;
 		}
 

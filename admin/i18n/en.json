@@ -5,6 +5,7 @@
 	"pollIntervalHelp": "Too frequent polling may cause HTTP 403 errors from the Grohe API. Recommended: 300s or higher. On errors the interval increases automatically (up to 1h) and resets after a successful poll.",
 	"Create raw measurement states": "Create raw measurement states",
 	"Notification Management": "Notification Management",
+	"notifHeaderText": "Notification Management",
 	"notifyAlertsLabel": "Critical alert notifications",
 	"notifyAlertsHelp": "Send ioBroker notifications for critical Grohe alarms (flooding, water shut-off, sensor errors) and high-priority warnings.",
 	"notifyControlsLabel": "Valve and control notifications",

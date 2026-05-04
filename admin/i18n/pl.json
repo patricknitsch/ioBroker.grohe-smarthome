@@ -5,6 +5,7 @@
 	"pollIntervalHelp": "Zbyt częste odpytywanie może powodować błędy HTTP 403 z API Grohe. Zalecane: 300s lub więcej. W przypadku błędów interwał zwiększa się automatycznie (do 1h) i resetuje po udanym odpytaniu.",
 	"Create raw measurement states": "Twórz surowe stany pomiarowe",
 	"Notification Management": "Zarządzanie powiadomieniami",
+	"notifHeaderText": "Zarządzanie powiadomieniami",
 	"notifyAlertsLabel": "Powiadomienia o krytycznych alertach",
 	"notifyAlertsHelp": "Wysyła powiadomienia ioBroker dla krytycznych alarmów Grohe (zalanie, odcięcie wody, błędy czujników) i ostrzeżeń wysokiego priorytetu.",
 	"notifyControlsLabel": "Powiadomienia zaworu i sterowania",
