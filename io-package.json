@@ -179,7 +179,27 @@
     "email": "",
     "password": "",
     "pollInterval": 300,
-    "rawStates": false
+    "rawStates": false,
+    "notifyEnabled": false,
+    "notifyOnAlarms": true,
+    "notifyOnWarnings": true,
+    "notifyOnControl": false,
+    "notifyOnConnError": true,
+    "notifyUseTelegram": false,
+    "notifyUserTelegram": "",
+    "notifyUsePushover": false,
+    "notifyTitlePushover": "",
+    "notifyDevicePushover": "",
+    "notifyUseWhatsapp": false,
+    "notifyPhoneWhatsapp": "",
+    "notifyUseEmail": false,
+    "notifyToEmail": "",
+    "notifySubjectEmail": "",
+    "notifyUseSignal": false,
+    "notifyPhoneSignal": "",
+    "notifyUseMatrix": false,
+    "notifyUseSynochat": false,
+    "notifyChannelSynochat": ""
   },
   "protectedNative": [
     "password"

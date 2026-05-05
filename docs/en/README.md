@@ -78,7 +78,9 @@ Controls are **automatically disabled** when the device is reported offline. Eac
 
 ## Configuration
 
-In the adapter instance settings:
+The adapter configuration is split into two tabs:
+
+### Settings tab
 
 - **Email**: your Grohe/Ondus account email
 - **Password**: your Grohe/Ondus account password
@@ -88,6 +90,35 @@ In the adapter instance settings:
 - **Raw states** (`rawStates`): if enabled, the adapter writes all measurement fields to `<device>.raw.*`
 
 > Note: The adapter does **not** store the refresh token in the config because writing the config triggers an instance restart. Instead it is stored in a state (`auth.refreshToken`) and encrypted using ioBroker’s built-in encryption helpers.
+
+### Notifications tab
+
+Enable push notifications to be informed about device events. All messages are sent in the language configured in your ioBroker system.
+
+#### Notification categories
+
+| # | Category | Examples |
+|---|---|---|
+| 1 | **Critical alerts** | Flooding detected, sensor errors, system errors |
+| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low |
+| 3 | **Valve & control events** | Valve opened/closed, water dispense |
+| 4 | **Connection errors** | HTTP polling failures (e.g. HTTP 403), sent on every failure |
+
+> Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
+
+#### Supported providers
+
+The adapter automatically finds the first running instance of each enabled provider – you do not need to specify an instance number.
+
+| Provider | Required configuration |
+|---|---|
+| **Telegram** | Optionally: user or chat ID |
+| **Pushover** | Optionally: title, device |
+| **WhatsApp** (`whatsapp-cmb`) | Optionally: phone number |
+| **Email** | Optionally: recipient address, subject |
+| **Signal** (`signal-cmb`) | Optionally: phone number |
+| **Matrix** (`matrix-org`) | No extra configuration |
+| **Synology Chat** | Channel name (required) |
 
 ---
 
