@@ -39,7 +39,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.4.0 (2026-05-05)
 * (copilot) Add Notification Manager
 
 ### 0.3.4 (2026-05-03)
@@ -58,14 +58,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.3.1 (2026-03-18)
 * (claude/patricknitsch) Fix admin tab controls not triggered after confirmation – replace native `confirm()` with custom modal dialog (works inside ioBroker iframe)
 * (claude/patricknitsch) Fix 4 wrong state IDs in admin tab (Close Valve, Pressure Measurement, Reset CO₂, Reset Filter)
-
-### 0.3.0 (2026-03-18)
-
-* (claude/patricknitsch) Add card-based device overview tab with controls
-* (claude/patricknitsch) Add Valve, Pressure Measurement and Dispense controls in admin tab
-* (claude/patricknitsch) Disable controls when device is offline
-* (claude/patricknitsch) Adjust color scheme in admin tab (white/black based on light/dark mode)
-* (patricknitsch) Update Packages
 
 ## License
 MIT License

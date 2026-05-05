@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.3.4",
+    "version": "0.4.0",
     "news": {
+      "0.4.0": {
+        "en": "Add Notification Manager",
+        "de": "Notification Manager hinzufügen",
+        "ru": "Добавить менеджер уведомлений",
+        "pt": "Adicionar Gerenciador de Notificações",
+        "nl": "Notificatiebeheer toevoegen",
+        "fr": "Ajouter un gestionnaire de notification",
+        "it": "Aggiungi Gestione notifiche",
+        "es": "Add Notification Manager",
+        "pl": "Dodaj menedżera powiadomień",
+        "uk": "Додати менеджер повідомлень",
+        "zh-cn": "添加通知管理器"
+      },
       "0.3.4": {
         "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
         "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
@@ -80,19 +93,6 @@
         "pl": "Pomiar fix \"Filtr\" dla systemów niebieskich\nNapraw stałą dystrybucję bez Triggera",
         "uk": "Фіксація вимірювання \"Фільтр\" для Blue Systems\nФіксувати постійний дозатор без Trigger",
         "zh-cn": "为蓝色系统修补测量“ Filter”\n在不触发的情况下修复永久分发"
-      },
-      "0.2.5": {
-        "en": "Update Admin Package",
-        "de": "Admin-Paket aktualisieren",
-        "ru": "Обновление пакета Admin",
-        "pt": "Actualizar o Pacote de Administração",
-        "nl": "Admin-pakket bijwerken",
-        "fr": "Mettre à jour le paquet Admin",
-        "it": "Aggiorna il pacchetto Admin",
-        "es": "Paquete de actualización",
-        "pl": "Aktualizacja pakietu administracyjnego",
-        "uk": "Оновлення пакету адміністратора",
-        "zh-cn": "更新管理软件包"
       }
     },
     "titleLang": {
