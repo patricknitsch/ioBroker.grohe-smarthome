@@ -847,8 +847,8 @@ class GroheSmarthome extends utils.Adapter {
 				await this._setNum(`${id}.status`, 'wifiQuality', 'WiFi quality', '', 'value', status.wifi_quality);
 			}
 
-			// Detect online/offline changes and send control notifications
-			if (this.config.notifyEnabled && this.config.notifyOnControl && status.connection !== undefined) {
+			// Detect online/offline changes and send warning notifications
+			if (this.config.notifyEnabled && this.config.notifyOnWarnings && status.connection !== undefined) {
 				const prev = this._deviceOnlineState.get(id);
 				const cur = Boolean(status.connection);
 				if (prev !== undefined && prev !== cur) {
