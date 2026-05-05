@@ -100,8 +100,8 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 | # | Kategorie | Beispiele |
 |---|---|---|
 | 1 | **Kritische Meldungen** | Überschwemmung erkannt, Sensorfehler, Systemfehler |
-| 2 | **Warnungen** | Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig |
-| 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet/geschlossen, Gerät online/offline, Zapfvorgang |
+| 2 | **Warnungen** | Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig, Gerät online/offline |
+| 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet/geschlossen, Zapfvorgang |
 | 4 | **Verbindungsfehler** | HTTP Polling-Fehler (z.B. HTTP 403), werden bei jedem Fehler gesendet |
 
 > Hinweis: Verbindungsfehler (Kategorie 4) werden bei jedem einzelnen Polling-Fehler gesendet, nicht nur beim ersten. Das kann zu häufigen Meldungen führen, wenn die API dauerhaft nicht erreichbar ist. Erhöhe das Polling-Intervall, wenn du zu viele solche Benachrichtigungen erhältst.
