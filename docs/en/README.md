@@ -100,8 +100,8 @@ Enable push notifications to be informed about device events. All messages are s
 | # | Category | Examples |
 |---|---|---|
 | 1 | **Critical alerts** | Flooding detected, sensor errors, system errors |
-| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, Blue filter/CO₂ low |
-| 3 | **Valve & control events** | Valve opened/closed, device online/offline, water dispense |
+| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low |
+| 3 | **Valve & control events** | Valve opened/closed, water dispense |
 | 4 | **Connection errors** | HTTP polling failures (e.g. HTTP 403), sent on every failure |
 
 > Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
