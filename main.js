@@ -345,7 +345,7 @@ class GroheSmarthome extends utils.Adapter {
 			}
 
 			const nextTryDate = new Date(Date.now() + this.currentPollInterval * 1000);
-			const nextTryStr = nextTryDate.toLocaleTimeString('de-DE', {
+			const nextTryStr = nextTryDate.toLocaleTimeString(this.systemLang || undefined, {
 				hour: '2-digit',
 				minute: '2-digit',
 				second: '2-digit',
