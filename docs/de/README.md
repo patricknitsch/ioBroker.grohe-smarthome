@@ -13,50 +13,35 @@ Der Adapter meldet sich über den OIDC/Keycloak-Login von Grohe an, speichert ei
 
 ---
 
-## Admin-Tab
+## Device Manager
 
-Der Adapter enthält einen eingebauten **Geräteübersicht-Tab**, der direkt in der ioBroker-Admin-Oberfläche aufgerufen werden kann.
+Der Adapter nutzt den ioBroker **Device Manager** und liefert keinen `admin/tab.html` mehr.
 
-<img src="../../docs/img/tab-light.png" alt="Admin-Tab – heller Modus (Sense Guard)" width="420"/> <img src="../../docs/img/tab-dark.png" alt="Admin-Tab – dunkler Modus (Blue Home)" width="420"/>
-
-### Was der Tab anzeigt
-
-Im Toolbar-Dropdown ein registriertes Grohe-Gerät auswählen, um die zugehörige **Gerätekarte** anzuzeigen:
+Wähle im Device Manager ein registriertes Grohe-Gerät aus, um die zugehörige **Gerätekachel** zu öffnen:
 
 | Bereich | Inhalt |
 |---|---|
-| **Kopfzeile** | Gerätename, Online-/Offline-Indikator, Ventil-Badge (Sense Guard), Firmware-Update-Badge |
-| **Status** | Online-Status, WLAN-Qualität, Update-Verfügbarkeit |
+| **Kopfzeile** | Gerätename, Online-/Offline-Indikator |
+| **Info-Icons** | Cloud-Verbindung, WLAN-Verbindung, WLAN-Qualität und (Sense Guard) farbiges Ventil-Icon |
 | **Messungen** | Temperatur, Luftfeuchtigkeit, Akku (Sense); Wassertemperatur, Durchfluss, Druck (Guard) |
 | **Verbrauch** | Täglich, Ø täglich/monatlich, Gesamtverbrauch, letzter Verbrauch, letzter Max-Durchfluss (Guard) |
-| **Druckmessung** | Druckabfall, Leck-Flag, Leckage-Level, Messzeitpunkt (Guard) |
+| **Druckmessung** | Druckabfall (Guard) |
 | **Ressourcen** | Verbleibende CO₂- und Filtermenge (% + Liter) mit Fortschrittsbalken (Blue) |
-| **Statistik** | Zyklen, Laufzeiten, Pumpen-/Reinigungs-/Filterzähler (Blue) |
-| **Daten** | Letzte Reinigung, letzter CO₂-/Filterwechsel, letzte Messung (Blue) |
-| **Letzte Meldung** | Kategorie, Meldungstext, Zeitstempel |
-| **Steuerungen** | Gerätespezifische Schaltflächen und Eingaben (siehe unten) |
+| **Letzte Meldung** | Meldungstext und Zeitstempel |
 
-### Steuerungen
+### Detail-Tabs
 
-Steuerungen werden **automatisch deaktiviert**, wenn das Gerät als offline gemeldet wird. Jede Schaltfläche zeigt vor der Ausführung einen **Bestätigungsdialog**.
+Jedes Gerät bietet zwei Detail-Tabs:
 
-**Grohe Sense Guard**
-- Ventil öffnen / Ventil schließen
-- Druckmessung starten
+- **Info**: erweiterte Zustandsinformationen
+- **Steuerung**: Schreibaktionen und Eingabefelder
 
-**Grohe Blue Home / Professional**
-- Zapfart wählen: Still / Medium / Sprudelnd
-- Menge in ml eingeben (50–2000 ml, Vielfache von 50)
-- Zapfvorgang auslösen
-- CO₂-Zähler zurücksetzen
-- Filter-Zähler zurücksetzen
+Steueraktionen:
 
-### Weitere Tab-Funktionen
+- **Grohe Sense Guard**: Ventil öffnen/schließen, Druckmessung starten
+- **Grohe Blue Home / Professional**: Zapfart, Menge, Zapfen, CO₂ zurücksetzen, Filter zurücksetzen
 
-- **Hell-/Dunkelmodus** – folgt automatisch dem ioBroker-Admin-Design
-- **Mehrsprachig** – EN, DE, ES, FR, IT, NL
-- **Aktualisierungszeitstempel** – zeigt an, wann die angezeigten Daten zuletzt aktualisiert wurden
-- **Direktlink** zur Adapterkonfiguration über die Schaltfläche *Konfiguration* in der Toolbar
+Für Grohe Sense gibt es keine Schreib-Steuerungen.
 
 ---
 

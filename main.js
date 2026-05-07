@@ -3,6 +3,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const GroheClient = require('./lib/groheClient');
+const { GroheDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
 const { getNotificationMessage, getLocalizedNotificationType } = require('./lib/notificationMessages');
 
@@ -100,6 +101,7 @@ class GroheSmarthome extends utils.Adapter {
 		super({ ...options, name: 'grohe-smarthome' });
 
 		this.client = null;
+		this.deviceManagement = new GroheDeviceManagement(this);
 		this.pollTimer = null;
 		this.baseInterval = Math.max(60, Number(this.config.pollInterval) || 300);
 
@@ -345,7 +347,7 @@ class GroheSmarthome extends utils.Adapter {
 			}
 
 			const nextTryDate = new Date(Date.now() + this.currentPollInterval * 1000);
-			const nextTryStr = nextTryDate.toLocaleTimeString(this.systemLang || undefined, {
+			const nextTryStr = nextTryDate.toLocaleTimeString(this.systemLanguage || undefined, {
 				hour: '2-digit',
 				minute: '2-digit',
 				second: '2-digit',
