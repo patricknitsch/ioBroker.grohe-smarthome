@@ -13,50 +13,33 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 
 ---
 
-## Admin Tab
+## Device Manager
 
-The adapter includes a built-in **device overview tab** accessible directly in the ioBroker admin UI.
+The adapter uses the ioBroker **Device Manager** and no longer provides `admin/tab.html`.
 
-<img src="../../docs/img/tab-light.png" alt="Admin tab – light mode (Sense Guard)" width="420"/> <img src="../../docs/img/tab-dark.png" alt="Admin tab – dark mode (Blue Home)" width="420"/>
+Select a registered Grohe appliance in the Device Manager to open its **device tile**.
 
-### What the tab shows
+### Tile contents per device type
 
-Select a registered Grohe appliance from the toolbar dropdown to display its **device card**:
+| Device type | Status icons | Tile values |
+|---|---|---|
+| **Grohe Sense** | Online, WiFi quality, Battery | Temperature, Humidity, Battery |
+| **Grohe Sense Guard** | Online, WiFi quality, Valve status | Water temperature, Flow rate, Pressure, Daily consumption, Open / close valve |
+| **Grohe Blue** | Online, WiFi quality | CO₂ remaining, Filter remaining, Last measurement |
 
-| Section | Content |
-|---|---|
-| **Header** | Device name, online/offline indicator, valve badge (Sense Guard), firmware update badge |
-| **Status** | Online status, WiFi quality, update availability |
-| **Measurements** | Temperature, humidity, battery (Sense); water temperature, flow rate, pressure (Guard) |
-| **Consumption** | Daily, average daily/monthly, total water consumption, last withdrawal, last max flow rate (Guard) |
-| **Pressure Measurement** | Pressure drop, leakage flag, leakage level, measurement timestamp (Guard) |
-| **Resources** | CO₂ and filter remaining (% + litres) with progress bars (Blue) |
-| **Statistics** | Cycles, run times, pump/cleaning/filter counts (Blue) |
-| **Dates** | Last cleaning, last CO₂ / filter replacement, last measurement (Blue) |
-| **Latest Notification** | Category, message text, timestamp |
-| **Controls** | Device-specific buttons and inputs (see below) |
+### Details tabs
 
-### Controls
+Each device offers two detail tabs when clicking the tile:
 
-Controls are **automatically disabled** when the device is reported offline. Each control button shows a **confirmation dialog** before executing the action.
+- **Info**: general information (appliance ID, type, Online Yes/No, Update available Yes/No, WiFi quality, latest notification + timestamp) and device-specific measurements
+- **Controls**: write actions and input fields (not shown for Grohe Sense)
 
-**Grohe Sense Guard**
-- Open valve / Close valve
-- Start pressure measurement
+Control actions:
 
-**Grohe Blue Home / Professional**
-- Select tap type: Still / Medium / Carbonated
-- Enter amount in ml (50–2000 ml, multiples of 50)
-- Trigger dispense
-- Reset CO₂ counter
-- Reset filter counter
+- **Grohe Sense Guard**: Open/close valve, start pressure measurement
+- **Grohe Blue Home / Professional**: Tap type (still/medium/carbonated), amount (ml), dispense, reset CO₂, reset filter
 
-### Other tab features
-
-- **Light / dark mode** – follows the ioBroker admin theme automatically
-- **Multilingual** – EN, DE, ES, FR, IT, NL
-- **Refresh timestamp** – shows when the displayed data was last updated
-- **Quick link** to the adapter configuration page via the *Configuration* toolbar button
+Grohe Sense has no write controls (no Controls tab).
 
 ---
 
@@ -336,7 +319,8 @@ With every failed Try the Timout will increased till max. 1h.
 
 Core modules:
 
-- `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling)
+- `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling, message handler for Device Manager)
+- `lib/device-manager.js`: Device Manager integration (tiles, tabs, per-device templates)
 - `lib/groheClient.js`: Grohe API wrapper with authenticated requests
 - `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
 

@@ -147,22 +147,8 @@
     "adminUI": {
       "config": "json"
     },
-    "adminTab": {
-      "singleton": false,
-      "name": {
-        "en": "Device Overview",
-        "de": "Geräteübersicht",
-        "ru": "Обзор устройств",
-        "pt": "Visão geral dos dispositivos",
-        "nl": "Apparaatoverzicht",
-        "fr": "Aperçu des appareils",
-        "it": "Panoramica dispositivi",
-        "es": "Resumen de dispositivos",
-        "pl": "Przegląd urządzeń",
-        "uk": "Огляд пристроїв",
-        "zh-cn": "设备概览"
-      },
-      "link": ""
+    "supportedMessages": {
+      "deviceManager": true
     },
     "dependencies": [
       {
