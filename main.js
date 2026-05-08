@@ -161,6 +161,7 @@ class GroheSmarthome extends utils.Adapter {
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
+		this.on('message', this.onMessage.bind(this));
 	}
 
 	/* ================================================================== */
@@ -1258,6 +1259,16 @@ class GroheSmarthome extends utils.Adapter {
 				await this._ensureState(sid, { name: k, type: 'string', role: 'text', read: true, write: false });
 				await this.setState(sid, { val: v, ack: true });
 			}
+		}
+	}
+
+	/* ================================================================== */
+	/*  Device Management messages                                        */
+	/* ================================================================== */
+
+	onMessage(obj) {
+		if (this.deviceManagement) {
+			this.deviceManagement.handleAdapterMessage(obj);
 		}
 	}
 
