@@ -17,31 +17,29 @@ The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token e
 
 The adapter uses the ioBroker **Device Manager** and no longer provides `admin/tab.html`.
 
-Select a registered Grohe appliance in the Device Manager to open its **device tile**:
+Select a registered Grohe appliance in the Device Manager to open its **device tile**.
 
-| Section | Content |
-|---|---|
-| **Header** | Device name, online/offline indicator |
-| **Info icons** | Cloud connection, WiFi connection, WiFi quality, and (Sense Guard) colored valve icon |
-| **Measurements** | Temperature, humidity, battery (Sense); water temperature, flow rate, pressure (Guard) |
-| **Consumption** | Daily, average daily/monthly, total water consumption, last withdrawal, last max flow rate (Guard) |
-| **Pressure measurement** | Pressure drop (Guard) |
-| **Resources** | CO₂ and filter remaining (% + litres) with progress bars (Blue) |
-| **Latest notification** | Message text and timestamp |
+### Tile contents per device type
+
+| Device type | Status icons | Tile values |
+|---|---|---|
+| **Grohe Sense** | Online, WiFi quality, Battery | Temperature, Humidity, Battery |
+| **Grohe Sense Guard** | Online, WiFi quality, Valve status | Water temperature, Flow rate, Pressure, Daily consumption, Open / close valve |
+| **Grohe Blue** | Online, WiFi quality | CO₂ remaining, Filter remaining, Last measurement |
 
 ### Details tabs
 
-Each device provides two detail tabs:
+Each device offers two detail tabs when clicking the tile:
 
-- **Info**: extended state details
-- **Controls**: write actions and control inputs
+- **Info**: general information (appliance ID, type, Online Yes/No, Update available Yes/No, WiFi quality, latest notification + timestamp) and device-specific measurements
+- **Controls**: write actions and input fields (not shown for Grohe Sense)
 
 Control actions:
 
 - **Grohe Sense Guard**: Open/close valve, start pressure measurement
-- **Grohe Blue Home / Professional**: Tap type, amount, dispense, reset CO₂, reset filter
+- **Grohe Blue Home / Professional**: Tap type (still/medium/carbonated), amount (ml), dispense, reset CO₂, reset filter
 
-Grohe Sense has no write controls.
+Grohe Sense has no write controls (no Controls tab).
 
 ---
 
@@ -321,7 +319,8 @@ With every failed Try the Timout will increased till max. 1h.
 
 Core modules:
 
-- `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling)
+- `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling, message handler for Device Manager)
+- `lib/device-manager.js`: Device Manager integration (tiles, tabs, per-device templates)
 - `lib/groheClient.js`: Grohe API wrapper with authenticated requests
 - `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
 

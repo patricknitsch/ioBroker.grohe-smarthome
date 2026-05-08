@@ -17,31 +17,29 @@ Der Adapter meldet sich über den OIDC/Keycloak-Login von Grohe an, speichert ei
 
 Der Adapter nutzt den ioBroker **Device Manager** und liefert keinen `admin/tab.html` mehr.
 
-Wähle im Device Manager ein registriertes Grohe-Gerät aus, um die zugehörige **Gerätekachel** zu öffnen:
+Wähle im Device Manager ein registriertes Grohe-Gerät aus, um die zugehörige **Gerätekachel** zu öffnen.
 
-| Bereich | Inhalt |
-|---|---|
-| **Kopfzeile** | Gerätename, Online-/Offline-Indikator |
-| **Info-Icons** | Cloud-Verbindung, WLAN-Verbindung, WLAN-Qualität und (Sense Guard) farbiges Ventil-Icon |
-| **Messungen** | Temperatur, Luftfeuchtigkeit, Akku (Sense); Wassertemperatur, Durchfluss, Druck (Guard) |
-| **Verbrauch** | Täglich, Ø täglich/monatlich, Gesamtverbrauch, letzter Verbrauch, letzter Max-Durchfluss (Guard) |
-| **Druckmessung** | Druckabfall (Guard) |
-| **Ressourcen** | Verbleibende CO₂- und Filtermenge (% + Liter) mit Fortschrittsbalken (Blue) |
-| **Letzte Meldung** | Meldungstext und Zeitstempel |
+### Kachel-Inhalte je Gerätetyp
+
+| Gerätetyp | Status-Icons | Kachel-Werte |
+|---|---|---|
+| **Grohe Sense** | Online, WLAN-Qualität, Batterie | Temperatur, Luftfeuchtigkeit, Batterie |
+| **Grohe Sense Guard** | Online, WLAN-Qualität, Ventil-Status | Wassertemperatur, Durchfluss, Druck, Tagesverbrauch, Ventil öffnen / schließen |
+| **Grohe Blue** | Online, WLAN-Qualität | CO₂ verbleibend, Filter verbleibend, Letzte Messung |
 
 ### Detail-Tabs
 
-Jedes Gerät bietet zwei Detail-Tabs:
+Jedes Gerät bietet bei Klick auf die Kachel zwei Detail-Tabs:
 
-- **Info**: erweiterte Zustandsinformationen
-- **Steuerung**: Schreibaktionen und Eingabefelder
+- **Info**: allgemeine Informationen (Geräte-ID, Typ, Online, Update verfügbar, WLAN-Qualität, letzte Meldung + Zeitstempel) sowie gerätespezifische Messwerte
+- **Steuerung**: Schreibaktionen und Eingabefelder (entfällt bei Grohe Sense)
 
 Steueraktionen:
 
-- **Grohe Sense Guard**: Ventil öffnen/schließen, Druckmessung starten
-- **Grohe Blue Home / Professional**: Zapfart, Menge, Zapfen, CO₂ zurücksetzen, Filter zurücksetzen
+- **Grohe Sense Guard**: Ventil öffnen / schließen, Druckmessung starten
+- **Grohe Blue Home / Professional**: Zapfart (Still/Medium/Sprudel), Menge (ml), Zapfen auslösen, CO₂ zurücksetzen, Filter zurücksetzen
 
-Für Grohe Sense gibt es keine Schreib-Steuerungen.
+Für Grohe Sense gibt es keine Schreib-Steuerungen (kein Steuerungstab).
 
 ---
 
@@ -321,6 +319,7 @@ Mit jedem fehlgeschlagenen Pollingversuch wird die Zeit bis zum nächsten Versuc
 
 Zentrale Module:
 
-- `main.js`: ioBroker-Adapterlogik (Objekte, Polling, State-Updates, Befehle)
+- `main.js`: ioBroker-Adapterlogik (Objekte, Polling, State-Updates, Befehle, Message-Handler für Device Manager)
+- `lib/device-manager.js`: Device Manager Integration (Kacheln, Tabs, Templates je Gerätetyp)
 - `lib/groheClient.js`: Grohe-API-Wrapper mit authentifizierten Requests
 - `lib/auth.js`: OAuth/Keycloak-Login und -Refresh (manuelle Redirect-Kette, Cookie-Jar)
