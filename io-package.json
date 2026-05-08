@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "news": {
+      "0.5.0": {
+        "en": "Integrate Adapter in ioBroker Device Manager\nRemove tab",
+        "de": "Integrieren Sie Adapter in ioBroker Device Manager\nTab entfernen",
+        "ru": "Интеграция адаптера в диспетчер устройств ioBroker\nУдалить вкладку",
+        "pt": "Integrar o Adaptador no Gerenciador de Dispositivos ioBroker\nRemover aba",
+        "nl": "Adapter integreren in ioBroker Device Manager\nTabblad verwijderen",
+        "fr": "Intégrer l'adaptateur dans ioBroker Device Manager\nSupprimer l'onglet",
+        "it": "Integrare l'adattatore in ioBroker Device Manager\nRimuovi scheda",
+        "es": "Integrar el adaptador en ioBroker Device Manager\nEliminar la pestaña",
+        "pl": "Zintegruj adapter w menedżerze urządzeń joBroker\nUsuń kartę",
+        "uk": "Інтеграція адаптера в ioBroker Manager\nВидалити вкладку",
+        "zh-cn": "在 ioBroker 设备管理器中整合适配器\n删除标签"
+      },
       "0.4.0": {
         "en": "Add Notification Manager",
         "de": "Notification Manager hinzufügen",
@@ -80,19 +93,6 @@
         "pl": "Dodaj kartę podglądu urządzenia z urządzeniami sterującymi\nDodaj zawór, pomiar ciśnienia i regulatory dyspensy w zakładce admin\nWyłącz sterowanie, gdy urządzenie jest wyłączone\nDostosuj schemat kolorów w zakładce admin (biały / czarny na podstawie trybu światła / ciemności)\nAktualizacja pakietów",
         "uk": "Додати вкладку на основі пристрою на основі картки з управліннями\nДодавання клапана, вимірювання тиску та управління дозацією в вкладці адміністратора\nУвімкнути керування при вимкненні пристрою\nРегульувати колірну гамму в вкладці адміністратора (білий/чорний на основі світло-темного режиму)\nОновлення пакетів",
         "zh-cn": "添加带有控件的基于卡的设备概览标签\n在管理标签中添加阀、 压力测量和断层控制\n设备下线时禁用控制\n调整管理标签中的颜色方案(基于光/暗模式的白色/黑色)\n更新软件包"
-      },
-      "0.2.6": {
-        "en": "Fix measurement \"Filter\" for Blue Systems\nFix permanent dispense without Trigger",
-        "de": "Fixmessung \"Filter\" für Blaue Systeme\nDauerspende ohne Trigger beheben",
-        "ru": "Фиксация измерения «Фильтр» для Blue Systems\nИсправьте постоянный отпуск без триггера",
-        "pt": "Corrigir \"Filtro\" de medição para sistemas azuis\nCorrigir a dispensa permanente sem Trigger",
-        "nl": "Fix meting \"Filter\" voor Blue Systems\nFix permanent dispenser zonder Trigger",
-        "fr": "Correction de la mesure \"Filtre\" pour les systèmes bleus\nFixer une dispense permanente sans Trigger",
-        "it": "Misura di fissaggio \"Filter\" per sistemi blu\nFissare l'erogazione permanente senza Trigger",
-        "es": "Medición de fijación \"Filter\" para sistemas azules\nFijar la dispensa permanente sin Trigger",
-        "pl": "Pomiar fix \"Filtr\" dla systemów niebieskich\nNapraw stałą dystrybucję bez Triggera",
-        "uk": "Фіксація вимірювання \"Фільтр\" для Blue Systems\nФіксувати постійний дозатор без Trigger",
-        "zh-cn": "为蓝色系统修补测量“ Filter”\n在不触发的情况下修复永久分发"
       }
     },
     "titleLang": {
