@@ -39,6 +39,10 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+* (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
+
 ### 0.5.0 (2026-05-08)
 * (copilot) Integrate Adapter in ioBroker Device Manager
 * (copilot) Remove tab
