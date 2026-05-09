@@ -39,8 +39,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.5.1 (2026-05-09)
 * (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
 * Important Note: From 0.4.0 to 0.5.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3
 
@@ -58,11 +57,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.3.3 (2026-03-25)
 
 * (patricknitsch) Clamp tapAmount between 50 and 2000 ml.
-
-### 0.3.2 (2026-03-21)
-
-* (copilot) Update Admin Tap for Blue systems
-* (patricknitsch) Fix Isues from RepoChecker
 
 ## License
 MIT License

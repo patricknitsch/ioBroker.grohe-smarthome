@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "news": {
+      "0.5.1": {
+        "en": "Update Admin Dependency >= 7.6.23 for Device Manager\nImportant Note: From 0.4.0 to 0.5.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3",
+        "de": "Adminabhängigkeit aktualisieren >= 7.6.23 für Gerätemanager\nWichtiger Hinweis: Von 0.4.0 bis 0.5.X wird die Sensor-Übersicht entfernt, aber sichtbar. Dass ein Bug von js-controller und sollte mit 7.1.3 behoben werden",
+        "ru": "Зависимость от администратора >= 7.6.23 для диспетчера устройств\nОт 0.4.0 до 0,5.X Обзор датчика удаляется, но виден. Это баг от js-контроллера и должен быть исправлен с помощью 7.1.3",
+        "pt": "Atualizar dependência de administração >= 7.6.23 para Gerenciador de Dispositivos\nNota Importante: De 0.4.0 a 0.5.X a Visão Geral do Sensor é removida, mas visível. Esse é um Bug do js-controller e deve ser corrigido com 7.1.3",
+        "nl": "Admin Afhankelijkheid bijwerken >= 7.6.23 voor Apparaatbeheer\nBelangrijke opmerking: Van 0.4.0 tot 0.5.X wordt het sensoroverzicht verwijderd maar zichtbaar. Dat is een bug van js-controller en moet worden bevestigd met 7.1.3",
+        "fr": "Mettre à jour Admin Dependency >= 7.6.23 pour le Gestionnaire de périphériques\nNote importante : De 0,4.0 à 0,5.X, l'aperçu du capteur est enlevé mais visible. C'est un Bug de js-controller et doit être corrigé avec 7.1.3",
+        "it": "Aggiorna la dipendenza da admin >= 7.6.23 per Gestione dispositivi\nNota importante: da 0.4.0 a 0.5.X la Panoramica del sensore viene rimossa ma visibile. Che un Bug da js-controller e dovrebbe essere fissato con 7,1.3",
+        "es": "Actualizar la dependencia de los administradores = 7.6.23 para el administrador de dispositivos\nNota importante: De 0.4.0 a 0.5.X el Sensor Resúmenes es eliminado pero visible. Eso es un error de js-controller y debe ser fijado con 7.1.3",
+        "pl": "Aktualizacja Admin Dependency > = 7.6.23 dla Device Manager\nWażna uwaga: Od 0.4.0 do 0.5.X Przegląd czujników jest usuwany, ale widoczny. To błąd ze sterownika js- i powinien być naprawiony z 7.1.3",
+        "uk": "Оновлення залежності адміністратора >= 7.6.23 для диспетчера пристроїв\nВажлива Примітка: Від 0.4.0 до 0.5.X Огляд датчика вилучено, але видимо. Що таке Буга від js-controller і слід зафіксувати 7.1.3",
+        "zh-cn": "更新设备管理器的依赖性QQ 7.6.23\n重要注意:从0.4.0到0.5.X 传感器概览被删除但可见. 这是来自js控制器的虫子,应该用7.1.3来固定"
+      },
       "0.5.0": {
         "en": "Integrate Adapter in ioBroker Device Manager\nRemove tab",
         "de": "Integrieren Sie Adapter in ioBroker Device Manager\nTab entfernen",
@@ -80,19 +93,6 @@
         "pl": "Poprawianie kontroli zakładki admin nie uruchomione po potwierdzeniu - zastąpić natywne \"potwierdź ()\" własnym dialogiem modalnym (działa wewnątrz iframe iBroker)\nPoprawiono 4 błędne identyfikatory stanu w zakładce admin (Zamknij zawór, Pomiar ciśnienia, Reset CO, Reset Filter)",
         "uk": "Виправлення керування вкладками адміністратора не викликається після підтвердження – замінити рідну `confirm()` з індивідуальним модним діалогом (працює всередині ioBroker iframe)\nФіксувати 4 невірних державних ідентифікаторів у вкладці адміністратора (Клаговий клапан, вимірювання тиску, Заміна CO2, Фільтр заміщення)",
         "zh-cn": "修复确认后不会触发的管理员标签控制 - 用自定义模式对话框( ioBroker iframe 内部的工作) 替换本地“ 确认() ”\n在管理标签中修复4个错误的状态ID( 关闭阀、 压力测量、 重置CO2、 重置过滤器)"
-      },
-      "0.3.0": {
-        "en": "Add card-based device overview tab with controls\nAdd Valve, Pressure Measurement and Dispense controls in admin tab\nDisable controls when device is offline\nAdjust color scheme in admin tab (white/black based on light/dark mode)\nUpdate Packages",
-        "de": "Kartenbasierte Geräteübersicht Tab mit Bedienelementen hinzufügen\nVentil-, Druckmess- und Dosiersteuerungen in Admin-Tab hinzufügen\nDeaktivieren Sie die Steuerung, wenn das Gerät offline ist\nFarbschema in Admin-Tab anpassen (weiß/schwarz basierend auf Licht/Dunkel-Modus)\nPakete aktualisieren",
-        "ru": "Добавьте вкладку обзора устройств на основе карт с элементами управления\nДобавить Valve, измерение давления и контроль диспетчеризации в вкладке admin\nОтключить элементы управления, когда устройство отключено\nНастройка цветовой схемы во вкладке администратора (белый / черный на основе светлого / темного режима)\nОбновление пакетов",
-        "pt": "Adicionar a aba de visão geral do dispositivo baseada em cartões com controles\nAdicione controles de Válvula, Medição de Pressão e Dispense na guia de administração\nDesactivar os controlos quando o dispositivo estiver desligado\nAjuste o esquema de cores na aba de administração (branco/preto com base no modo luz/escuro)\nAtualizar pacotes",
-        "nl": "Op kaarten gebaseerd overzichtstabblad met bedieningselementen toevoegen\nVoeg klep, drukmeting en dispense controles in admin tabblad\nBedieningen uitschakelen wanneer het apparaat offline is\nKleurschema aanpassen in admin tab (wit/zwart op basis van licht/donker modus)\nPakketten bijwerken",
-        "fr": "Ajouter l'onglet aperçu de l'appareil avec les contrôles\nAjouter les commandes de vanne, de mesure de pression et de distribution dans l'onglet admin\nDésactiver les contrôles lorsque l'appareil est hors ligne\nRégler le schéma de couleurs dans l'onglet admin (blanc/noir basé sur le mode lumière/obscurité)\nMettre à jour les paquets",
-        "it": "Aggiungere la scheda panoramica del dispositivo basata sulla scheda con i controlli\nAggiungi Valvola, Misura pressione e controllo di erogazione nella scheda admin\nDisattivare i controlli quando il dispositivo è offline\nRegolare lo schema di colore nella scheda admin (bianco/nero in base alla modalità luce / buio)\nPacchetti di aggiornamento",
-        "es": "Añadir ficha vista de dispositivo basado en la tarjeta con controles\nAgregue controles de medición y dispensación de válvulas, presión en la pestaña administración\nControles deshabilitados cuando el dispositivo está fuera de línea\nAjuste el esquema de color en la pestaña admin (blanco/negro basado en el modo de luz / oscuro)\nPaquetes de actualización",
-        "pl": "Dodaj kartę podglądu urządzenia z urządzeniami sterującymi\nDodaj zawór, pomiar ciśnienia i regulatory dyspensy w zakładce admin\nWyłącz sterowanie, gdy urządzenie jest wyłączone\nDostosuj schemat kolorów w zakładce admin (biały / czarny na podstawie trybu światła / ciemności)\nAktualizacja pakietów",
-        "uk": "Додати вкладку на основі пристрою на основі картки з управліннями\nДодавання клапана, вимірювання тиску та управління дозацією в вкладці адміністратора\nУвімкнути керування при вимкненні пристрою\nРегульувати колірну гамму в вкладці адміністратора (білий/чорний на основі світло-темного режиму)\nОновлення пакетів",
-        "zh-cn": "添加带有控件的基于卡的设备概览标签\n在管理标签中添加阀、 压力测量和断层控制\n设备下线时禁用控制\n调整管理标签中的颜色方案(基于光/暗模式的白色/黑色)\n更新软件包"
       }
     },
     "titleLang": {
