@@ -39,12 +39,10 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.5.2 (2026-05-14)
 * (patricknitsch) Fix Header when Device offline
 * (patricknitsch) Add Icon and Online State on each Device
 * (patricknitsch) Update Readme and Doc
-
 
 ### 0.5.1 (2026-05-09)
 * (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
@@ -60,10 +58,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.3.4 (2026-05-03)
 * (copilot) Adapter requires node.js >= 22 now
 * (copilot) Update Dependencies
-
-### 0.3.3 (2026-03-25)
-
-* (patricknitsch) Clamp tapAmount between 50 and 2000 ml.
 
 ## License
 MIT License
