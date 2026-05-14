@@ -1170,12 +1170,32 @@ class GroheSmarthome extends utils.Adapter {
 	/*  Object helpers                                                    */
 	/* ================================================================== */
 
+	_getDeviceIcon(type) {
+	    switch (type) {
+	        case 'SENSE':
+	            return 'admin/grohe-sense.png';
+	        case 'SENSE_GUARD':
+	            return 'admin/grohe-sense-guard.png';
+	        case 'BLUE_HOME':
+	        case 'BLUE_PROFESSIONAL':
+	            return 'admin/grohe-blue.png';
+	        default:
+	            return 'admin/grohe-smarthome.png';
+	    }
+	}
+	
 	async _ensureDevice(id, name, type) {
 		const obj = await this.getObjectAsync(id);
 		if (!obj) {
 			await this.setObject(id, {
 				type: 'device',
-				common: { name: `${name}` },
+				common: {
+	                name: `${name}`,
+	                icon: this._getDeviceIcon(type),
+	                statusStates: {
+	                    onlineId: `${this.namespace}.${id}.status.online`,
+	                },
+            	},
 				native: { type },
 			});
 		}
