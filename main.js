@@ -1171,33 +1171,45 @@ class GroheSmarthome extends utils.Adapter {
 	/* ================================================================== */
 
 	_getDeviceIcon(type) {
-	    switch (type) {
-	        case 'SENSE':
-	            return 'admin/grohe-sense.png';
-	        case 'SENSE_GUARD':
-	            return 'admin/grohe-sense-guard.png';
-	        case 'BLUE_HOME':
-	        case 'BLUE_PROFESSIONAL':
-	            return 'admin/grohe-blue.png';
-	        default:
-	            return 'admin/grohe-smarthome.png';
-	    }
+		switch (type) {
+			case 'SENSE':
+				return 'admin/grohe-sense.png';
+			case 'SENSE_GUARD':
+				return 'admin/grohe-sense-guard.png';
+			case 'BLUE_HOME':
+			case 'BLUE_PROFESSIONAL':
+				return 'admin/grohe-blue.png';
+			default:
+				return 'admin/grohe-smarthome.png';
+		}
 	}
-	
+
 	async _ensureDevice(id, name, type) {
 		const obj = await this.getObjectAsync(id);
+		const icon = this._getDeviceIcon(type);
+		const onlineId = `${this.namespace}.${id}.status.online`;
 		if (!obj) {
 			await this.setObject(id, {
 				type: 'device',
 				common: {
-	                name: `${name}`,
-	                icon: this._getDeviceIcon(type),
-	                statusStates: {
-	                    onlineId: `${this.namespace}.${id}.status.online`,
-	                },
-            	},
+					name: `${name}`,
+					icon,
+					statusStates: { onlineId },
+				},
 				native: { type },
 			});
+		} else if (!obj.common?.icon || !obj.common?.statusStates?.onlineId) {
+			await this.setObject(
+				id,
+				/** @type {any} */ ({
+					...obj,
+					common: {
+						...(obj.common || {}),
+						icon,
+						statusStates: { onlineId },
+					},
+				}),
+			);
 		}
 	}
 

@@ -39,6 +39,13 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+* (patricknitsch) Fix Header when Device offline
+* (patricknitsch) Add Icon and Online State on each Device
+* (patricknitsch) Update Readme and Doc
+
+
 ### 0.5.1 (2026-05-09)
 * (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
 * Important Note: From 0.4.0 to 0.5.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3
