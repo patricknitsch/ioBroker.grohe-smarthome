@@ -164,10 +164,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstanceTelegram": {
+					"type": "instance",
+					"adapter": "telegram",
+					"label": "notifyInstanceTelegramLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseTelegram",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyUserTelegram": {
 					"type": "text",
@@ -175,10 +187,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUseTelegram",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"_notifyPushoverHeader": {
 					"type": "staticText",
@@ -202,10 +214,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstancePushover": {
+					"type": "instance",
+					"adapter": "pushover",
+					"label": "notifyInstancePushoverLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUsePushover",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyTitlePushover": {
 					"type": "text",
@@ -213,10 +237,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUsePushover",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyDevicePushover": {
 					"type": "text",
@@ -224,10 +248,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUsePushover",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"_notifyWhatsappHeader": {
 					"type": "staticText",
@@ -251,10 +275,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstanceWhatsapp": {
+					"type": "instance",
+					"adapter": "whatsapp-cmb",
+					"label": "notifyInstanceWhatsappLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseWhatsapp",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyPhoneWhatsapp": {
 					"type": "text",
@@ -262,10 +298,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUseWhatsapp",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"_notifyEmailHeader": {
 					"type": "staticText",
@@ -289,10 +325,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstanceEmail": {
+					"type": "instance",
+					"adapter": "email",
+					"label": "notifyInstanceEmailLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseEmail",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyToEmail": {
 					"type": "text",
@@ -300,10 +348,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUseEmail",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifySubjectEmail": {
 					"type": "text",
@@ -311,10 +359,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUseEmail",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"_notifySignalHeader": {
 					"type": "staticText",
@@ -338,10 +386,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstanceSignal": {
+					"type": "instance",
+					"adapter": "signal-cmb",
+					"label": "notifyInstanceSignalLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseSignal",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyPhoneSignal": {
 					"type": "text",
@@ -349,10 +409,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUseSignal",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"_notifyMatrixHeader": {
 					"type": "staticText",
@@ -376,10 +436,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstanceMatrix": {
+					"type": "instance",
+					"adapter": "matrix-org",
+					"label": "notifyInstanceMatrixLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseMatrix",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"_notifySynochatHeader": {
 					"type": "staticText",
@@ -403,10 +475,22 @@
 					"hidden": "!data.notifyEnabled",
 					"newLine": true,
 					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyInstanceSynochat": {
+					"type": "instance",
+					"adapter": "synochat",
+					"label": "notifyInstanceSynochatLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseSynochat",
+					"newLine": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				},
 				"notifyChannelSynochat": {
 					"type": "text",
@@ -414,10 +498,10 @@
 					"hidden": "!data.notifyEnabled || !data.notifyUseSynochat",
 					"newLine": false,
 					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6,
+					"md": 4,
+					"lg": 3,
+					"xl": 3
 				}
 			}
 		}

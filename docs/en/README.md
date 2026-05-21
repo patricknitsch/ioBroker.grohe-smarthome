@@ -91,17 +91,17 @@ Enable push notifications to be informed about device events. All messages are s
 
 #### Supported providers
 
-The adapter automatically finds the first running instance of each enabled provider – you do not need to specify an instance number.
+For each provider, select the adapter instance (e.g. `telegram.0`) from the dropdown in the configuration.
 
 | Provider | Required configuration |
 |---|---|
-| **Telegram** | Optionally: user or chat ID |
-| **Pushover** | Optionally: title, device |
-| **WhatsApp** (`whatsapp-cmb`) | Optionally: phone number |
-| **Email** | Optionally: recipient address, subject |
-| **Signal** (`signal-cmb`) | Optionally: phone number |
-| **Matrix** (`matrix-org`) | No extra configuration |
-| **Synology Chat** | Channel name (required) |
+| **Telegram** | Instance; optionally: user or chat ID |
+| **Pushover** | Instance; optionally: title, device |
+| **WhatsApp** (`whatsapp-cmb`) | Instance; optionally: phone number |
+| **Email** | Instance; optionally: recipient address, subject |
+| **Signal** (`signal-cmb`) | Instance; optionally: phone number |
+| **Matrix** (`matrix-org`) | Instance |
+| **Synology Chat** | Instance; channel name (required) |
 
 ---
 

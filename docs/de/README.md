@@ -91,17 +91,17 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 
 #### Unterstützte Anbieter
 
-Der Adapter erkennt automatisch die erste laufende Instanz jedes aktivierten Anbieters – eine Instanznummer muss nicht angegeben werden.
+Für jeden Anbieter wird die Adapter-Instanz (z.B. `telegram.0`) über ein Dropdown in der Konfiguration ausgewählt.
 
-| Anbieter | Optionale Konfiguration |
+| Anbieter | Konfiguration |
 |---|---|
-| **Telegram** | Benutzer oder Chat-ID (optional) |
-| **Pushover** | Titel, Gerät (optional) |
-| **WhatsApp** (`whatsapp-cmb`) | Telefonnummer (optional) |
-| **E-Mail** | Empfänger, Betreff (optional) |
-| **Signal** (`signal-cmb`) | Telefonnummer (optional) |
-| **Matrix** (`matrix-org`) | Keine weitere Konfiguration |
-| **Synology Chat** | Kanalname (erforderlich) |
+| **Telegram** | Instanz; optional: Benutzer oder Chat-ID |
+| **Pushover** | Instanz; optional: Titel, Gerät |
+| **WhatsApp** (`whatsapp-cmb`) | Instanz; optional: Telefonnummer |
+| **E-Mail** | Instanz; optional: Empfänger, Betreff |
+| **Signal** (`signal-cmb`) | Instanz; optional: Telefonnummer |
+| **Matrix** (`matrix-org`) | Instanz |
+| **Synology Chat** | Instanz; Kanalname (erforderlich) |
 
 ---
 
