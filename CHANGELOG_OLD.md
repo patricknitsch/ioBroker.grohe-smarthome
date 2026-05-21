@@ -1,4 +1,8 @@
 # Older changes
+## 0.3.4 (2026-05-03)
+* (copilot) Adapter requires node.js >= 22 now
+* (copilot) Update Dependencies
+
 ## 0.3.3 (2026-03-25)
 
 * (patricknitsch) Clamp tapAmount between 50 and 2000 ml.

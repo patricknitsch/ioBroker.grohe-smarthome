@@ -39,8 +39,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.5.3 (2026-05-21)
 * (copilot) Modify notification manager to work with instances
 * (copilot) Update Dependencies
 
@@ -59,10 +58,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 
 ### 0.4.0 (2026-05-05)
 * (copilot) Add Notification Manager
-
-### 0.3.4 (2026-05-03)
-* (copilot) Adapter requires node.js >= 22 now
-* (copilot) Update Dependencies
 
 ## License
 MIT License

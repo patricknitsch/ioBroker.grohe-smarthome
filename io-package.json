@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "news": {
+      "0.5.3": {
+        "en": "Modify notification manager to work with instances\nUpdate Dependencies",
+        "de": "Benachrichtigungsmanager ändern, um mit Instanzen zu arbeiten\nAnpassungsabhängigkeiten",
+        "ru": "Изменить менеджер уведомлений для работы с экземплярами\nОбновление зависимостей",
+        "pt": "Modificar o gerenciador de notificações para trabalhar com instâncias\nAtualizar dependências",
+        "nl": "Notificatiebeheer aanpassen om met instanties te werken\nAfhankelijkheden bijwerken",
+        "fr": "Modifier le gestionnaire de notification pour travailler avec les instances\nMettre à jour les dépendances",
+        "it": "Modificare il gestore di notifiche per lavorare con le istanze\nDipendenze di aggiornamento",
+        "es": "Modificar el administrador de notificación para trabajar con casos\nDependencias de actualización",
+        "pl": "Zmień menedżera powiadomień do pracy z instancjami\nAktualizuj zależności",
+        "uk": "Зміна диспетчера повідомлень для роботи з екземплярами\nОновлення залежності",
+        "zh-cn": "修改通知管理器以配合实例\n更新依赖关系"
+      },
       "0.5.2": {
         "en": "Fix Header when Device offline\nAdd Icon and Online State on each Device\nUpdate Readme and Doc",
         "de": "Fix Header, wenn Gerät offline\nFügen Sie Icon und Online-Staat auf jedem Gerät hinzu\nUpdate Readme und Doc",
@@ -80,19 +93,6 @@
         "pl": "Zacisk TapQuat między 50 a 2000 ml.",
         "uk": "Клемперовий фіксатор між 50 і 2000 мл.",
         "zh-cn": "50至2000毫升之间的凸起式凸起(Camp tapAmount)."
-      },
-      "0.3.2": {
-        "en": "Update Admin Tap for Blue systems\nFix Isues from RepoChecker",
-        "de": "Admin Tap für blaue Systeme aktualisieren\nFix Isues von RepoChecker",
-        "ru": "Обновление Admin Tap для систем Blue\nИсправить проблемы от RepoChecker",
-        "pt": "Atualizar a torneira de administração para sistemas azuis\nCorrigir issues do RepoChecker",
-        "nl": "Admin tap voor blauwe systemen bijwerken\nFix Isues van RepoChecker",
-        "fr": "Mettre à jour Admin Tap pour les systèmes bleus\nCorrection des émissions de RepoChecker",
-        "it": "Aggiornamento Admin Tap per sistemi blu\nRiparare Isues da RepoChecker",
-        "es": "Actualizar Grifo de Admin para sistemas Azules\nIsues fijados de RepoChecker",
-        "pl": "Aktualizacja Admin Tap dla systemów niebieskich\nPoprawia poprawność z RepoChecker",
-        "uk": "Update Admin Tap для систем Blue\nВиправлення доходів від RepoChecker",
-        "zh-cn": "更新蓝色系统的管理磁带\n从 RepoChecker 中修补 Isues"
       }
     },
     "titleLang": {
