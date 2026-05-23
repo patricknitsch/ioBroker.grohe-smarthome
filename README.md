@@ -39,8 +39,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.5.4 (2026-05-23)
 * (copilot) Add latest Message for Notifications
 * (copilot) Add Icons in Notifications
 
@@ -60,9 +59,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.5.0 (2026-05-08)
 * (copilot) Integrate Adapter in ioBroker Device Manager
 * (copilot) Remove tab
-
-### 0.4.0 (2026-05-05)
-* (copilot) Add Notification Manager
 
 ## License
 MIT License

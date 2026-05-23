@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "news": {
+      "0.5.4": {
+        "en": "Add latest Message for Notifications\nAdd Icons in Notifications",
+        "de": "Neueste Meldungen hinzufügen\nIcons in Notifications hinzufügen",
+        "ru": "Добавить последнее сообщение для уведомлений\nДобавление иконок в уведомления",
+        "pt": "Adicionar a última Mensagem para Notificações\nAdicionar Ícones nas Notificações",
+        "nl": "Laatste bericht voor meldingen toevoegen\nPictogrammen toevoegen in meldingen",
+        "fr": "Ajouter le dernier message de notification\nAjouter des icônes dans les notifications",
+        "it": "Aggiungi ultimo messaggio per le notifiche\nAggiungi icone nelle notifiche",
+        "es": "Añadir el último mensaje para las notificaciones\nAñadir iconos en notificaciones",
+        "pl": "Dodaj najnowszą wiadomość dla powiadomień\nDodaj ikony w powiadomieniach",
+        "uk": "Додати останнє повідомлення для повідомлень\nДодати іконки в Ноти",
+        "zh-cn": "添加最新通知信件\n在通知中添加图标"
+      },
       "0.5.3": {
         "en": "Modify notification manager to work with instances\nUpdate Dependencies",
         "de": "Benachrichtigungsmanager ändern, um mit Instanzen zu arbeiten\nAnpassungsabhängigkeiten",
@@ -80,19 +93,6 @@
         "pl": "Adapter wymaga node.js > = 22\nAktualizuj zależności",
         "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлення залежності",
         "zh-cn": "适配器需要节点.js 现在22\n更新依赖关系"
-      },
-      "0.3.3": {
-        "en": "Clamp tapAmount between 50 and 2000 ml.",
-        "de": "Clamp TapAmount zwischen 50 und 2000 ml.",
-        "ru": "Кламп тап Количество между 50 и 2000 мл.",
-        "pt": "BraçadeiraAcumulação entre 50 e 2000 ml.",
-        "nl": "KlemtapAmount tussen 50 en 2000 ml.",
-        "fr": "Bouton de serrageMonter entre 50 et 2000 ml.",
-        "it": "Rubinetto morsetto Importo tra 50 e 2000 ml.",
-        "es": "Grifo de cierre Cantidad entre 50 y 2000 ml.",
-        "pl": "Zacisk TapQuat między 50 a 2000 ml.",
-        "uk": "Клемперовий фіксатор між 50 і 2000 мл.",
-        "zh-cn": "50至2000毫升之间的凸起式凸起(Camp tapAmount)."
       }
     },
     "titleLang": {

@@ -1,4 +1,7 @@
 # Older changes
+## 0.4.0 (2026-05-05)
+* (copilot) Add Notification Manager
+
 ## 0.3.4 (2026-05-03)
 * (copilot) Adapter requires node.js >= 22 now
 * (copilot) Update Dependencies
