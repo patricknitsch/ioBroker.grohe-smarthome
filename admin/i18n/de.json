@@ -11,6 +11,7 @@
 	"notifyCategoriesHeader": "Benachrichtigungskategorien",
 	"notifyOnAlarmsLabel": "1 – Kritische Meldungen (Überschwemmung, Sensorfehler, Systemfehler)",
 	"notifyOnWarningsLabel": "2 – Warnungen (Batterie, Temperatur/Luftfeuchtigkeit, WLAN-Verlust, Blue Filter/CO₂ niedrig, Gerät online/offline)",
+	"notifyOnLatestMessageLabel": "5 – Änderungen von notifications.latestMessage (aktuellen latestMessage-Text bei Timestamp-Änderung senden)",
 	"notifyOnControlLabel": "3 – Ventil- & Steuerungsereignisse (Ventiländerungen, Zapfvorgang)",
 	"notifyOnConnErrorLabel": "4 – Verbindungsfehler (HTTP Polling-Fehler, z.B. 403)",
 	"notifyUseTelegramLabel": "Telegram verwenden",
