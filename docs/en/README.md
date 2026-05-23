@@ -103,7 +103,7 @@ Each notification message is prefixed with an emoji icon for quick identificatio
 
 > Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
 
-> Note on `latestMessage` (included in category 2 “Warnings”): If “Warnings” is enabled, the adapter sends a message whenever `latestTimestamp` changes, using the current `latestMessage` text. On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
+> Note on `latestMessage` (included in category 2 “Warnings”): If “Warnings” is enabled, the adapter sends a ℹ️ message whenever `latestTimestamp` changes, using the current `latestMessage` text. To avoid duplicate notifications, the ℹ️ message is **only** sent if the notification was not already sent as a 🚨 critical alarm (category 30) or ⚠️ warning (category 20). On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
 
 #### Supported providers
 

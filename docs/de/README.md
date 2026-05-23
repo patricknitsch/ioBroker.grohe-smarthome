@@ -103,7 +103,7 @@ Jede Benachrichtigung wird mit einem Emoji-Icon für schnelle Zuordnung versehen
 
 > Hinweis: Verbindungsfehler (Kategorie 4) werden bei jedem einzelnen Polling-Fehler gesendet, nicht nur beim ersten. Das kann zu häufigen Meldungen führen, wenn die API dauerhaft nicht erreichbar ist. Erhöhe das Polling-Intervall, wenn du zu viele solche Benachrichtigungen erhältst.
 
-> Hinweis zu `latestMessage` (in Kategorie 2 „Warnungen“ enthalten): Ist „Warnungen“ aktiviert, sendet der Adapter bei jeder Änderung von `latestTimestamp` eine Meldung mit dem aktuellen `latestMessage`-Text. Beim ersten Poll nach Adapterstart wird der vorhandene Stand als Basis übernommen (kein Flooding alter Meldungen). Wenn ein Gerät anfangs noch keine Notification hat und später die erste Meldung erhält, wird diese Änderung benachrichtigt.
+> Hinweis zu `latestMessage` (in Kategorie 2 „Warnungen” enthalten): Ist „Warnungen” aktiviert, sendet der Adapter bei jeder Änderung von `latestTimestamp` eine ℹ️-Meldung mit dem aktuellen `latestMessage`-Text. Um doppelte Benachrichtigungen zu vermeiden, wird die ℹ️-Meldung **nur** gesendet, wenn die Benachrichtigung nicht bereits als 🚨 kritischer Alarm (Kategorie 30) oder ⚠️ Warnung (Kategorie 20) gesendet wurde. Beim ersten Poll nach Adapterstart wird der vorhandene Stand als Basis übernommen (kein Flooding alter Meldungen). Wenn ein Gerät anfangs noch keine Notification hat und später die erste Meldung erhält, wird diese Änderung benachrichtigt.
 
 #### Unterstützte Anbieter
 
