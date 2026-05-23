@@ -118,18 +118,6 @@
 					"lg": 12,
 					"xl": 12
 				},
-				"notifyOnLatestMessage": {
-					"type": "checkbox",
-					"label": "notifyOnLatestMessageLabel",
-					"default": false,
-					"hidden": "!data.notifyEnabled",
-					"newLine": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 12,
-					"lg": 12,
-					"xl": 12
-				},
 				"notifyOnControl": {
 					"type": "checkbox",
 					"label": "notifyOnControlLabel",

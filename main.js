@@ -894,7 +894,7 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Category name', 'text', catName);
 		await this._setNum(`${id}.notifications`, 'latestType', 'Notification type', '', 'value', type);
 
-		// Push notification for new Grohe alarms (30), warnings (20) and optional latestMessage changes
+		// Push notification for new Grohe alarms (30), warnings (20) and latestMessage changes (under warnings category)
 		if (this.config.notifyEnabled && latest.timestamp) {
 			const hadLastSeen = this._notifLastSeen.has(id);
 			const lastSeen = this._notifLastSeen.get(id);
@@ -917,7 +917,7 @@ class GroheSmarthome extends utils.Adapter {
 						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
 					}
 
-					if (this.config.notifyOnLatestMessage) {
+					if (this.config.notifyOnWarnings) {
 						await sendNotification(
 							this,
 							getNotificationMessage(this, 'latestMessageChanged', {

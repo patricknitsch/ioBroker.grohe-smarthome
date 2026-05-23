@@ -169,7 +169,6 @@
     "notifyEnabled": false,
     "notifyOnAlarms": true,
     "notifyOnWarnings": true,
-    "notifyOnLatestMessage": false,
     "notifyOnControl": false,
     "notifyOnConnError": true,
     "notifyUseTelegram": false,

@@ -83,14 +83,13 @@ Enable push notifications to be informed about device events. All messages are s
 | # | Category | Examples |
 |---|---|---|
 | 1 | **Critical alerts** | Flooding detected, sensor errors, system errors |
-| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low |
+| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low, `latestMessage` on `latestTimestamp` changes |
 | 3 | **Valve & control events** | Valve opened/closed, water dispense |
 | 4 | **Connection errors** | HTTP polling failures (e.g. HTTP 403), sent on every failure |
-| 5 | **`latestMessage` changes** | Sends the current text from `<device>.notifications.latestMessage` when the timestamp changes |
 
 > Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
 
-> Note on `latestMessage`: If enabled, the adapter sends a message whenever `latestTimestamp` changes, using the current `latestMessage` text. On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
+> Note on `latestMessage` (included in category 2 “Warnings”): If “Warnings” is enabled, the adapter sends a message whenever `latestTimestamp` changes, using the current `latestMessage` text. On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
 
 #### Supported providers
 
