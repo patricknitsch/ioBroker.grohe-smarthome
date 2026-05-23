@@ -87,6 +87,20 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 | 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet/geschlossen, Zapfvorgang |
 | 4 | **Verbindungsfehler** | HTTP Polling-Fehler (z.B. HTTP 403), werden bei jedem Fehler gesendet |
 
+#### Icons in Benachrichtigungen
+
+Jede Benachrichtigung wird mit einem Emoji-Icon für schnelle Zuordnung versehen:
+
+| Icon | Nachricht |
+|---|---|
+| 🚨 | Kritischer Alarm (Präfix für Kategorie 30 Benachrichtigungen) |
+| ⚠️ | Warnung (Präfix für Kategorie 20 Benachrichtigungen), Gerät offline, Polling-Fehler |
+| ✅ | Gerät online, Polling-Verbindung wiederhergestellt |
+| 🔓 | Ventil geöffnet |
+| 🔒 | Ventil geschlossen |
+| 💧 | Wasser gezapft |
+| ℹ️ | Letzte Meldung geändert (latestTimestamp-Änderung) |
+
 > Hinweis: Verbindungsfehler (Kategorie 4) werden bei jedem einzelnen Polling-Fehler gesendet, nicht nur beim ersten. Das kann zu häufigen Meldungen führen, wenn die API dauerhaft nicht erreichbar ist. Erhöhe das Polling-Intervall, wenn du zu viele solche Benachrichtigungen erhältst.
 
 > Hinweis zu `latestMessage` (in Kategorie 2 „Warnungen“ enthalten): Ist „Warnungen“ aktiviert, sendet der Adapter bei jeder Änderung von `latestTimestamp` eine Meldung mit dem aktuellen `latestMessage`-Text. Beim ersten Poll nach Adapterstart wird der vorhandene Stand als Basis übernommen (kein Flooding alter Meldungen). Wenn ein Gerät anfangs noch keine Notification hat und später die erste Meldung erhält, wird diese Änderung benachrichtigt.

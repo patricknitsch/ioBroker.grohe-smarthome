@@ -87,6 +87,20 @@ Enable push notifications to be informed about device events. All messages are s
 | 3 | **Valve & control events** | Valve opened/closed, water dispense |
 | 4 | **Connection errors** | HTTP polling failures (e.g. HTTP 403), sent on every failure |
 
+#### Notification message icons
+
+Each notification message is prefixed with an emoji icon for quick identification:
+
+| Icon | Message |
+|---|---|
+| 🚨 | Critical alarm (prefix for category 30 notifications) |
+| ⚠️ | Warning (prefix for category 20 notifications), device offline, polling error |
+| ✅ | Device online, polling connection restored |
+| 🔓 | Valve opened |
+| 🔒 | Valve closed |
+| 💧 | Water dispensed |
+| ℹ️ | Latest message changed (latestTimestamp change) |
+
 > Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
 
 > Note on `latestMessage` (included in category 2 “Warnings”): If “Warnings” is enabled, the adapter sends a message whenever `latestTimestamp` changes, using the current `latestMessage` text. On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
