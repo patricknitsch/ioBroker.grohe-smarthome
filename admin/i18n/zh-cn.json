@@ -10,7 +10,7 @@
 	"notifyEnabledLabel": "启用通知",
 	"notifyCategoriesHeader": "通知类别",
 	"notifyOnAlarmsLabel": "1 – 严重警报（洪水、传感器错误、系统错误）",
-	"notifyOnWarningsLabel": "2 – 警告（电池、温度/湿度、WiFi丢失、Blue滤芯/CO₂不足、设备上线/离线）",
+	"notifyOnWarningsLabel": "2 – 警告（电池、温度/湿度、WiFi丢失、Blue滤芯/CO₂不足、设备上线/离线、latestTimestamp变更时的设备消息）",
 	"notifyOnControlLabel": "3 – 阀门和控制事件（阀门变化、出水）",
 	"notifyOnConnErrorLabel": "4 – 连接错误（HTTP轮询失败，例如403）",
 	"notifyUseTelegramLabel": "使用 Telegram",

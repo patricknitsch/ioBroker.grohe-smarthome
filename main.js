@@ -894,14 +894,17 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setStr(`${id}.notifications`, 'latestCategoryName', 'Category name', 'text', catName);
 		await this._setNum(`${id}.notifications`, 'latestType', 'Notification type', '', 'value', type);
 
-		// Push notification for new Grohe alarms (30) and warnings (20)
+		// Push notification for new Grohe alarms (30), warnings (20) and latestMessage changes (under warnings category)
 		if (this.config.notifyEnabled && latest.timestamp) {
+			const hadLastSeen = this._notifLastSeen.has(id);
 			const lastSeen = this._notifLastSeen.get(id);
 			if (lastSeen !== latest.timestamp) {
 				this._notifLastSeen.set(id, latest.timestamp);
 
-				// Skip on first startup (lastSeen undefined) to avoid flooding old notifications
-				if (lastSeen !== undefined) {
+				// Skip startup baseline only on first poll to avoid flooding old notifications.
+				// If a device gets its first notification later, it will still trigger.
+				const shouldNotify = hadLastSeen || this.pollCount > 1;
+				if (shouldNotify) {
 					const dev = this.devices.get(id);
 					const devName = dev?.name || id;
 					const localText = getLocalizedNotificationType(this, cat, type);
@@ -912,6 +915,15 @@ class GroheSmarthome extends utils.Adapter {
 					} else if (cat === 20 && this.config.notifyOnWarnings) {
 						const prefix = getNotificationMessage(this, 'warningPrefix');
 						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
+					} else if (this.config.notifyOnWarnings) {
+						await sendNotification(
+							this,
+							getNotificationMessage(this, 'latestMessageChanged', {
+								device: devName,
+								message: typeText,
+								timestamp: latest.timestamp,
+							}),
+						);
 					}
 				}
 			}

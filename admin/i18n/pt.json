@@ -10,7 +10,7 @@
 	"notifyEnabledLabel": "Ativar notificações",
 	"notifyCategoriesHeader": "Categorias de notificação",
 	"notifyOnAlarmsLabel": "1 – Alertas críticos (inundação, erros de sensor, erros de sistema)",
-	"notifyOnWarningsLabel": "2 – Avisos (bateria, temperatura/humidade, perda de WiFi, filtro Blue/CO₂ baixo, dispositivo online/offline)",
+	"notifyOnWarningsLabel": "2 – Avisos (bateria, temperatura/humidade, perda de WiFi, filtro Blue/CO₂ baixo, dispositivo online/offline, mensagem do dispositivo na alteração de latestTimestamp)",
 	"notifyOnControlLabel": "3 – Eventos de válvula e controlo (alterações de válvula, dispensa)",
 	"notifyOnConnErrorLabel": "4 – Erros de ligação (falhas de polling HTTP, p.ex. 403)",
 	"notifyUseTelegramLabel": "Usar Telegram",

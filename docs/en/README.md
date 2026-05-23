@@ -83,11 +83,27 @@ Enable push notifications to be informed about device events. All messages are s
 | # | Category | Examples |
 |---|---|---|
 | 1 | **Critical alerts** | Flooding detected, sensor errors, system errors |
-| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low |
+| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low, `latestMessage` on `latestTimestamp` changes |
 | 3 | **Valve & control events** | Valve opened/closed, water dispense |
 | 4 | **Connection errors** | HTTP polling failures (e.g. HTTP 403), sent on every failure |
 
+#### Notification message icons
+
+Each notification message is prefixed with an emoji icon for quick identification:
+
+| Icon | Message |
+|---|---|
+| 🚨 | Critical alarm (prefix for category 30 notifications) |
+| ⚠️ | Warning (prefix for category 20 notifications), device offline, polling error |
+| ✅ | Device online, polling connection restored |
+| 🔓 | Valve opened |
+| 🔒 | Valve closed |
+| 💧 | Water dispensed |
+| ℹ️ | Latest message changed (latestTimestamp change) |
+
 > Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
+
+> Note on `latestMessage` (included in category 2 “Warnings”): If “Warnings” is enabled, the adapter sends a ℹ️ message whenever `latestTimestamp` changes, using the current `latestMessage` text. To avoid duplicate notifications, the ℹ️ message is **only** sent if the notification was not already sent as a 🚨 critical alarm (category 30) or ⚠️ warning (category 20). On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
 
 #### Supported providers
 
@@ -147,10 +163,12 @@ Each appliance becomes a **device object**, with additional channels depending o
 <applianceId>.notifications.latestTimestamp     (string/date)
 <applianceId>.notifications.latestCategory      (number)
 <applianceId>.notifications.latestCategoryName  (string)
+<applianceId>.notifications.latestType          (number)
 ```
 
 Notification categories are mapped like:
 
+- `0` Advertisement
 - `10` Information
 - `20` Warning
 - `30` Alarm
@@ -308,8 +326,7 @@ On polling errors the adapter automatically increases the polling interval:
 ## Error Handling Notes
 
 - If polling fails, `info.connection` is set to `false`.
-- Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active.
-With every failed Try the Timout will increased till max. 1h.
+- Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active. With every failed attempt the timeout is increased up to max. 1h.
 - Token refresh is automatic on **401** and then the request is retried once.
 - All error catches log at **warn** level (except expected HTTP 404 for pressure measurements which stays at debug).
 
@@ -323,5 +340,7 @@ Core modules:
 - `lib/device-manager.js`: Device Manager integration (tiles, tabs, per-device templates)
 - `lib/groheClient.js`: Grohe API wrapper with authenticated requests
 - `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
+- `lib/notificationManager.js`: Dispatches push notifications to configured provider instances
+- `lib/notificationMessages.js`: Localized notification message templates and Grohe notification type texts (11 languages)
 
 ---

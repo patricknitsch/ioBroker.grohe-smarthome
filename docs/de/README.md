@@ -83,11 +83,27 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 | # | Kategorie | Beispiele |
 |---|---|---|
 | 1 | **Kritische Meldungen** | Überschwemmung erkannt, Sensorfehler, Systemfehler |
-| 2 | **Warnungen** | Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig, Gerät online/offline |
+| 2 | **Warnungen** | Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig, Gerät online/offline, `latestMessage` bei `latestTimestamp`-Änderung |
 | 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet/geschlossen, Zapfvorgang |
 | 4 | **Verbindungsfehler** | HTTP Polling-Fehler (z.B. HTTP 403), werden bei jedem Fehler gesendet |
 
+#### Icons in Benachrichtigungen
+
+Jede Benachrichtigung wird mit einem Emoji-Icon für schnelle Zuordnung versehen:
+
+| Icon | Nachricht |
+|---|---|
+| 🚨 | Kritischer Alarm (Präfix für Kategorie 30 Benachrichtigungen) |
+| ⚠️ | Warnung (Präfix für Kategorie 20 Benachrichtigungen), Gerät offline, Polling-Fehler |
+| ✅ | Gerät online, Polling-Verbindung wiederhergestellt |
+| 🔓 | Ventil geöffnet |
+| 🔒 | Ventil geschlossen |
+| 💧 | Wasser gezapft |
+| ℹ️ | Letzte Meldung geändert (latestTimestamp-Änderung) |
+
 > Hinweis: Verbindungsfehler (Kategorie 4) werden bei jedem einzelnen Polling-Fehler gesendet, nicht nur beim ersten. Das kann zu häufigen Meldungen führen, wenn die API dauerhaft nicht erreichbar ist. Erhöhe das Polling-Intervall, wenn du zu viele solche Benachrichtigungen erhältst.
+
+> Hinweis zu `latestMessage` (in Kategorie 2 „Warnungen” enthalten): Ist „Warnungen” aktiviert, sendet der Adapter bei jeder Änderung von `latestTimestamp` eine ℹ️-Meldung mit dem aktuellen `latestMessage`-Text. Um doppelte Benachrichtigungen zu vermeiden, wird die ℹ️-Meldung **nur** gesendet, wenn die Benachrichtigung nicht bereits als 🚨 kritischer Alarm (Kategorie 30) oder ⚠️ Warnung (Kategorie 20) gesendet wurde. Beim ersten Poll nach Adapterstart wird der vorhandene Stand als Basis übernommen (kein Flooding alter Meldungen). Wenn ein Gerät anfangs noch keine Notification hat und später die erste Meldung erhält, wird diese Änderung benachrichtigt.
 
 #### Unterstützte Anbieter
 
@@ -147,10 +163,12 @@ Jedes Gerät wird als **Device-Objekt** angelegt, mit zusätzlichen Kanälen je 
 <applianceId>.notifications.latestTimestamp     (string/date)
 <applianceId>.notifications.latestCategory      (number)
 <applianceId>.notifications.latestCategoryName  (string)
+<applianceId>.notifications.latestType          (number)
 ```
 
 Zuordnung der Benachrichtigungskategorien:
 
+- `0` Werbung
 - `10` Information
 - `20` Warnung
 - `30` Alarm
@@ -323,3 +341,5 @@ Zentrale Module:
 - `lib/device-manager.js`: Device Manager Integration (Kacheln, Tabs, Templates je Gerätetyp)
 - `lib/groheClient.js`: Grohe-API-Wrapper mit authentifizierten Requests
 - `lib/auth.js`: OAuth/Keycloak-Login und -Refresh (manuelle Redirect-Kette, Cookie-Jar)
+- `lib/notificationManager.js`: Versendet Push-Benachrichtigungen an konfigurierte Anbieter-Instanzen
+- `lib/notificationMessages.js`: Lokalisierte Benachrichtigungsvorlagen und Grohe-Benachrichtigungstyp-Texte (11 Sprachen)
