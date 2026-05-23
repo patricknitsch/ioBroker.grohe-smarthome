@@ -41,7 +41,8 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 -->
 
 ### **WORK IN PROGRESS**
-* (copilot) Add missing latest Message for Notifications
+* (copilot) Add latest Message for Notifications
+* (copilot) Add Icons in Notifications
 
 ### 0.5.3 (2026-05-21)
 * (copilot) Modify notification manager to work with instances
