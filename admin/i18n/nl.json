@@ -10,7 +10,7 @@
 	"notifyEnabledLabel": "Meldingen inschakelen",
 	"notifyCategoriesHeader": "Meldingscategorieën",
 	"notifyOnAlarmsLabel": "1 – Kritieke meldingen (overstroming, sensorfouten, systeemfouten)",
-	"notifyOnWarningsLabel": "2 – Waarschuwingen (batterij, temperatuur/vochtigheid, WiFi-verlies, Blue filter/CO₂ laag, apparaat online/offline)",
+	"notifyOnWarningsLabel": "2 – Waarschuwingen (batterij, temperatuur/vochtigheid, WiFi-verlies, Blue filter/CO₂ laag, apparaat online/offline, apparaatbericht bij latestTimestamp-wijziging)",
 	"notifyOnControlLabel": "3 – Klep- en besturingsgebeurtenissen (klepwijzigingen, water tappen)",
 	"notifyOnConnErrorLabel": "4 – Verbindingsfouten (HTTP polling-fouten, bijv. 403)",
 	"notifyUseTelegramLabel": "Telegram gebruiken",

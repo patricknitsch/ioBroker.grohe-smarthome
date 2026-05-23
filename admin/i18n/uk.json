@@ -10,7 +10,7 @@
 	"notifyEnabledLabel": "Увімкнути сповіщення",
 	"notifyCategoriesHeader": "Категорії сповіщень",
 	"notifyOnAlarmsLabel": "1 – Критичні тривоги (затоплення, помилки датчиків, системні помилки)",
-	"notifyOnWarningsLabel": "2 – Попередження (батарея, температура/вологість, втрата WiFi, Blue фільтр/CO₂ низький, пристрій онлайн/офлайн)",
+	"notifyOnWarningsLabel": "2 – Попередження (батарея, температура/вологість, втрата WiFi, Blue фільтр/CO₂ низький, пристрій онлайн/офлайн, повідомлення пристрою при зміні latestTimestamp)",
 	"notifyOnControlLabel": "3 – Події клапана та керування (зміни клапана, видача води)",
 	"notifyOnConnErrorLabel": "4 – Помилки з'єднання (помилки HTTP опитування, напр. 403)",
 	"notifyUseTelegramLabel": "Використовувати Telegram",

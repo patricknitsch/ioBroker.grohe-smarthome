@@ -915,9 +915,7 @@ class GroheSmarthome extends utils.Adapter {
 					} else if (cat === 20 && this.config.notifyOnWarnings) {
 						const prefix = getNotificationMessage(this, 'warningPrefix');
 						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
-					}
-
-					if (this.config.notifyOnWarnings) {
+					} else if (this.config.notifyOnWarnings) {
 						await sendNotification(
 							this,
 							getNotificationMessage(this, 'latestMessageChanged', {

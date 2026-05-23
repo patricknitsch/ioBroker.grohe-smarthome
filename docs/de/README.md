@@ -325,3 +325,5 @@ Zentrale Module:
 - `lib/device-manager.js`: Device Manager Integration (Kacheln, Tabs, Templates je Gerätetyp)
 - `lib/groheClient.js`: Grohe-API-Wrapper mit authentifizierten Requests
 - `lib/auth.js`: OAuth/Keycloak-Login und -Refresh (manuelle Redirect-Kette, Cookie-Jar)
+- `lib/notificationManager.js`: Versendet Push-Benachrichtigungen an konfigurierte Anbieter-Instanzen
+- `lib/notificationMessages.js`: Lokalisierte Benachrichtigungsvorlagen und Grohe-Benachrichtigungstyp-Texte (11 Sprachen)

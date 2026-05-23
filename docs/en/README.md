@@ -325,5 +325,7 @@ Core modules:
 - `lib/device-manager.js`: Device Manager integration (tiles, tabs, per-device templates)
 - `lib/groheClient.js`: Grohe API wrapper with authenticated requests
 - `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
+- `lib/notificationManager.js`: Dispatches push notifications to configured provider instances
+- `lib/notificationMessages.js`: Localized notification message templates and Grohe notification type texts (11 languages)
 
 ---
