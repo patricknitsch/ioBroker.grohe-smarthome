@@ -149,10 +149,12 @@ Jedes Gerät wird als **Device-Objekt** angelegt, mit zusätzlichen Kanälen je 
 <applianceId>.notifications.latestTimestamp     (string/date)
 <applianceId>.notifications.latestCategory      (number)
 <applianceId>.notifications.latestCategoryName  (string)
+<applianceId>.notifications.latestType          (number)
 ```
 
 Zuordnung der Benachrichtigungskategorien:
 
+- `0` Werbung
 - `10` Information
 - `20` Warnung
 - `30` Alarm

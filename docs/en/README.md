@@ -149,10 +149,12 @@ Each appliance becomes a **device object**, with additional channels depending o
 <applianceId>.notifications.latestTimestamp     (string/date)
 <applianceId>.notifications.latestCategory      (number)
 <applianceId>.notifications.latestCategoryName  (string)
+<applianceId>.notifications.latestType          (number)
 ```
 
 Notification categories are mapped like:
 
+- `0` Advertisement
 - `10` Information
 - `20` Warning
 - `30` Alarm
@@ -310,8 +312,7 @@ On polling errors the adapter automatically increases the polling interval:
 ## Error Handling Notes
 
 - If polling fails, `info.connection` is set to `false`.
-- Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active.
-With every failed Try the Timout will increased till max. 1h.
+- Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active. With every failed attempt the timeout is increased up to max. 1h.
 - Token refresh is automatic on **401** and then the request is retried once.
 - All error catches log at **warn** level (except expected HTTP 404 for pressure measurements which stays at debug).
 
