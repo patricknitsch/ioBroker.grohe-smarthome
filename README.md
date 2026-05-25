@@ -9,7 +9,7 @@
 
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe-smarthome/workflows/Test%20and%20Release/badge.svg)
 
-# ioBroker Grohe Smarthome Adapter
+## ioBroker Grohe Smarthome Adapter
 <img align="left" src="admin/grohe-smarthome.png" alt="image" width="200"/>
 This adapter connects ioBroker to the <strong>Grohe Smarthome / Ondus</strong> cloud and exposes Grohe devices as states (and some controls) inside ioBroker.
 
@@ -59,6 +59,8 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.5.0 (2026-05-08)
 * (copilot) Integrate Adapter in ioBroker Device Manager
 * (copilot) Remove tab
+
+Older entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 
 ## License
 MIT License
