@@ -293,6 +293,7 @@ When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmo
 
 - The adapter polls the endpoint `/dashboard` and iterates:
   - `locations[] → rooms[] → appliances[]`
+- **Fallback discovery**: If `/dashboard` returns HTTP 404 (some older accounts), the adapter automatically falls back to individual API calls (`/locations` → `/rooms` → `/appliances` + `/details` + `/notifications` per device). This is detected once and remembered for the lifetime of the adapter instance.
 - Appliances with `registration_complete === false` are skipped.
 
 ### Tiered polling strategy

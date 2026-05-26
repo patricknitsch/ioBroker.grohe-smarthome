@@ -293,6 +293,7 @@ Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und 
 
 - Der Adapter fragt den Endpunkt `/dashboard` ab und durchläuft:
   - `locations[] → rooms[] → appliances[]`
+- **Fallback-Erkennung**: Wenn `/dashboard` HTTP 404 zurückgibt (bei manchen älteren Accounts), wechselt der Adapter automatisch auf einzelne API-Aufrufe (`/locations` → `/rooms` → `/appliances` + `/details` + `/notifications` pro Gerät). Dies wird einmalig erkannt und für die Laufzeit der Adapterinstanz beibehalten.
 - Geräte mit `registration_complete === false` werden übersprungen.
 
 ### Gestaffeltes Polling
