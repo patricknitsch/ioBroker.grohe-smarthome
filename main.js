@@ -284,7 +284,9 @@ class GroheSmarthome extends utils.Adapter {
 		try {
 			const dashboard = await this.client.getDashboard();
 			if (this.client._useFallbackDiscovery && !this._fallbackLogged) {
-				this.log.info('Using fallback discovery mode (/locations → /rooms → /appliances) because /dashboard is not available for this account');
+				this.log.info(
+					'Using fallback discovery mode (/locations → /rooms → /appliances) because /dashboard is not available for this account',
+				);
 				this._fallbackLogged = true;
 			}
 			await this.setState('info.connection', { val: true, ack: true });
