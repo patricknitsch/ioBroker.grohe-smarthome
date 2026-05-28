@@ -6,6 +6,7 @@ const GroheClient = require('./lib/groheClient');
 const { GroheDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
 const { getNotificationMessage, getLocalizedNotificationType } = require('./lib/notificationMessages');
+const { dumpApiStructure } = require('./lib/apiDump');
 
 // Device type constants (same as GroheTypes in Python grohe package)
 const GROHE_SENSE = 101;
@@ -291,7 +292,7 @@ class GroheSmarthome extends utils.Adapter {
 					this.log.info('Raw states enabled – scheduling API structure dump in 30 seconds');
 					this.setTimeout(async () => {
 						try {
-							await this.client.dumpApiStructure();
+							await dumpApiStructure(this.client, this.log);
 						} catch (err) {
 							this.log.warn(`API structure dump failed: ${err.message}`);
 						}
