@@ -495,9 +495,6 @@ class GroheSmarthome extends utils.Adapter {
 		await this._updateLatestNotification(id, appliance);
 
 		// Raw measurement data (optional)
-		if (this.config.rawStates) {
-			await this._writeRaw(id, m);
-		}
 	}
 
 	/* ================================================================== */
@@ -636,9 +633,6 @@ class GroheSmarthome extends utils.Adapter {
 		);
 
 		// Raw measurement data (optional)
-		if (this.config.rawStates) {
-			await this._writeRaw(id, m);
-		}
 	}
 
 	/* ================================================================== */
@@ -787,9 +781,6 @@ class GroheSmarthome extends utils.Adapter {
 		await this._ensureWritableBool(`${id}.controls`, 'resetFilter', 'Reset filter', 'button');
 
 		// Raw measurement data (optional)
-		if (this.config.rawStates) {
-			await this._writeRaw(id, m);
-		}
 	}
 
 	/* ================================================================== */
@@ -1313,33 +1304,6 @@ class GroheSmarthome extends utils.Adapter {
 		const sid = `${devId}.${name}`;
 		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: true, def });
 		await this.subscribeStatesAsync(sid);
-	}
-
-	async _writeRaw(devId, measurement) {
-		if (!measurement || typeof measurement !== 'object') {
-			return;
-		}
-
-		await this._ensureChannel(`${devId}.raw`, 'Raw data');
-
-		for (const [k, v] of Object.entries(measurement)) {
-			if (v === null || v === undefined) {
-				continue;
-			}
-
-			const sid = `${devId}.raw.${k}`;
-			const t = typeof v;
-			if (t === 'number') {
-				await this._ensureState(sid, { name: k, type: 'number', role: 'value', read: true, write: false });
-				await this.setState(sid, { val: v, ack: true });
-			} else if (t === 'boolean') {
-				await this._ensureState(sid, { name: k, type: 'boolean', role: 'indicator', read: true, write: false });
-				await this.setState(sid, { val: v, ack: true });
-			} else if (t === 'string') {
-				await this._ensureState(sid, { name: k, type: 'string', role: 'text', read: true, write: false });
-				await this.setState(sid, { val: v, ack: true });
-			}
-		}
 	}
 
 	/* ================================================================== */

@@ -55,7 +55,7 @@ Grohe Sense has no write controls (no Controls tab).
   - Sense Guard valve open/close
   - Sense Guard start pressure measurement
   - Grohe Blue dispensing + CO₂/filter resets
-- Optional **raw states** mode: writes all measurement fields to a `.raw` channel and dumps the complete API structure to the log for diagnostics (polling stops after 3 cycles)
+- Optional **raw states** mode: dumps the complete API structure to the log for diagnostics (polling stops after 3 cycles)
 
 ---
 
@@ -70,7 +70,7 @@ The adapter configuration is split into two tabs:
 - **Poll interval (seconds)**: polling interval in seconds  
   - minimum is **60 seconds**
   - default fallback is **300 seconds**
-- **Raw states** (`rawStates`): if enabled, the adapter writes all measurement fields to `<device>.raw.*` and performs a full API structure dump to the log. In this mode polling stops after 3 cycles – disable the option and restart for normal operation.
+- **Raw states** (`rawStates`): if enabled, the adapter performs a full API structure dump to the log for diagnostics. Polling stops after 3 cycles – disable the option and restart for normal operation.
 
 > Note: The adapter does **not** store the refresh token in the config because writing the config triggers an instance restart. Instead it is stored in a state (`auth.refreshToken`) and encrypted using ioBroker’s built-in encryption helpers.
 
@@ -185,12 +185,6 @@ States:
 <applianceId>.humidity           (%)
 <applianceId>.battery            (%)
 <applianceId>.lastMeasurement    (date string)
-```
-
-Optional raw data (if enabled):
-
-```
-<applianceId>.raw.*
 ```
 
 ---

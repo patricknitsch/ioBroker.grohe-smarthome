@@ -55,7 +55,7 @@ Für Grohe Sense gibt es keine Schreib-Steuerungen (kein Steuerungstab).
   - Sense Guard Ventil öffnen/schließen
   - Sense Guard Druckmessung starten
   - Grohe Blue Zapfen + CO₂-/Filter-Resets
-- Optionaler **Raw-States**-Modus: schreibt alle Messfelder in einen `.raw`-Kanal und gibt die vollständige API-Struktur ins Log aus (Polling stoppt nach 3 Zyklen)
+- Optionaler **Raw-States**-Modus: gibt die vollständige API-Struktur ins Log aus für Diagnose (Polling stoppt nach 3 Zyklen)
 
 ---
 
@@ -70,7 +70,7 @@ Die Adapterkonfiguration ist in zwei Tabs aufgeteilt:
 - **Abfrageintervall (Sekunden)**: Polling-Intervall in Sekunden  
   - Minimum **60 Sekunden**
   - Standard-Fallback **300 Sekunden**
-- **Raw-States** (`rawStates`): Wenn aktiviert, schreibt der Adapter alle Messfelder nach `<device>.raw.*` und gibt die vollständige API-Struktur ins Log aus. In diesem Modus stoppt das Polling nach 3 Zyklen – Option deaktivieren und Adapter neu starten für Normalbetrieb.
+- **Raw-States** (`rawStates`): Wenn aktiviert, gibt der Adapter die vollständige API-Struktur ins Log aus für Diagnose. Das Polling stoppt nach 3 Zyklen – Option deaktivieren und Adapter neu starten für Normalbetrieb.
 
 > Hinweis: Der Adapter speichert das Refresh-Token **nicht** in der Konfiguration, da jede Konfigurationsänderung einen Neustart der Instanz auslöst. Stattdessen wird es in einem State (`auth.refreshToken`) gespeichert und mit den integrierten ioBroker-Verschlüsselungsfunktionen verschlüsselt.
 
@@ -185,12 +185,6 @@ States:
 <applianceId>.humidity           (%)
 <applianceId>.battery            (%)
 <applianceId>.lastMeasurement    (Datumsstring)
-```
-
-Optionale Rohdaten (falls aktiviert):
-
-```
-<applianceId>.raw.*
 ```
 
 ---
