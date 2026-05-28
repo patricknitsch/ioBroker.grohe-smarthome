@@ -201,7 +201,7 @@ States:
 
 ```
 <applianceId>.temperature        (°C, Wassertemperatur)
-<applianceId>.flowRate           (l/h)
+<applianceId>.flowRate           (l/min)
 <applianceId>.pressure           (bar)
 <applianceId>.lastMeasurement    (Datumsstring)
 <applianceId>.valveOpen          (boolean, Anzeige)

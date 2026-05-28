@@ -512,7 +512,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Temperature, flow, pressure (from dashboard – always available)
 		await this._setNum(id, 'temperature', 'Water temperature', '°C', 'value.temperature', m.temperature_guard);
-		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value', m.flowrate);
+		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/min', 'value', m.flowrate);
 		await this._setNum(id, 'pressure', 'Current pressure', 'bar', 'value.pressure', m.pressure);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
 
@@ -551,7 +551,7 @@ class GroheSmarthome extends utils.Adapter {
 			'value',
 			w.waterconsumption,
 		);
-		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Last max flow rate', 'l/h', 'value', w.maxflowrate);
+		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Last max flow rate', 'l/min', 'value', w.maxflowrate);
 
 		// Valve state from command endpoint (every 3rd poll – rarely changes)
 		if (flags.fetchCommand && this.client) {
