@@ -631,6 +631,9 @@ class GroheSmarthome extends utils.Adapter {
 			'Start pressure measurement',
 			'button',
 		);
+		await this._ensureWritableNum(`${id}.controls`, 'snoozeDuration', 'Snooze duration', 'value', 5);
+		await this._ensureWritableBool(`${id}.controls`, 'snoozeStart', 'Start snooze', 'button');
+		await this._ensureWritableBool(`${id}.controls`, 'snoozeStop', 'Stop snooze', 'button');
 
 		// Raw measurement data (optional)
 	}
@@ -1010,6 +1013,24 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.startPressureMeasurement' && state.val) {
 				this.log.info(`Starting pressure measurement for ${applianceId}`);
 				await this.client.startPressureMeasurement(locationId, roomId, applianceId);
+				await this.setState(stateId, { val: false, ack: true });
+				return;
+			}
+			// Sense Guard: start snooze
+			if (tail === 'controls.snoozeStart' && state.val) {
+				const durState = await this.getStateAsync(
+					`${this.namespace}.${applianceId}.controls.snoozeDuration`,
+				);
+				const duration = Math.max(1, Number(durState?.val ?? 5));
+				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
+				await this.client.setSnooze(locationId, roomId, applianceId, duration);
+				await this.setState(stateId, { val: false, ack: true });
+				return;
+			}
+			// Sense Guard: stop snooze
+			if (tail === 'controls.snoozeStop' && state.val) {
+				this.log.info(`Stopping snooze for ${applianceId}`);
+				await this.client.deleteSnooze(locationId, roomId, applianceId);
 				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
