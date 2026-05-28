@@ -70,7 +70,7 @@ Die Adapterkonfiguration ist in zwei Tabs aufgeteilt:
 - **Abfrageintervall (Sekunden)**: Polling-Intervall in Sekunden  
   - Minimum **60 Sekunden**
   - Standard-Fallback **300 Sekunden**
-- **Raw-States** (`rawStates`): Wenn aktiviert, schreibt der Adapter alle Messfelder nach `<device>.raw.*`
+- **Raw-States** (`rawStates`): Wenn aktiviert, schreibt der Adapter alle Messfelder nach `<device>.raw.*` und gibt die vollständige API-Struktur ins Log aus. In diesem Modus stoppt das Polling nach 3 Zyklen – Option deaktivieren und Adapter neu starten für Normalbetrieb.
 
 > Hinweis: Der Adapter speichert das Refresh-Token **nicht** in der Konfiguration, da jede Konfigurationsänderung einen Neustart der Instanz auslöst. Stattdessen wird es in einem State (`auth.refreshToken`) gespeichert und mit den integrierten ioBroker-Verschlüsselungsfunktionen verschlüsselt.
 
@@ -214,8 +214,8 @@ Verbrauchs-Kanal:
 <applianceId>.consumption.averageDaily
 <applianceId>.consumption.averageMonthly
 <applianceId>.consumption.totalWaterConsumption   (berechnet, siehe unten)
-<applianceId>.consumption.lastWaterConsumption
-<applianceId>.consumption.lastMaxFlowRate
+<applianceId>.consumption.lastWaterConsumption   (l)
+<applianceId>.consumption.lastMaxFlowRate          (l/min)
 ```
 
 > **Hinweis zu `totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn daher über den Endpunkt `/data/aggregated` – analog zur [HA Grohe-Integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, gruppiert nach Jahr) abgerufen; jeden 5. Poll wird der aktuelle Tagesverbrauch hinzuaddiert.
@@ -293,7 +293,7 @@ Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und 
 
 - Der Adapter fragt den Endpunkt `/dashboard` ab und durchläuft:
   - `locations[] → rooms[] → appliances[]`
-- **Fallback-Erkennung**: Wenn `/dashboard` HTTP 404 zurückgibt (bei manchen älteren Accounts), wechselt der Adapter automatisch auf einzelne API-Aufrufe (`/locations` → `/rooms` → `/appliances` + `/details` + `/notifications` pro Gerät). Dies wird einmalig erkannt und für die Laufzeit der Adapterinstanz beibehalten.
+- **Fallback-Erkennung**: Wenn `/dashboard` HTTP 404 zurückgibt (bei manchen älteren Accounts), extrahiert der Adapter die User-ID aus dem JWT-Token, ruft `/users/{userId}` auf um Locations zu ermitteln, und holt dann `/rooms` → `/appliances` + `/details` + `/notifications` pro Gerät. Dies wird einmalig erkannt und für die Laufzeit der Adapterinstanz beibehalten.
 - Geräte mit `registration_complete === false` werden übersprungen.
 
 ### Gestaffeltes Polling
@@ -344,3 +344,4 @@ Zentrale Module:
 - `lib/auth.js`: OAuth/Keycloak-Login und -Refresh (manuelle Redirect-Kette, Cookie-Jar)
 - `lib/notificationManager.js`: Versendet Push-Benachrichtigungen an konfigurierte Anbieter-Instanzen
 - `lib/notificationMessages.js`: Lokalisierte Benachrichtigungsvorlagen und Grohe-Benachrichtigungstyp-Texte (11 Sprachen)
+- `lib/apiDump.js`: Vollständiger API-Struktur-Dump für Diagnose (ausgelöst durch die rawStates-Option)

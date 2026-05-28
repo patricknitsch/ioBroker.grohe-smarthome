@@ -551,7 +551,14 @@ class GroheSmarthome extends utils.Adapter {
 			'value',
 			w.waterconsumption,
 		);
-		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Last max flow rate', 'l/min', 'value', w.maxflowrate);
+		await this._setNum(
+			`${id}.consumption`,
+			'lastMaxFlowRate',
+			'Last max flow rate',
+			'l/min',
+			'value',
+			w.maxflowrate,
+		);
 
 		// Valve state from command endpoint (every 3rd poll – rarely changes)
 		if (flags.fetchCommand && this.client) {
