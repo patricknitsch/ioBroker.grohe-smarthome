@@ -55,7 +55,7 @@ Grohe Sense has no write controls (no Controls tab).
   - Sense Guard valve open/close
   - Sense Guard start pressure measurement
   - Grohe Blue dispensing + CO₂/filter resets
-- Optional creation of a `.raw` channel with all raw measurement fields
+- Optional **raw states** mode: writes all measurement fields to a `.raw` channel and dumps the complete API structure to the log for diagnostics (polling stops after 3 cycles)
 
 ---
 

@@ -55,7 +55,7 @@ Für Grohe Sense gibt es keine Schreib-Steuerungen (kein Steuerungstab).
   - Sense Guard Ventil öffnen/schließen
   - Sense Guard Druckmessung starten
   - Grohe Blue Zapfen + CO₂-/Filter-Resets
-- Optionale Erstellung eines `.raw`-Kanals mit allen Roh-Messwerten
+- Optionaler **Raw-States**-Modus: schreibt alle Messfelder in einen `.raw`-Kanal und gibt die vollständige API-Struktur ins Log aus (Polling stoppt nach 3 Zyklen)
 
 ---
 
