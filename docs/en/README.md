@@ -55,7 +55,7 @@ Grohe Sense has no write controls (no Controls tab).
   - Sense Guard valve open/close
   - Sense Guard start pressure measurement
   - Grohe Blue dispensing + CO₂/filter resets
-- Optional creation of a `.raw` channel with all raw measurement fields
+- Optional **raw states** mode: dumps the complete API structure to the log for diagnostics (polling stops after 3 cycles)
 
 ---
 
@@ -70,7 +70,7 @@ The adapter configuration is split into two tabs:
 - **Poll interval (seconds)**: polling interval in seconds  
   - minimum is **60 seconds**
   - default fallback is **300 seconds**
-- **Raw states** (`rawStates`): if enabled, the adapter writes all measurement fields to `<device>.raw.*`
+- **Raw states** (`rawStates`): if enabled, the adapter performs a full API structure dump to the log for diagnostics. Polling stops after 3 cycles – disable the option and restart for normal operation.
 
 > Note: The adapter does **not** store the refresh token in the config because writing the config triggers an instance restart. Instead it is stored in a state (`auth.refreshToken`) and encrypted using ioBroker’s built-in encryption helpers.
 
@@ -187,12 +187,6 @@ States:
 <applianceId>.lastMeasurement    (date string)
 ```
 
-Optional raw data (if enabled):
-
-```
-<applianceId>.raw.*
-```
-
 ---
 
 ## Grohe Sense Guard (type 103)
@@ -201,7 +195,7 @@ States:
 
 ```
 <applianceId>.temperature        (°C, water temp)
-<applianceId>.flowRate           (l/h)
+<applianceId>.flowRate           (l/min)
 <applianceId>.pressure           (bar)
 <applianceId>.lastMeasurement    (date string)
 <applianceId>.valveOpen          (boolean indicator)
@@ -214,8 +208,8 @@ Consumption channel:
 <applianceId>.consumption.averageDaily
 <applianceId>.consumption.averageMonthly
 <applianceId>.consumption.totalWaterConsumption   (calculated, see below)
-<applianceId>.consumption.lastWaterConsumption
-<applianceId>.consumption.lastMaxFlowRate
+<applianceId>.consumption.lastWaterConsumption   (l)
+<applianceId>.consumption.lastMaxFlowRate          (l/min)
 ```
 
 > **Note on `totalWaterConsumption`:** The Grohe dashboard API does not reliably provide total water consumption. The adapter therefore calculates it from the `/data/aggregated` endpoint – similar to the [HA Grohe integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Once per day the historical total (from installation date, grouped by year) is fetched; every 5th poll the current day's consumption is added on top.
@@ -293,6 +287,7 @@ When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmo
 
 - The adapter polls the endpoint `/dashboard` and iterates:
   - `locations[] → rooms[] → appliances[]`
+- **Fallback discovery**: If `/dashboard` returns HTTP 404 (some older accounts), the adapter extracts the user ID from the JWT token, calls `/users/{userId}` to discover locations, then fetches `/rooms` → `/appliances` + `/details` + `/notifications` per device. This is detected once and remembered for the lifetime of the adapter instance.
 - Appliances with `registration_complete === false` are skipped.
 
 ### Tiered polling strategy
@@ -342,5 +337,6 @@ Core modules:
 - `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
 - `lib/notificationManager.js`: Dispatches push notifications to configured provider instances
 - `lib/notificationMessages.js`: Localized notification message templates and Grohe notification type texts (11 languages)
+- `lib/apiDump.js`: Full API structure dump for diagnostics (triggered by rawStates option)
 
 ---

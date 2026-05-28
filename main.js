@@ -6,6 +6,7 @@ const GroheClient = require('./lib/groheClient');
 const { GroheDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
 const { getNotificationMessage, getLocalizedNotificationType } = require('./lib/notificationMessages');
+const { dumpApiStructure } = require('./lib/apiDump');
 
 // Device type constants (same as GroheTypes in Python grohe package)
 const GROHE_SENSE = 101;
@@ -283,6 +284,34 @@ class GroheSmarthome extends utils.Adapter {
 
 		try {
 			const dashboard = await this.client.getDashboard();
+			if (this.client.usingFallbackDiscovery && !this._fallbackLogged) {
+				this.log.info('Using fallback discovery mode because /dashboard is not available for this account');
+				this._fallbackLogged = true;
+			}
+
+			if (this.config.rawStates && !this._apiDumpScheduled) {
+				this._apiDumpScheduled = true;
+				this.log.info('Raw states enabled – scheduling API structure dump in 30 seconds');
+				this.setTimeout(async () => {
+					try {
+						await dumpApiStructure(this.client, this.log);
+					} catch (err) {
+						this.log.warn(`API structure dump failed: ${err.message}`);
+					}
+				}, 30000);
+			}
+
+			if (this.config.rawStates && this.pollCount >= 3) {
+				this.log.warn(
+					'Raw states mode: stopping after 3 polls. Disable "raw states" and restart the adapter for normal operation.',
+				);
+				if (this.pollTimer) {
+					this.clearTimeout(this.pollTimer);
+					this.pollTimer = null;
+				}
+				return;
+			}
+
 			await this.setState('info.connection', { val: true, ack: true });
 
 			// Successful poll – reset backoff to configured interval
@@ -466,9 +495,6 @@ class GroheSmarthome extends utils.Adapter {
 		await this._updateLatestNotification(id, appliance);
 
 		// Raw measurement data (optional)
-		if (this.config.rawStates) {
-			await this._writeRaw(id, m);
-		}
 	}
 
 	/* ================================================================== */
@@ -483,7 +509,7 @@ class GroheSmarthome extends utils.Adapter {
 
 		// Temperature, flow, pressure (from dashboard – always available)
 		await this._setNum(id, 'temperature', 'Water temperature', '°C', 'value.temperature', m.temperature_guard);
-		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/h', 'value', m.flowrate);
+		await this._setNum(id, 'flowRate', 'Current flow rate', 'l/min', 'value', m.flowrate);
 		await this._setNum(id, 'pressure', 'Current pressure', 'bar', 'value.pressure', m.pressure);
 		await this._setStr(id, 'lastMeasurement', 'Last measurement', 'date', m.timestamp);
 
@@ -522,7 +548,14 @@ class GroheSmarthome extends utils.Adapter {
 			'value',
 			w.waterconsumption,
 		);
-		await this._setNum(`${id}.consumption`, 'lastMaxFlowRate', 'Last max flow rate', 'l/h', 'value', w.maxflowrate);
+		await this._setNum(
+			`${id}.consumption`,
+			'lastMaxFlowRate',
+			'Last max flow rate',
+			'l/min',
+			'value',
+			w.maxflowrate,
+		);
 
 		// Valve state from command endpoint (every 3rd poll – rarely changes)
 		if (flags.fetchCommand && this.client) {
@@ -600,9 +633,6 @@ class GroheSmarthome extends utils.Adapter {
 		);
 
 		// Raw measurement data (optional)
-		if (this.config.rawStates) {
-			await this._writeRaw(id, m);
-		}
 	}
 
 	/* ================================================================== */
@@ -751,9 +781,6 @@ class GroheSmarthome extends utils.Adapter {
 		await this._ensureWritableBool(`${id}.controls`, 'resetFilter', 'Reset filter', 'button');
 
 		// Raw measurement data (optional)
-		if (this.config.rawStates) {
-			await this._writeRaw(id, m);
-		}
 	}
 
 	/* ================================================================== */
@@ -1277,33 +1304,6 @@ class GroheSmarthome extends utils.Adapter {
 		const sid = `${devId}.${name}`;
 		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: true, def });
 		await this.subscribeStatesAsync(sid);
-	}
-
-	async _writeRaw(devId, measurement) {
-		if (!measurement || typeof measurement !== 'object') {
-			return;
-		}
-
-		await this._ensureChannel(`${devId}.raw`, 'Raw data');
-
-		for (const [k, v] of Object.entries(measurement)) {
-			if (v === null || v === undefined) {
-				continue;
-			}
-
-			const sid = `${devId}.raw.${k}`;
-			const t = typeof v;
-			if (t === 'number') {
-				await this._ensureState(sid, { name: k, type: 'number', role: 'value', read: true, write: false });
-				await this.setState(sid, { val: v, ack: true });
-			} else if (t === 'boolean') {
-				await this._ensureState(sid, { name: k, type: 'boolean', role: 'indicator', read: true, write: false });
-				await this.setState(sid, { val: v, ack: true });
-			} else if (t === 'string') {
-				await this._ensureState(sid, { name: k, type: 'string', role: 'text', read: true, write: false });
-				await this.setState(sid, { val: v, ack: true });
-			}
-		}
 	}
 
 	/* ================================================================== */

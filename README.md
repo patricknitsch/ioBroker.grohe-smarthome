@@ -39,6 +39,12 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+* (copilot) Fixes Repo Checker
+* (copilot) Change Raw-States to Bump Funktion for Debugging(see Doc.)
+* (copilot) Fixes Problems Error 404
+
 ### 0.5.4 (2026-05-23)
 * (copilot) Add latest Message for Notifications
 * (copilot) Add Icons in Notifications
