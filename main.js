@@ -286,7 +286,28 @@ class GroheSmarthome extends utils.Adapter {
 			if (this.client.usingFallbackDiscovery && !this._fallbackLogged) {
 				this.log.info('Using fallback discovery mode because /dashboard is not available for this account');
 				this._fallbackLogged = true;
+
+				if (this.config.rawStates) {
+					this.log.info('Raw states enabled – scheduling API structure dump in 30 seconds');
+					this.setTimeout(async () => {
+						try {
+							await this.client.dumpApiStructure();
+						} catch (err) {
+							this.log.warn(`API structure dump failed: ${err.message}`);
+						}
+					}, 30000);
+				}
 			}
+
+			if (this.config.rawStates && this.client.usingFallbackDiscovery && this.pollCount >= 3) {
+				this.log.warn('Raw states + fallback mode: stopping after 3 polls. Please restart the adapter to continue.');
+				if (this.pollTimer) {
+					this.clearTimeout(this.pollTimer);
+					this.pollTimer = null;
+				}
+				return;
+			}
+
 			await this.setState('info.connection', { val: true, ack: true });
 
 			// Successful poll – reset backoff to configured interval
