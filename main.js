@@ -301,7 +301,9 @@ class GroheSmarthome extends utils.Adapter {
 			}
 
 			if (this.config.rawStates && this.client.usingFallbackDiscovery && this.pollCount >= 3) {
-				this.log.warn('Raw states + fallback mode: stopping after 3 polls. Please restart the adapter to continue.');
+				this.log.warn(
+					'Raw states + fallback mode: stopping after 3 polls. Please restart the adapter to continue.',
+				);
 				if (this.pollTimer) {
 					this.clearTimeout(this.pollTimer);
 					this.pollTimer = null;
