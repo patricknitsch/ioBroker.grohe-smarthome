@@ -59,6 +59,7 @@ const NOTIFICATION_TYPES = {
 	'20_321': 'Unusual water consumption – water still ON',
 	'20_330': 'Pressure drop detected during pipe check',
 	'20_332': 'Water system check not possible',
+	'20_333': 'Pipe check completed',
 	'20_380': 'Sense Guard lost WiFi',
 	'20_381': 'Water pressure drops detected',
 	'20_383': 'Potential leak detected',
