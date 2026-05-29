@@ -668,6 +668,15 @@ class GroheSmarthome extends utils.Adapter {
 			const cap = day.charAt(0).toUpperCase() + day.slice(1);
 			await this._ensureWritableBool(`${id}.controls.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
 		}
+		await this._ensureWritableNum(
+			`${id}.controls`,
+			'withdrawalAmountLimit',
+			'Withdrawal amount limit',
+			'value',
+			300,
+			{ min: 0, max: 2000, unit: 'l' },
+		);
+
 		if (flags.fetchConfig && this.client) {
 			try {
 				const details = await this.client.getApplianceDetails(locationId, roomId, id);
@@ -690,6 +699,12 @@ class GroheSmarthome extends utils.Adapter {
 					if (apiVal !== undefined) {
 						await this.setState(`${id}.controls.sprinkler.active${cap}`, { val: !!apiVal, ack: true });
 					}
+				}
+				if (cfg.withdrawel_amount_limit !== undefined) {
+					await this.setState(`${id}.controls.withdrawalAmountLimit`, {
+						val: Number(cfg.withdrawel_amount_limit),
+						ack: true,
+					});
 				}
 			} catch (err) {
 				this.log.warn(`Config query for ${id} failed: ${err.message}`);
@@ -1095,6 +1110,16 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Stopping snooze for ${applianceId}`);
 				await this.client.deleteSnooze(locationId, roomId, applianceId);
 				await this.setState(stateId, { val: false, ack: true });
+				return;
+			}
+			// Sense Guard: withdrawal amount limit
+			if (tail === 'controls.withdrawalAmountLimit') {
+				const val = Math.min(2000, Math.max(0, Number(state.val)));
+				this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
+				await this.client.setApplianceConfig(locationId, roomId, applianceId, {
+					withdrawel_amount_limit: val,
+				});
+				await this.setState(stateId, { val, ack: true });
 				return;
 			}
 			// Sense Guard: sprinkler configuration
