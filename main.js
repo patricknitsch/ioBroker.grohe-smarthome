@@ -1167,7 +1167,8 @@ class GroheSmarthome extends utils.Adapter {
 			}
 			// Sense Guard: withdrawal amount limit
 			if (tail === 'controls.withdrawalAmountLimit') {
-				const val = Math.min(2000, Math.max(0, Number(state.val)));
+				const requestedLimit = Number(state.val);
+				const val = Number.isFinite(requestedLimit) ? Math.min(2000, Math.max(0, requestedLimit)) : 300;
 				this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
 				await this.client.setApplianceConfig(locationId, roomId, applianceId, {
 					withdrawel_amount_limit: val,
