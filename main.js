@@ -1184,8 +1184,26 @@ class GroheSmarthome extends utils.Adapter {
 				const startM = await this.getStateAsync(`${base}.startMinute`);
 				const stopH = await this.getStateAsync(`${base}.stopHour`);
 				const stopM = await this.getStateAsync(`${base}.stopMinute`);
-				const startTime = Math.min(1439, Math.max(0, Number(startH?.val ?? 0) * 60 + Number(startM?.val ?? 0)));
-				const stopTime = Math.min(1439, Math.max(0, Number(stopH?.val ?? 23) * 60 + Number(stopM?.val ?? 59)));
+				const startHour = Number(startH?.val ?? 0);
+				const startMinute = Number(startM?.val ?? 0);
+				const stopHour = Number(stopH?.val ?? 23);
+				const stopMinute = Number(stopM?.val ?? 59);
+				const startTime = Math.min(
+					1439,
+					Math.max(
+						0,
+						(Number.isFinite(startHour) ? startHour : 0) * 60 +
+							(Number.isFinite(startMinute) ? startMinute : 0),
+					),
+				);
+				const stopTime = Math.min(
+					1439,
+					Math.max(
+						0,
+						(Number.isFinite(stopHour) ? stopHour : 23) * 60 +
+							(Number.isFinite(stopMinute) ? stopMinute : 59),
+					),
+				);
 				const configFields = {
 					sprinkler_mode_start_time: startTime,
 					sprinkler_mode_stop_time: stopTime,
