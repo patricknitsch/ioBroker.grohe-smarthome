@@ -648,22 +648,26 @@ class GroheSmarthome extends utils.Adapter {
 		// Sprinkler sub-channel inside controls – states always present; values refreshed every 10th poll
 		const sprinklerDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 		await this._ensureChannel(`${id}.controls.sprinkler`, 'Sprinkler mode');
-		await this._ensureWritableNum(
-			`${id}.controls.sprinkler`,
-			'startTime',
-			'Start time (min from midnight)',
-			'value',
-			0,
-			{ min: 0, max: 1439, unit: 'min' },
-		);
-		await this._ensureWritableNum(
-			`${id}.controls.sprinkler`,
-			'stopTime',
-			'Stop time (min from midnight)',
-			'value',
-			1439,
-			{ min: 0, max: 1439, unit: 'min' },
-		);
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'startHour', 'Start time – hours', 'value', 0, {
+			min: 0,
+			max: 23,
+			unit: 'h',
+		});
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'startMinute', 'Start time – minutes', 'value', 0, {
+			min: 0,
+			max: 59,
+			unit: 'min',
+		});
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'stopHour', 'Stop time – hours', 'value', 23, {
+			min: 0,
+			max: 23,
+			unit: 'h',
+		});
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'stopMinute', 'Stop time – minutes', 'value', 59, {
+			min: 0,
+			max: 59,
+			unit: 'min',
+		});
 		for (const day of sprinklerDays) {
 			const cap = day.charAt(0).toUpperCase() + day.slice(1);
 			await this._ensureWritableBool(`${id}.controls.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
@@ -683,14 +687,24 @@ class GroheSmarthome extends utils.Adapter {
 				const details = await this.client.getApplianceDetails(locationId, roomId, id);
 				const cfg = details?.config || {};
 				if (cfg.sprinkler_mode_start_time !== undefined) {
-					await this.setState(`${id}.controls.sprinkler.startTime`, {
-						val: Number(cfg.sprinkler_mode_start_time),
+					const totalMin = Number(cfg.sprinkler_mode_start_time);
+					await this.setState(`${id}.controls.sprinkler.startHour`, {
+						val: Math.floor(totalMin / 60),
+						ack: true,
+					});
+					await this.setState(`${id}.controls.sprinkler.startMinute`, {
+						val: totalMin % 60,
 						ack: true,
 					});
 				}
 				if (cfg.sprinkler_mode_stop_time !== undefined) {
-					await this.setState(`${id}.controls.sprinkler.stopTime`, {
-						val: Number(cfg.sprinkler_mode_stop_time),
+					const totalMin = Number(cfg.sprinkler_mode_stop_time);
+					await this.setState(`${id}.controls.sprinkler.stopHour`, {
+						val: Math.floor(totalMin / 60),
+						ack: true,
+					});
+					await this.setState(`${id}.controls.sprinkler.stopMinute`, {
+						val: totalMin % 60,
 						ack: true,
 					});
 				}
@@ -1127,11 +1141,15 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.sprinkler.save' && state.val) {
 				const base = `${this.namespace}.${applianceId}.controls.sprinkler`;
 				const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-				const startSt = await this.getStateAsync(`${base}.startTime`);
-				const stopSt = await this.getStateAsync(`${base}.stopTime`);
+				const startH = await this.getStateAsync(`${base}.startHour`);
+				const startM = await this.getStateAsync(`${base}.startMinute`);
+				const stopH = await this.getStateAsync(`${base}.stopHour`);
+				const stopM = await this.getStateAsync(`${base}.stopMinute`);
+				const startTime = Math.min(1439, Math.max(0, Number(startH?.val ?? 0) * 60 + Number(startM?.val ?? 0)));
+				const stopTime = Math.min(1439, Math.max(0, Number(stopH?.val ?? 23) * 60 + Number(stopM?.val ?? 59)));
 				const configFields = {
-					sprinkler_mode_start_time: Math.min(1439, Math.max(0, Number(startSt?.val ?? 0))),
-					sprinkler_mode_stop_time: Math.min(1439, Math.max(0, Number(stopSt?.val ?? 1439))),
+					sprinkler_mode_start_time: startTime,
+					sprinkler_mode_stop_time: stopTime,
 				};
 				for (const day of days) {
 					const cap = day.charAt(0).toUpperCase() + day.slice(1);
