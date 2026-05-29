@@ -1077,6 +1077,10 @@ class GroheSmarthome extends utils.Adapter {
 				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
+			// Ignore legacy state paths from earlier adapter versions
+			if (tail.startsWith('snooze.') || tail.startsWith('sprinkler.')) {
+				return;
+			}
 			// Sense Guard: start snooze
 			if (tail === 'controls.snooze.start' && state.val) {
 				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.snooze.duration`);
