@@ -635,45 +635,51 @@ class GroheSmarthome extends utils.Adapter {
 			'button',
 		);
 
-		// Snooze channel
-		await this._ensureChannel(`${id}.snooze`, 'Snooze');
-		await this._ensureWritableNum(`${id}.snooze`, 'duration', 'Snooze duration', 'value', 5, {
+		// Snooze sub-channel inside controls
+		await this._ensureChannel(`${id}.controls.snooze`, 'Snooze');
+		await this._ensureWritableNum(`${id}.controls.snooze`, 'duration', 'Snooze duration', 'value', 5, {
 			min: 1,
 			max: 240,
 			unit: 'min',
 		});
-		await this._ensureWritableBool(`${id}.snooze`, 'start', 'Start snooze', 'button');
-		await this._ensureWritableBool(`${id}.snooze`, 'stop', 'Stop snooze', 'button');
+		await this._ensureWritableBool(`${id}.controls.snooze`, 'start', 'Start snooze', 'button');
+		await this._ensureWritableBool(`${id}.controls.snooze`, 'stop', 'Stop snooze', 'button');
 
-		// Sprinkler channel – states always present; values refreshed every 10th poll
+		// Sprinkler sub-channel inside controls – states always present; values refreshed every 10th poll
 		const sprinklerDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-		await this._ensureChannel(`${id}.sprinkler`, 'Sprinkler mode');
-		await this._ensureWritableNum(`${id}.sprinkler`, 'startTime', 'Start time (min from midnight)', 'value', 0, {
-			min: 0,
-			max: 1439,
-			unit: 'min',
-		});
-		await this._ensureWritableNum(`${id}.sprinkler`, 'stopTime', 'Stop time (min from midnight)', 'value', 1439, {
-			min: 0,
-			max: 1439,
-			unit: 'min',
-		});
+		await this._ensureChannel(`${id}.controls.sprinkler`, 'Sprinkler mode');
+		await this._ensureWritableNum(
+			`${id}.controls.sprinkler`,
+			'startTime',
+			'Start time (min from midnight)',
+			'value',
+			0,
+			{ min: 0, max: 1439, unit: 'min' },
+		);
+		await this._ensureWritableNum(
+			`${id}.controls.sprinkler`,
+			'stopTime',
+			'Stop time (min from midnight)',
+			'value',
+			1439,
+			{ min: 0, max: 1439, unit: 'min' },
+		);
 		for (const day of sprinklerDays) {
 			const cap = day.charAt(0).toUpperCase() + day.slice(1);
-			await this._ensureWritableBool(`${id}.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
+			await this._ensureWritableBool(`${id}.controls.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
 		}
 		if (flags.fetchConfig && this.client) {
 			try {
 				const details = await this.client.getApplianceDetails(locationId, roomId, id);
 				const cfg = details?.config || {};
 				if (cfg.sprinkler_mode_start_time !== undefined) {
-					await this.setState(`${id}.sprinkler.startTime`, {
+					await this.setState(`${id}.controls.sprinkler.startTime`, {
 						val: Number(cfg.sprinkler_mode_start_time),
 						ack: true,
 					});
 				}
 				if (cfg.sprinkler_mode_stop_time !== undefined) {
-					await this.setState(`${id}.sprinkler.stopTime`, {
+					await this.setState(`${id}.controls.sprinkler.stopTime`, {
 						val: Number(cfg.sprinkler_mode_stop_time),
 						ack: true,
 					});
@@ -682,7 +688,7 @@ class GroheSmarthome extends utils.Adapter {
 					const cap = day.charAt(0).toUpperCase() + day.slice(1);
 					const apiVal = cfg[`sprinkler_mode_active_${day}`];
 					if (apiVal !== undefined) {
-						await this.setState(`${id}.sprinkler.active${cap}`, { val: !!apiVal, ack: true });
+						await this.setState(`${id}.controls.sprinkler.active${cap}`, { val: !!apiVal, ack: true });
 					}
 				}
 			} catch (err) {
@@ -1072,8 +1078,8 @@ class GroheSmarthome extends utils.Adapter {
 				return;
 			}
 			// Sense Guard: start snooze
-			if (tail === 'snooze.start' && state.val) {
-				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.snooze.duration`);
+			if (tail === 'controls.snooze.start' && state.val) {
+				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.snooze.duration`);
 				const duration = Math.min(240, Math.max(1, Number(durState?.val ?? 5)));
 				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
 				await this.client.setSnooze(locationId, roomId, applianceId, duration);
@@ -1081,14 +1087,14 @@ class GroheSmarthome extends utils.Adapter {
 				return;
 			}
 			// Sense Guard: stop snooze
-			if (tail === 'snooze.stop' && state.val) {
+			if (tail === 'controls.snooze.stop' && state.val) {
 				this.log.info(`Stopping snooze for ${applianceId}`);
 				await this.client.deleteSnooze(locationId, roomId, applianceId);
 				await this.setState(stateId, { val: false, ack: true });
 				return;
 			}
 			// Sense Guard: sprinkler configuration
-			if (tail.startsWith('sprinkler.')) {
+			if (tail.startsWith('controls.sprinkler.')) {
 				const sprinklerFieldMap = {
 					startTime: 'sprinkler_mode_start_time',
 					stopTime: 'sprinkler_mode_stop_time',
@@ -1100,7 +1106,7 @@ class GroheSmarthome extends utils.Adapter {
 					activeSaturday: 'sprinkler_mode_active_saturday',
 					activeSunday: 'sprinkler_mode_active_sunday',
 				};
-				const field = tail.slice('sprinkler.'.length);
+				const field = tail.slice('controls.sprinkler.'.length);
 				const apiKey = sprinklerFieldMap[field];
 				if (apiKey) {
 					this.log.info(`Setting sprinkler ${apiKey}=${state.val} for ${applianceId}`);
