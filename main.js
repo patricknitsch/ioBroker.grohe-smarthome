@@ -658,7 +658,13 @@ class GroheSmarthome extends utils.Adapter {
 		});
 		await this._ensureWritableBool(`${id}.controls.snooze`, 'start', 'Start snooze', 'button');
 		await this._ensureWritableBool(`${id}.controls.snooze`, 'stop', 'Stop snooze', 'button');
-		await this._setBool(`${id}.controls.snooze`, 'active', 'Snooze active', 'indicator', false);
+		await this._ensureState(`${id}.controls.snooze.active`, {
+			name: 'Snooze active',
+			type: 'boolean',
+			role: 'indicator',
+			read: true,
+			write: false,
+		});
 
 		// Sprinkler sub-channel inside controls – states always present; values refreshed every 10th poll
 		const sprinklerDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
