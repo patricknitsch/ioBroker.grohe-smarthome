@@ -1135,7 +1135,10 @@ class GroheSmarthome extends utils.Adapter {
 			// Sense Guard: start snooze
 			if (tail === 'controls.snooze.start' && state.val) {
 				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.snooze.duration`);
-				const duration = Math.min(240, Math.max(1, Number(durState?.val ?? 5)));
+				const requestedDuration = Number(durState?.val ?? 5);
+				const duration = Number.isFinite(requestedDuration)
+					? Math.min(240, Math.max(1, requestedDuration))
+					: 5;
 				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
 				await this.client.setSnooze(locationId, roomId, applianceId, duration);
 				await this.setState(stateId, { val: false, ack: true });
