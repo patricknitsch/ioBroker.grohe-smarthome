@@ -668,6 +668,7 @@ class GroheSmarthome extends utils.Adapter {
 			const cap = day.charAt(0).toUpperCase() + day.slice(1);
 			await this._ensureWritableBool(`${id}.controls.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
 		}
+		await this._ensureWritableBool(`${id}.controls.sprinkler`, 'save', 'Save sprinkler settings', 'button');
 		await this._ensureWritableNum(
 			`${id}.controls`,
 			'withdrawalAmountLimit',
@@ -1122,26 +1123,29 @@ class GroheSmarthome extends utils.Adapter {
 				await this.setState(stateId, { val, ack: true });
 				return;
 			}
-			// Sense Guard: sprinkler configuration
-			if (tail.startsWith('controls.sprinkler.')) {
-				const sprinklerFieldMap = {
-					startTime: 'sprinkler_mode_start_time',
-					stopTime: 'sprinkler_mode_stop_time',
-					activeMonday: 'sprinkler_mode_active_monday',
-					activeTuesday: 'sprinkler_mode_active_tuesday',
-					activeWednesday: 'sprinkler_mode_active_wednesday',
-					activeThursday: 'sprinkler_mode_active_thursday',
-					activeFriday: 'sprinkler_mode_active_friday',
-					activeSaturday: 'sprinkler_mode_active_saturday',
-					activeSunday: 'sprinkler_mode_active_sunday',
+			// Sense Guard: sprinkler – save button sends all values in one call
+			if (tail === 'controls.sprinkler.save' && state.val) {
+				const base = `${this.namespace}.${applianceId}.controls.sprinkler`;
+				const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+				const startSt = await this.getStateAsync(`${base}.startTime`);
+				const stopSt = await this.getStateAsync(`${base}.stopTime`);
+				const configFields = {
+					sprinkler_mode_start_time: Math.min(1439, Math.max(0, Number(startSt?.val ?? 0))),
+					sprinkler_mode_stop_time: Math.min(1439, Math.max(0, Number(stopSt?.val ?? 1439))),
 				};
-				const field = tail.slice('controls.sprinkler.'.length);
-				const apiKey = sprinklerFieldMap[field];
-				if (apiKey) {
-					this.log.info(`Setting sprinkler ${apiKey}=${state.val} for ${applianceId}`);
-					await this.client.setApplianceConfig(locationId, roomId, applianceId, { [apiKey]: state.val });
-					await this.setState(stateId, { val: state.val, ack: true });
+				for (const day of days) {
+					const cap = day.charAt(0).toUpperCase() + day.slice(1);
+					const daySt = await this.getStateAsync(`${base}.active${cap}`);
+					configFields[`sprinkler_mode_active_${day}`] = !!daySt?.val;
 				}
+				this.log.info(`Saving sprinkler settings for ${applianceId}`);
+				await this.client.setApplianceConfig(locationId, roomId, applianceId, configFields);
+				await this.setState(stateId, { val: false, ack: true });
+				return;
+			}
+			// Sense Guard: sprinkler field changed – acknowledge locally, no API call
+			if (tail.startsWith('controls.sprinkler.')) {
+				await this.setState(stateId, { val: state.val, ack: true });
 				return;
 			}
 			// Blue: dispense trigger
