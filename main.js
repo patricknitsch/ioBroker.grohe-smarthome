@@ -1136,9 +1136,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.snooze.start' && state.val) {
 				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.snooze.duration`);
 				const requestedDuration = Number(durState?.val ?? 5);
-				const duration = Number.isFinite(requestedDuration)
-					? Math.min(240, Math.max(1, requestedDuration))
-					: 5;
+				const duration = Number.isFinite(requestedDuration) ? Math.min(240, Math.max(1, requestedDuration)) : 5;
 				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
 				await this.client.setSnooze(locationId, roomId, applianceId, duration);
 				await this.setState(stateId, { val: false, ack: true });
@@ -1448,17 +1446,12 @@ class GroheSmarthome extends utils.Adapter {
 				native: { type },
 			});
 		} else if (!obj.common?.icon || !obj.common?.statusStates?.onlineId) {
-			await this.setObject(
-				id,
-				/** @type {any} */ ({
-					...obj,
-					common: {
-						...(obj.common || {}),
-						icon,
-						statusStates: { onlineId },
-					},
-				}),
-			);
+			await this.extendObjectAsync(id, {
+				common: {
+					icon,
+					statusStates: { onlineId },
+				},
+			});
 		}
 	}
 
