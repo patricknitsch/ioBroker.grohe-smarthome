@@ -103,7 +103,7 @@ The **Controls** tab is available for Grohe Sense Guard and Grohe Blue devices. 
 |---|---|
 | **Valve control** | Open valve button, Close valve button |
 | **Pressure measurement** | Start button *(valve must be closed – see note below)* |
-| **Snooze** | Duration input (1–240 min), Start snooze button, Stop snooze button |
+| **Snooze** | Active indicator (read-only), Duration input (1–240 min), Start snooze button, Stop snooze button |
 | **Water limits** | Withdrawal amount limit input (0–2000 l) |
 | **Sprinkler mode** | Start time (h + min), Stop time (h + min), Active days (Mon–Sun), Save button |
 
@@ -221,10 +221,13 @@ Controls are available in the **Controls tab** of the Device Manager detail view
 **Snooze** – temporarily silences alarms:
 
 ```
+<applianceId>.controls.snooze.active     boolean (read-only) – snooze currently active
 <applianceId>.controls.snooze.duration   number  1–240 min
 <applianceId>.controls.snooze.start      boolean button – activates snooze for the set duration
 <applianceId>.controls.snooze.stop       boolean button – deactivates snooze immediately
 ```
+
+The `active` state is read from the Grohe API every 3rd poll and updated immediately after start/stop actions.
 
 **Water limits:**
 
@@ -318,6 +321,7 @@ To minimize API calls and avoid rate-limiting (HTTP 403), different endpoints ar
 | `/dashboard` | every poll | All | Core sensor data |
 | `/status` | every 5th poll | All | Online / WiFi / update status changes slowly |
 | `/command` (read) | every 3rd poll | Sense Guard | Valve state; also read back immediately after commands |
+| `/snooze` (read) | every 3rd poll | Sense Guard | Snooze status; HTTP 404 = no active snooze |
 | `/command` (`get_current_measurement`) | every 3rd poll | Blue | Triggers fresh measurement on device |
 | `/details` (verify) | up to 3× after refresh | Blue | Background poll for fresh data (10 s intervals, max 30 s) |
 | `/details` (config) | every 10th poll | Sense Guard | Sprinkler schedule, withdrawal limit; always on first poll |

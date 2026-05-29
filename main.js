@@ -569,6 +569,20 @@ class GroheSmarthome extends utils.Adapter {
 			} catch (err) {
 				this.log.warn(`Command query for ${id} failed: ${err.message}`);
 			}
+
+			// Snooze status (every 3rd poll – snooze is temporary, changes after start/stop)
+			try {
+				const snooze = await this.client.getSnooze(locationId, roomId, id);
+				const isActive = !!(snooze && (snooze.snooze_active || snooze.snooze_duration));
+				await this._setBool(`${id}.controls.snooze`, 'active', 'Snooze active', 'indicator', isActive);
+			} catch (err) {
+				if (err?.response?.status === 404) {
+					// 404 = no active snooze
+					await this._setBool(`${id}.controls.snooze`, 'active', 'Snooze active', 'indicator', false);
+				} else {
+					this.log.debug(`Snooze query for ${id} failed: ${err.message}`);
+				}
+			}
 		}
 
 		// Pressure measurement results (every 10th poll – only changes after manual trigger)
@@ -644,6 +658,7 @@ class GroheSmarthome extends utils.Adapter {
 		});
 		await this._ensureWritableBool(`${id}.controls.snooze`, 'start', 'Start snooze', 'button');
 		await this._ensureWritableBool(`${id}.controls.snooze`, 'stop', 'Stop snooze', 'button');
+		await this._setBool(`${id}.controls.snooze`, 'active', 'Snooze active', 'indicator', false);
 
 		// Sprinkler sub-channel inside controls – states always present; values refreshed every 10th poll
 		const sprinklerDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -1118,6 +1133,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
 				await this.client.setSnooze(locationId, roomId, applianceId, duration);
 				await this.setState(stateId, { val: false, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, { val: true, ack: true });
 				return;
 			}
 			// Sense Guard: stop snooze
@@ -1125,6 +1141,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Stopping snooze for ${applianceId}`);
 				await this.client.deleteSnooze(locationId, roomId, applianceId);
 				await this.setState(stateId, { val: false, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, { val: false, ack: true });
 				return;
 			}
 			// Sense Guard: withdrawal amount limit

@@ -103,7 +103,7 @@ Der **Steuerungs**-Tab ist für Grohe Sense Guard und Grohe Blue verfügbar. Die
 |---|---|
 | **Ventilsteuerung** | Ventil öffnen (Button), Ventil schließen (Button) |
 | **Druckmessung** | Starten (Button) – *Ventil muss geschlossen sein (siehe Hinweis)* |
-| **Snooze** | Dauer-Eingabe (1–240 min), Snooze starten (Button), Snooze beenden (Button) |
+| **Snooze** | Aktiv-Anzeige (nur lesen), Dauer-Eingabe (1–240 min), Snooze starten (Button), Snooze beenden (Button) |
 | **Wasserlimits** | Entnahmelimit-Eingabe (0–2000 l) |
 | **Bewässerungsmodus** | Startzeit (Std + min), Stoppzeit (Std + min), Aktive Tage (Mo–So), Speichern (Button) |
 
@@ -221,10 +221,13 @@ Steuerungen sind im **Steuerungs-Tab** der Device-Manager-Detailansicht und als 
 **Snooze** – Alarme vorübergehend deaktivieren:
 
 ```
+<applianceId>.controls.snooze.active     boolean (nur lesen) – Snooze aktuell aktiv
 <applianceId>.controls.snooze.duration   number  1–240 min
 <applianceId>.controls.snooze.start      boolean button – aktiviert Snooze für die eingestellte Dauer
 <applianceId>.controls.snooze.stop       boolean button – deaktiviert Snooze sofort
 ```
+
+Der `active`-State wird jeden 3. Poll aus der Grohe-API gelesen und nach Starten/Stoppen sofort aktualisiert.
 
 **Wasserlimits:**
 
@@ -318,6 +321,7 @@ Um API-Aufrufe zu minimieren und Rate-Limiting (HTTP 403) zu vermeiden, werden v
 | `/dashboard` | jeder Poll | Alle | Kern-Sensordaten |
 | `/status` | jeder 5. Poll | Alle | Online- / WLAN- / Update-Status ändert sich selten |
 | `/command` (lesen) | jeder 3. Poll | Sense Guard | Ventilzustand; wird nach Befehlen sofort zurückgelesen |
+| `/snooze` (lesen) | jeder 3. Poll | Sense Guard | Snooze-Status; HTTP 404 = kein aktiver Snooze |
 | `/command` (`get_current_measurement`) | jeder 3. Poll | Blue | Löst frische Messung am Gerät aus |
 | `/details` (Verifizierung) | bis zu 3× nach Refresh | Blue | Hintergrund-Abfrage ob neue Daten ankamen (10-s-Intervall, max. 30 s) |
 | `/details` (Konfiguration) | jeder 10. Poll | Sense Guard | Bewässerungsplan, Entnahmelimit; immer beim ersten Poll |
