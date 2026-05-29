@@ -1133,7 +1133,10 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
 				await this.client.setSnooze(locationId, roomId, applianceId, duration);
 				await this.setState(stateId, { val: false, ack: true });
-				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, { val: true, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, {
+					val: true,
+					ack: true,
+				});
 				return;
 			}
 			// Sense Guard: stop snooze
@@ -1141,7 +1144,10 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Stopping snooze for ${applianceId}`);
 				await this.client.deleteSnooze(locationId, roomId, applianceId);
 				await this.setState(stateId, { val: false, ack: true });
-				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, { val: false, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, {
+					val: false,
+					ack: true,
+				});
 				return;
 			}
 			// Sense Guard: withdrawal amount limit
