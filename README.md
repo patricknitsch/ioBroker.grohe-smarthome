@@ -44,6 +44,8 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 * (copilot) Fixes Repo Checker
 * (copilot) Change Raw-States to Bump Funktion for Debugging(see Doc.)
 * (copilot) Fixes Problems Error 404
+* (copilot) New functions for Grohe with Snooze, Withdrawal and Sprinkler
+* (copilot) Extend Documentation
 
 ### 0.5.4 (2026-05-23)
 * (copilot) Add latest Message for Notifications
