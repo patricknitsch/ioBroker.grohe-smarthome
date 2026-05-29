@@ -632,7 +632,11 @@ class GroheSmarthome extends utils.Adapter {
 			'Start pressure measurement',
 			'button',
 		);
-		await this._ensureWritableNum(`${id}.controls`, 'snoozeDuration', 'Snooze duration', 'value', 5);
+		await this._ensureWritableNum(`${id}.controls`, 'snoozeDuration', 'Snooze duration (min)', 'value', 5, {
+			min: 1,
+			max: 240,
+			unit: 'min',
+		});
 		await this._ensureWritableBool(`${id}.controls`, 'snoozeStart', 'Start snooze', 'button');
 		await this._ensureWritableBool(`${id}.controls`, 'snoozeStop', 'Stop snooze', 'button');
 
@@ -1020,7 +1024,7 @@ class GroheSmarthome extends utils.Adapter {
 			// Sense Guard: start snooze
 			if (tail === 'controls.snoozeStart' && state.val) {
 				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.snoozeDuration`);
-				const duration = Math.max(1, Number(durState?.val ?? 5));
+				const duration = Math.min(240, Math.max(1, Number(durState?.val ?? 5)));
 				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
 				await this.client.setSnooze(locationId, roomId, applianceId, duration);
 				await this.setState(stateId, { val: false, ack: true });
@@ -1320,9 +1324,9 @@ class GroheSmarthome extends utils.Adapter {
 		await this.subscribeStatesAsync(sid);
 	}
 
-	async _ensureWritableNum(devId, name, label, role, def) {
+	async _ensureWritableNum(devId, name, label, role, def, options = {}) {
 		const sid = `${devId}.${name}`;
-		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: true, def });
+		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: true, def, ...options });
 		await this.subscribeStatesAsync(sid);
 	}
 
