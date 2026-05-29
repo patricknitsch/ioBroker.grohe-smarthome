@@ -1148,7 +1148,13 @@ class GroheSmarthome extends utils.Adapter {
 			// Sense Guard: stop snooze
 			if (tail === 'controls.snooze.stop' && state.val) {
 				this.log.info(`Stopping snooze for ${applianceId}`);
-				await this.client.deleteSnooze(locationId, roomId, applianceId);
+				try {
+					await this.client.deleteSnooze(locationId, roomId, applianceId);
+				} catch (err) {
+					if (err?.response?.status !== 404) {
+						throw err;
+					}
+				}
 				await this.setState(stateId, { val: false, ack: true });
 				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, {
 					val: false,
