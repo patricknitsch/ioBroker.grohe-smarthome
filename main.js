@@ -5,7 +5,11 @@ const utils = require('@iobroker/adapter-core');
 const GroheClient = require('./lib/groheClient');
 const { GroheDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
-const { getNotificationMessage, getLocalizedNotificationType } = require('./lib/notificationMessages');
+const {
+	getNotificationMessage,
+	getLocalizedNotificationType,
+	getLocalizedCategoryName,
+} = require('./lib/notificationMessages');
 const { dumpApiStructure } = require('./lib/apiDump');
 
 // Device type constants (same as GroheTypes in Python grohe package)
@@ -13,88 +17,6 @@ const GROHE_SENSE = 101;
 const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
-
-const NOTIFICATION_CATEGORIES = {
-	0: 'Advertisement',
-	10: 'Information',
-	20: 'Warning',
-	30: 'Alarm',
-	40: 'WebURL',
-};
-
-/**
- * Notification type lookup – maps (category, type) to human-readable text.
- * The Grohe API does NOT return message text; all clients build it client-side.
- * Source: ha-grohe_smarthome notifications.yaml
- */
-const NOTIFICATION_TYPES = {
-	// Information (10)
-	'10_10': 'Installation successful',
-	'10_60': 'Firmware update available',
-	'10_100': 'System information',
-	'10_410': 'Installation of Sense Guard successful',
-	'10_460': 'Firmware update of Sense Guard available',
-	'10_555': 'Blue: auto flush active',
-	'10_556': 'Blue: auto flush inactive',
-	'10_557': 'Cartridge empty',
-	'10_559': 'Cleaning complete',
-	'10_560': 'Firmware update for Blue available',
-	'10_561': 'Order fully shipped',
-	'10_563': 'Order fully delivered',
-	'10_566': 'Order partially shipped',
-	'10_601': 'Nest away mode automatic control off',
-	'10_602': 'Nest home mode automatic control off',
-	'10_605': 'Connect with your insurer',
-	'10_606': 'Device deactivated',
-	// Warning (20)
-	'20_11': 'Battery is at critical level',
-	'20_12': 'Battery is empty and must be changed',
-	'20_20': 'Temperature below minimum limit',
-	'20_21': 'Temperature above maximum limit',
-	'20_30': 'Humidity below minimum limit',
-	'20_31': 'Humidity above maximum limit',
-	'20_40': 'Frost warning',
-	'20_80': 'Sense lost WiFi',
-	'20_320': 'Unusual water consumption – water SHUT OFF',
-	'20_321': 'Unusual water consumption – water still ON',
-	'20_330': 'Pressure drop detected during pipe check',
-	'20_332': 'Water system check not possible',
-	'20_380': 'Sense Guard lost WiFi',
-	'20_381': 'Water pressure drops detected',
-	'20_383': 'Potential leak detected',
-	'20_385': 'Water pressure drops detected – severity increased',
-	'20_420': 'Multiple pressure drops – water supply switched off',
-	'20_421': 'Multiple water pressure drops detected',
-	'20_550': 'Blue filter low',
-	'20_551': 'Blue CO₂ low',
-	'20_552': 'Blue empty filter',
-	'20_553': 'Blue empty CO₂',
-	'20_558': 'Cleaning needed',
-	'20_564': 'Filter stock empty',
-	'20_565': 'CO₂ stock empty',
-	'20_580': 'Blue no connection',
-	'20_603': 'Sense Guard did not respond – valve open',
-	'20_604': 'Sense Guard did not respond – valve closed',
-	// Alarm (30)
-	'30_0': 'Flooding detected – water SHUT OFF',
-	'30_50': 'Sensor error',
-	'30_90': 'System error',
-	'30_100': 'System error',
-	'30_101': 'RTC error',
-	'30_102': 'Acceleration sensor error',
-	'30_103': 'System out of service',
-	'30_104': 'System memory error',
-	'30_105': 'System relative temperature error',
-	'30_106': 'Water detection error',
-	'30_107': 'Button error',
-	'30_310': 'Extremely high flow rate – water supply switched off',
-	'30_390': 'System error',
-	'30_400': 'Maximum volume reached – water supply switched off',
-	'30_430': 'Water detected by Sense – water supply switched off',
-	'30_431': 'Water detected by Sense',
-	// WebURL (40)
-	'40_1': 'Web URL',
-};
 
 class GroheSmarthome extends utils.Adapter {
 	/** @param {Partial<utils.AdapterOptions>} [options] Adapter options */
@@ -276,10 +198,11 @@ class GroheSmarthome extends utils.Adapter {
 		const fetchCommand = isFirstPoll || this.pollCount % 3 === 0;
 		const fetchPressure = isFirstPoll || this.pollCount % 10 === 0;
 		const fetchConsumption = isFirstPoll || this.pollCount % 5 === 0;
+		const fetchConfig = isFirstPoll || this.pollCount % 10 === 0;
 
 		this.log.debug(
 			`Poll cycle #${this.pollCount} (status=${fetchStatus}, command=${fetchCommand}, ` +
-				`pressure=${fetchPressure}, consumption=${fetchConsumption})`,
+				`pressure=${fetchPressure}, consumption=${fetchConsumption}, config=${fetchConfig})`,
 		);
 
 		try {
@@ -348,6 +271,7 @@ class GroheSmarthome extends utils.Adapter {
 							fetchCommand,
 							fetchPressure,
 							fetchConsumption,
+							fetchConfig,
 						});
 					}
 				}
@@ -566,6 +490,20 @@ class GroheSmarthome extends utils.Adapter {
 			} catch (err) {
 				this.log.warn(`Command query for ${id} failed: ${err.message}`);
 			}
+
+			// Snooze status (every 3rd poll – snooze is temporary, changes after start/stop)
+			try {
+				const snooze = await this.client.getSnooze(locationId, roomId, id);
+				const isActive = !!(snooze && (snooze.snooze_active || snooze.snooze_duration));
+				await this._setBool(`${id}.controls.snooze`, 'active', 'Snooze active', 'indicator', isActive);
+			} catch (err) {
+				if (err?.response?.status === 404) {
+					// 404 = no active snooze
+					await this._setBool(`${id}.controls.snooze`, 'active', 'Snooze active', 'indicator', false);
+				} else {
+					this.log.debug(`Snooze query for ${id} failed: ${err.message}`);
+				}
+			}
 		}
 
 		// Pressure measurement results (every 10th poll – only changes after manual trigger)
@@ -631,6 +569,104 @@ class GroheSmarthome extends utils.Adapter {
 			'Start pressure measurement',
 			'button',
 		);
+
+		// Snooze sub-channel inside controls
+		await this._ensureChannel(`${id}.controls.snooze`, 'Snooze');
+		await this._ensureWritableNum(`${id}.controls.snooze`, 'duration', 'Snooze duration', 'value', 5, {
+			min: 1,
+			max: 240,
+			unit: 'min',
+		});
+		await this._ensureWritableBool(`${id}.controls.snooze`, 'start', 'Start snooze', 'button');
+		await this._ensureWritableBool(`${id}.controls.snooze`, 'stop', 'Stop snooze', 'button');
+		await this._ensureState(`${id}.controls.snooze.active`, {
+			name: 'Snooze active',
+			type: 'boolean',
+			role: 'indicator',
+			read: true,
+			write: false,
+		});
+
+		// Sprinkler sub-channel inside controls – states always present; values refreshed every 10th poll
+		const sprinklerDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+		await this._ensureChannel(`${id}.controls.sprinkler`, 'Sprinkler mode');
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'startHour', 'Start time – hours', 'value', 0, {
+			min: 0,
+			max: 23,
+			unit: 'h',
+		});
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'startMinute', 'Start time – minutes', 'value', 0, {
+			min: 0,
+			max: 59,
+			unit: 'min',
+		});
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'stopHour', 'Stop time – hours', 'value', 23, {
+			min: 0,
+			max: 23,
+			unit: 'h',
+		});
+		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'stopMinute', 'Stop time – minutes', 'value', 59, {
+			min: 0,
+			max: 59,
+			unit: 'min',
+		});
+		for (const day of sprinklerDays) {
+			const cap = day.charAt(0).toUpperCase() + day.slice(1);
+			await this._ensureWritableBool(`${id}.controls.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
+		}
+		await this._ensureWritableBool(`${id}.controls.sprinkler`, 'save', 'Save sprinkler settings', 'button');
+		await this._ensureWritableNum(
+			`${id}.controls`,
+			'withdrawalAmountLimit',
+			'Withdrawal amount limit',
+			'value',
+			300,
+			{ min: 0, max: 2000, unit: 'l' },
+		);
+
+		if (flags.fetchConfig && this.client) {
+			try {
+				const details = await this.client.getApplianceDetails(locationId, roomId, id);
+				const cfg = details?.config || {};
+				if (cfg.sprinkler_mode_start_time !== undefined) {
+					const totalMin = Number(cfg.sprinkler_mode_start_time);
+					await this.setState(`${id}.controls.sprinkler.startHour`, {
+						val: Math.floor(totalMin / 60),
+						ack: true,
+					});
+					await this.setState(`${id}.controls.sprinkler.startMinute`, {
+						val: totalMin % 60,
+						ack: true,
+					});
+				}
+				if (cfg.sprinkler_mode_stop_time !== undefined) {
+					const totalMin = Number(cfg.sprinkler_mode_stop_time);
+					await this.setState(`${id}.controls.sprinkler.stopHour`, {
+						val: Math.floor(totalMin / 60),
+						ack: true,
+					});
+					await this.setState(`${id}.controls.sprinkler.stopMinute`, {
+						val: totalMin % 60,
+						ack: true,
+					});
+				}
+				for (const day of sprinklerDays) {
+					const cap = day.charAt(0).toUpperCase() + day.slice(1);
+					const apiVal = cfg[`sprinkler_mode_active_${day}`];
+					if (apiVal !== undefined) {
+						await this.setState(`${id}.controls.sprinkler.active${cap}`, { val: !!apiVal, ack: true });
+					}
+				}
+				if (cfg.withdrawel_amount_limit !== undefined) {
+					await this.setState(`${id}.controls.withdrawalAmountLimit`, {
+						val: Number(cfg.withdrawel_amount_limit),
+						ack: true,
+					});
+				}
+			} catch (err) {
+				this.log.warn(`Config query for ${id} failed: ${err.message}`);
+			}
+		}
 
 		// Raw measurement data (optional)
 	}
@@ -905,14 +941,13 @@ class GroheSmarthome extends utils.Adapter {
 		const latest = notifications[0];
 		const cat = latest.category;
 		const type = latest.type ?? latest.notification_type;
-		const catName = NOTIFICATION_CATEGORIES[cat] || `Category ${cat}`;
 
-		// Look up the human-readable notification text from the type map.
+		// Look up the human-readable notification text in the system language.
 		// The Grohe API does not return message text – all clients build it locally.
-		const key = `${cat}_${type}`;
-		const typeText = NOTIFICATION_TYPES[key] || `Unknown (${key})`;
+		const typeText = getLocalizedNotificationType(this, cat, type);
+		const catName = getLocalizedCategoryName(this, cat);
 
-		this.log.debug(`Notification for ${id}: category=${cat}, type=${type}, key=${key}, text=${typeText}`);
+		this.log.debug(`Notification for ${id}: category=${cat}, type=${type}, text=${typeText}`);
 
 		await this._ensureChannel(`${id}.notifications`, 'Notifications');
 		await this._setStr(`${id}.notifications`, 'latestMessage', 'Latest notification message', 'text', typeText);
@@ -934,14 +969,13 @@ class GroheSmarthome extends utils.Adapter {
 				if (shouldNotify) {
 					const dev = this.devices.get(id);
 					const devName = dev?.name || id;
-					const localText = getLocalizedNotificationType(this, cat, type);
 
 					if (cat === 30 && this.config.notifyOnAlarms) {
 						const prefix = getNotificationMessage(this, 'alarmPrefix');
-						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
+						await sendNotification(this, `${prefix} – ${devName}: ${typeText}`);
 					} else if (cat === 20 && this.config.notifyOnWarnings) {
 						const prefix = getNotificationMessage(this, 'warningPrefix');
-						await sendNotification(this, `${prefix} – ${devName}: ${localText}`);
+						await sendNotification(this, `${prefix} – ${devName}: ${typeText}`);
 					} else if (this.config.notifyOnWarnings) {
 						await sendNotification(
 							this,
@@ -1011,6 +1045,99 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.info(`Starting pressure measurement for ${applianceId}`);
 				await this.client.startPressureMeasurement(locationId, roomId, applianceId);
 				await this.setState(stateId, { val: false, ack: true });
+				return;
+			}
+			// Ignore legacy state paths from earlier adapter versions
+			if (tail.startsWith('snooze.') || tail.startsWith('sprinkler.')) {
+				return;
+			}
+			// Sense Guard: start snooze
+			if (tail === 'controls.snooze.start' && state.val) {
+				const durState = await this.getStateAsync(`${this.namespace}.${applianceId}.controls.snooze.duration`);
+				const requestedDuration = Number(durState?.val ?? 5);
+				const duration = Number.isFinite(requestedDuration) ? Math.min(240, Math.max(1, requestedDuration)) : 5;
+				this.log.info(`Starting snooze (${duration} min) for ${applianceId}`);
+				await this.client.setSnooze(locationId, roomId, applianceId, duration);
+				await this.setState(stateId, { val: false, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, {
+					val: true,
+					ack: true,
+				});
+				return;
+			}
+			// Sense Guard: stop snooze
+			if (tail === 'controls.snooze.stop' && state.val) {
+				this.log.info(`Stopping snooze for ${applianceId}`);
+				try {
+					await this.client.deleteSnooze(locationId, roomId, applianceId);
+				} catch (err) {
+					if (err?.response?.status !== 404) {
+						throw err;
+					}
+				}
+				await this.setState(stateId, { val: false, ack: true });
+				await this.setState(`${this.namespace}.${applianceId}.controls.snooze.active`, {
+					val: false,
+					ack: true,
+				});
+				return;
+			}
+			// Sense Guard: withdrawal amount limit
+			if (tail === 'controls.withdrawalAmountLimit') {
+				const requestedLimit = Number(state.val);
+				const val = Number.isFinite(requestedLimit) ? Math.min(2000, Math.max(0, requestedLimit)) : 300;
+				this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
+				await this.client.setApplianceConfig(locationId, roomId, applianceId, {
+					withdrawel_amount_limit: val,
+				});
+				await this.setState(stateId, { val, ack: true });
+				return;
+			}
+			// Sense Guard: sprinkler – save button sends all values in one call
+			if (tail === 'controls.sprinkler.save' && state.val) {
+				const base = `${this.namespace}.${applianceId}.controls.sprinkler`;
+				const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+				const startH = await this.getStateAsync(`${base}.startHour`);
+				const startM = await this.getStateAsync(`${base}.startMinute`);
+				const stopH = await this.getStateAsync(`${base}.stopHour`);
+				const stopM = await this.getStateAsync(`${base}.stopMinute`);
+				const startHour = Number(startH?.val ?? 0);
+				const startMinute = Number(startM?.val ?? 0);
+				const stopHour = Number(stopH?.val ?? 23);
+				const stopMinute = Number(stopM?.val ?? 59);
+				const startTime = Math.min(
+					1439,
+					Math.max(
+						0,
+						(Number.isFinite(startHour) ? startHour : 0) * 60 +
+							(Number.isFinite(startMinute) ? startMinute : 0),
+					),
+				);
+				const stopTime = Math.min(
+					1439,
+					Math.max(
+						0,
+						(Number.isFinite(stopHour) ? stopHour : 23) * 60 +
+							(Number.isFinite(stopMinute) ? stopMinute : 59),
+					),
+				);
+				const configFields = {
+					sprinkler_mode_start_time: startTime,
+					sprinkler_mode_stop_time: stopTime,
+				};
+				for (const day of days) {
+					const cap = day.charAt(0).toUpperCase() + day.slice(1);
+					const daySt = await this.getStateAsync(`${base}.active${cap}`);
+					configFields[`sprinkler_mode_active_${day}`] = !!daySt?.val;
+				}
+				this.log.info(`Saving sprinkler settings for ${applianceId}`);
+				await this.client.setApplianceConfig(locationId, roomId, applianceId, configFields);
+				await this.setState(stateId, { val: false, ack: true });
+				return;
+			}
+			// Sense Guard: sprinkler field changed – acknowledge locally, no API call
+			if (tail.startsWith('controls.sprinkler.')) {
+				await this.setState(stateId, { val: state.val, ack: true });
 				return;
 			}
 			// Blue: dispense trigger
@@ -1238,17 +1365,12 @@ class GroheSmarthome extends utils.Adapter {
 				native: { type },
 			});
 		} else if (!obj.common?.icon || !obj.common?.statusStates?.onlineId) {
-			await this.setObject(
-				id,
-				/** @type {any} */ ({
-					...obj,
-					common: {
-						...(obj.common || {}),
-						icon,
-						statusStates: { onlineId },
-					},
-				}),
-			);
+			await this.extendObjectAsync(id, {
+				common: {
+					icon,
+					statusStates: { onlineId },
+				},
+			});
 		}
 	}
 
@@ -1260,10 +1382,7 @@ class GroheSmarthome extends utils.Adapter {
 	}
 
 	async _ensureState(id, common) {
-		const obj = await this.getObjectAsync(id);
-		if (!obj) {
-			await this.setObject(id, { type: 'state', common, native: {} });
-		}
+		await this.extendObjectAsync(id, { type: 'state', common, native: {} });
 	}
 
 	async _setNum(devId, name, label, unit, role, value) {
@@ -1300,9 +1419,9 @@ class GroheSmarthome extends utils.Adapter {
 		await this.subscribeStatesAsync(sid);
 	}
 
-	async _ensureWritableNum(devId, name, label, role, def) {
+	async _ensureWritableNum(devId, name, label, role, def, options = {}) {
 		const sid = `${devId}.${name}`;
-		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: true, def });
+		await this._ensureState(sid, { name: label, type: 'number', role, read: true, write: true, def, ...options });
 		await this.subscribeStatesAsync(sid);
 	}
 

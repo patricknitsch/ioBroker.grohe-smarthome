@@ -1,142 +1,128 @@
 # ioBroker Grohe Smarthome Adapter
 
-This adapter connects ioBroker to the **Grohe Smarthome / Ondus** cloud and exposes Grohe devices as states (and some controls) inside ioBroker.
+This adapter connects ioBroker to the **Grohe Smarthome / Ondus** cloud and exposes Grohe devices as states and controls inside ioBroker.
 
-It supports:
+Supported devices:
 
-- **Grohe Sense** (type `101`)
-- **Grohe Sense Guard** (type `103`)
-- **Grohe Blue Home** (type `104`)
-- **Grohe Blue Professional** (type `105`)
+| Device | Type |
+|---|---|
+| **Grohe Sense** | `101` |
+| **Grohe Sense Guard** | `103` |
+| **Grohe Blue Home** | `104` |
+| **Grohe Blue Professional** | `105` |
 
-The adapter logs in via Grohe’s OIDC/Keycloak flow, stores a **refresh token encrypted** in a state, and polls the Grohe cloud API on a configurable interval.
+The adapter logs in via Grohe's OIDC/Keycloak flow, stores a **refresh token encrypted** in a state, and polls the Grohe cloud API on a configurable interval.
 
----
-
-## Device Manager
-
-The adapter uses the ioBroker **Device Manager** and no longer provides `admin/tab.html`.
-
-Select a registered Grohe appliance in the Device Manager to open its **device tile**.
-
-### Tile contents per device type
-
-| Device type | Status icons | Tile values |
-|---|---|---|
-| **Grohe Sense** | Online, WiFi quality, Battery | Temperature, Humidity, Battery |
-| **Grohe Sense Guard** | Online, WiFi quality, Valve status | Water temperature, Flow rate, Pressure, Daily consumption, Open / close valve |
-| **Grohe Blue** | Online, WiFi quality | CO₂ remaining, Filter remaining, Last measurement |
-
-### Details tabs
-
-Each device offers two detail tabs when clicking the tile:
-
-- **Info**: general information (appliance ID, type, Online Yes/No, Update available Yes/No, WiFi quality, latest notification + timestamp) and device-specific measurements
-- **Controls**: write actions and input fields (not shown for Grohe Sense)
-
-Control actions:
-
-- **Grohe Sense Guard**: Open/close valve, start pressure measurement
-- **Grohe Blue Home / Professional**: Tap type (still/medium/carbonated), amount (ml), dispense, reset CO₂, reset filter
-
-Grohe Sense has no write controls (no Controls tab).
-
----
-
-## Features
-
-- Cloud login with **email/password** (initial) and automatic **token refresh**
-- Refresh token is persisted **encrypted** in `grohe-smarthome.0.auth.refreshToken`
-- Periodic polling of the Grohe dashboard:
-  - discovers locations → rooms → appliances
-  - creates ioBroker devices/channels/states automatically
-- Device data exposed as readable states (measurements, status, notifications)
-- **Controls** (writable states) for:
-  - Sense Guard valve open/close
-  - Sense Guard start pressure measurement
-  - Grohe Blue dispensing + CO₂/filter resets
-- Optional **raw states** mode: dumps the complete API structure to the log for diagnostics (polling stops after 3 cycles)
+Ideas and concept came from the Home Assistant integration **ha-grohe_smarthome**. Special thanks to **Flo-Schilli**.
 
 ---
 
 ## Configuration
 
-The adapter configuration is split into two tabs:
+The adapter configuration is split into two tabs.
 
 ### Settings tab
 
-- **Email**: your Grohe/Ondus account email
-- **Password**: your Grohe/Ondus account password
-- **Poll interval (seconds)**: polling interval in seconds  
-  - minimum is **60 seconds**
-  - default fallback is **300 seconds**
-- **Raw states** (`rawStates`): if enabled, the adapter performs a full API structure dump to the log for diagnostics. Polling stops after 3 cycles – disable the option and restart for normal operation.
+| Setting | Description |
+|---|---|
+| **Email** | Your Grohe / Ondus account email |
+| **Password** | Your Grohe / Ondus account password |
+| **Poll interval (seconds)** | Polling interval – minimum **60 s**, default **300 s** |
+| **Raw states** | Dumps the complete API response structure to the log for diagnostics. Polling stops after 3 cycles. Disable and restart for normal operation. |
 
-> Note: The adapter does **not** store the refresh token in the config because writing the config triggers an instance restart. Instead it is stored in a state (`auth.refreshToken`) and encrypted using ioBroker’s built-in encryption helpers.
+> The adapter stores the refresh token in the state `auth.refreshToken` (encrypted), **not** in the config. Writing the config would trigger a restart and break the token flow.
 
 ### Notifications tab
 
-Enable push notifications to be informed about device events. All messages are sent in the language configured in your ioBroker system.
+Enable push notifications to be informed about device events. Messages are sent in the language configured in your ioBroker system.
 
 #### Notification categories
 
 | # | Category | Examples |
 |---|---|---|
-| 1 | **Critical alerts** | Flooding detected, sensor errors, system errors |
-| 2 | **Warnings** | Battery low, temperature/humidity out of range, WiFi lost, device online/offline, Blue filter/CO₂ low, `latestMessage` on `latestTimestamp` changes |
-| 3 | **Valve & control events** | Valve opened/closed, water dispense |
+| 1 | **Critical alarms** | Flooding detected, sensor errors, system errors |
+| 2 | **Warnings** | Battery low, temperature / humidity out of range, WiFi lost, device online / offline, Blue filter / CO₂ low |
+| 3 | **Valve & control events** | Valve opened / closed, water dispense |
 | 4 | **Connection errors** | HTTP polling failures (e.g. HTTP 403), sent on every failure |
 
-#### Notification message icons
+#### Notification icons
 
-Each notification message is prefixed with an emoji icon for quick identification:
-
-| Icon | Message |
+| Icon | Meaning |
 |---|---|
-| 🚨 | Critical alarm (prefix for category 30 notifications) |
-| ⚠️ | Warning (prefix for category 20 notifications), device offline, polling error |
-| ✅ | Device online, polling connection restored |
+| 🚨 | Critical alarm (Grohe category 30) |
+| ⚠️ | Warning (Grohe category 20), device offline, polling error |
+| ✅ | Device online, polling recovered |
 | 🔓 | Valve opened |
 | 🔒 | Valve closed |
 | 💧 | Water dispensed |
-| ℹ️ | Latest message changed (latestTimestamp change) |
-
-> Note: Connection errors (category 4) are sent on every individual polling failure, not only the first one. This can be noisy if the API is consistently unreachable. Consider increasing the poll interval if you receive too many such notifications.
-
-> Note on `latestMessage` (included in category 2 “Warnings”): If “Warnings” is enabled, the adapter sends a ℹ️ message whenever `latestTimestamp` changes, using the current `latestMessage` text. To avoid duplicate notifications, the ℹ️ message is **only** sent if the notification was not already sent as a 🚨 critical alarm (category 30) or ⚠️ warning (category 20). On the first poll after adapter start, the existing value is only used as baseline (to avoid flooding old messages). If a device has no notification initially and receives its first one later, this change is notified.
+| ℹ️ | Latest notification message changed |
 
 #### Supported providers
 
-For each provider, select the adapter instance (e.g. `telegram.0`) from the dropdown in the configuration.
-
-| Provider | Required configuration |
+| Provider | Notes |
 |---|---|
-| **Telegram** | Instance; optionally: user or chat ID |
-| **Pushover** | Instance; optionally: title, device |
-| **WhatsApp** (`whatsapp-cmb`) | Instance; optionally: phone number |
-| **Email** | Instance; optionally: recipient address, subject |
-| **Signal** (`signal-cmb`) | Instance; optionally: phone number |
+| **Telegram** | Instance; optionally user or chat ID |
+| **Pushover** | Instance; optionally title, device |
+| **WhatsApp** (`whatsapp-cmb`) | Instance; optionally phone number |
+| **Email** | Instance; optionally recipient, subject |
+| **Signal** (`signal-cmb`) | Instance; optionally phone number |
 | **Matrix** (`matrix-org`) | Instance |
 | **Synology Chat** | Instance; channel name (required) |
 
 ---
 
-## Authentication and Token Handling
+## Device Manager
 
-On startup:
+The adapter integrates with the ioBroker **Device Manager**. Select a registered Grohe device to open its tile.
 
-1. The adapter reads the stored refresh token from `auth.refreshToken`.
-2. If available, it tries to refresh tokens.
-3. If refresh fails or no token exists, it performs a full login with email/password.
-4. The obtained refresh token is stored **encrypted** (`enc:<...>`) in `auth.refreshToken`.
+### Device tile
 
-If an old (unencrypted) token is found, the adapter automatically migrates it to encrypted storage.
+Each tile shows live status indicators and key measurements at a glance.
 
-The HTTP client automatically retries requests once if it receives **401 Unauthorized** (refresh + retry).
+| Device | Status indicators | Tile values |
+|---|---|---|
+| **Grohe Sense** | Online, WiFi quality, Battery | Temperature, Humidity, Battery |
+| **Grohe Sense Guard** | Online, WiFi quality, Valve warning | Water temperature, Flow rate, Pressure, Daily consumption, Open / close valve |
+| **Grohe Blue** | Online, WiFi quality | CO₂ remaining, Filter remaining, Last measurement |
+
+### Detail view (Info tab)
+
+Click the tile to open the detail view. The **Info** tab shows:
+
+- Appliance ID, device type, online status, update available, WiFi quality
+- Latest notification message and timestamp
+- Device-specific measurements (see per-device sections below)
+
+### Detail view (Controls tab)
+
+The **Controls** tab is available for Grohe Sense Guard and Grohe Blue devices. It is organized in function groups, each separated by a divider.
+
+**Grohe Sense Guard – Controls tab:**
+
+| Group | Controls |
+|---|---|
+| **Valve control** | Open valve button, Close valve button |
+| **Pressure measurement** | Start button *(valve must be closed – see note below)* |
+| **Snooze** | Active indicator (read-only), Duration input (1–240 min), Start snooze button, Stop snooze button |
+| **Water limits** | Withdrawal amount limit input (0–2000 l) |
+| **Sprinkler mode** | Start time (h + min), Stop time (h + min), Active days (Mon–Sun), Save button |
+
+> **Note on pressure measurement:** The pipe check (Leitungscheck) is performed automatically by the device – typically overnight when no water is flowing. Pressing the start button sends the `measure_now` command, which the device will only execute when the **valve is closed** and no water is flowing. The results are always shown in the `pressureMeasurement.*` states regardless of whether the test was triggered manually or automatically.
+
+> **Note on sprinkler settings:** Changes to individual sprinkler fields (times, day switches) are acknowledged locally but **not** sent to the API immediately. Press **Save sprinkler settings** to send all values in a single API call. This avoids triggering 7+ API calls when toggling weekdays one by one.
+
+> **Note on withdrawal amount limit and sprinkler settings:** These values are read from the Grohe API every 10th poll cycle (~50 minutes at 300 s interval, always on first poll). Changes made in the Grohe app will be reflected in ioBroker within that window.
+
+**Grohe Blue Home / Professional – Controls tab:**
+
+| Group | Controls |
+|---|---|
+| **Dispense** | Tap type (Still / Medium / Carbonated), Amount (ml), Dispense button |
+| **Service** | Reset CO₂ button, Reset filter button |
 
 ---
 
-## Device Structure in ioBroker
+## ioBroker State Structure
 
 Devices are created under the adapter namespace:
 
@@ -144,121 +130,164 @@ Devices are created under the adapter namespace:
 grohe-smarthome.0.<applianceId>.*
 ```
 
-Each appliance becomes a **device object**, with additional channels depending on type.
-
-### Common states for all devices
-
-#### Status channel
+### States common to all devices
 
 ```
-<applianceId>.status.online                (boolean)
-<applianceId>.status.updateAvailable       (boolean)
-<applianceId>.status.wifiQuality           (number, if available)
+<applianceId>.status.online                 boolean
+<applianceId>.status.updateAvailable        boolean
+<applianceId>.status.wifiQuality            number (if available)
+
+<applianceId>.notifications.latestMessage       string
+<applianceId>.notifications.latestTimestamp     string (date)
+<applianceId>.notifications.latestCategory      number
+<applianceId>.notifications.latestCategoryName  string
+<applianceId>.notifications.latestType          number
 ```
 
-#### Notifications channel (latest entry)
-
-```
-<applianceId>.notifications.latestMessage       (string)
-<applianceId>.notifications.latestTimestamp     (string/date)
-<applianceId>.notifications.latestCategory      (number)
-<applianceId>.notifications.latestCategoryName  (string)
-<applianceId>.notifications.latestType          (number)
-```
-
-Notification categories are mapped like:
-
-- `0` Advertisement
-- `10` Information
-- `20` Warning
-- `30` Alarm
-- `40` WebURL
+Grohe notification categories: `0` Advertisement · `10` Information · `20` Warning · `30` Alarm · `40` WebURL
 
 ---
 
 ## Grohe Sense (type 101)
 
-States:
+### Measurements
 
 ```
-<applianceId>.temperature        (°C)
-<applianceId>.humidity           (%)
-<applianceId>.battery            (%)
-<applianceId>.lastMeasurement    (date string)
+<applianceId>.temperature           °C
+<applianceId>.humidity              %
+<applianceId>.battery               %
+<applianceId>.lastMeasurement       date string
 ```
 
 ---
 
 ## Grohe Sense Guard (type 103)
 
-States:
+### Measurements
 
 ```
-<applianceId>.temperature        (°C, water temp)
-<applianceId>.flowRate           (l/min)
-<applianceId>.pressure           (bar)
-<applianceId>.lastMeasurement    (date string)
-<applianceId>.valveOpen          (boolean indicator)
+<applianceId>.temperature           °C    water temperature
+<applianceId>.flowRate              l/min
+<applianceId>.pressure              bar
+<applianceId>.lastMeasurement       date string
+<applianceId>.valveOpen             boolean (indicator – read only)
 ```
 
-Consumption channel:
+### Consumption channel
 
 ```
-<applianceId>.consumption.daily
-<applianceId>.consumption.averageDaily
-<applianceId>.consumption.averageMonthly
-<applianceId>.consumption.totalWaterConsumption   (calculated, see below)
-<applianceId>.consumption.lastWaterConsumption   (l)
-<applianceId>.consumption.lastMaxFlowRate          (l/min)
+<applianceId>.consumption.daily                  l
+<applianceId>.consumption.averageDaily           l
+<applianceId>.consumption.averageMonthly         l
+<applianceId>.consumption.totalWaterConsumption  l   (calculated, see note)
+<applianceId>.consumption.lastWaterConsumption   l
+<applianceId>.consumption.lastMaxFlowRate        l/min
 ```
 
-> **Note on `totalWaterConsumption`:** The Grohe dashboard API does not reliably provide total water consumption. The adapter therefore calculates it from the `/data/aggregated` endpoint – similar to the [HA Grohe integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Once per day the historical total (from installation date, grouped by year) is fetched; every 5th poll the current day's consumption is added on top.
+> **`totalWaterConsumption`:** The Grohe dashboard API does not provide a reliable total. The adapter calculates it from `/data/aggregated`: once per day the historical total (installation date → today, grouped by year) is fetched; every 5th poll the current day's consumption is added on top.
 
-Pressure measurement channel (only if the API provides data; may be missing initially):
+### Pressure measurement channel
 
-```
-<applianceId>.pressureMeasurement.dropOfPressure   (bar)
-<applianceId>.pressureMeasurement.isLeakage        (boolean)
-<applianceId>.pressureMeasurement.leakageLevel     (string)
-<applianceId>.pressureMeasurement.startTime        (date string)
-```
-
-Controls (writable “button” states, auto-reset back to `false` after execution):
+Updated every 10th poll. Only present if the API provides data (may be missing initially).
 
 ```
-<applianceId>.controls.valveOpen                  (boolean button)
-<applianceId>.controls.valveClose                 (boolean button)
-<applianceId>.controls.startPressureMeasurement   (boolean button)
+<applianceId>.pressureMeasurement.dropOfPressure   bar
+<applianceId>.pressureMeasurement.isLeakage        boolean
+<applianceId>.pressureMeasurement.leakageLevel     string
+<applianceId>.pressureMeasurement.startTime        date string
 ```
+
+> The pipe check runs automatically (typically overnight). The `startPressureMeasurement` button can trigger it manually, but the **valve must be closed** and no water may be flowing for the device to accept and execute the command. The notification `20_333` (Pipe check completed) is sent when the test finishes.
+
+### Controls
+
+Controls are available in the **Controls tab** of the Device Manager detail view and as writable ioBroker states.
+
+**Valve:**
+
+```
+<applianceId>.controls.valveOpen       boolean button – opens the valve
+<applianceId>.controls.valveClose      boolean button – closes the valve
+```
+
+**Pressure measurement:**
+
+```
+<applianceId>.controls.startPressureMeasurement   boolean button
+```
+
+> Valve must be closed before triggering. The device executes the check automatically when conditions are met.
+
+**Snooze** – temporarily silences alarms:
+
+```
+<applianceId>.controls.snooze.active     boolean (read-only) – snooze currently active
+<applianceId>.controls.snooze.duration   number  1–240 min
+<applianceId>.controls.snooze.start      boolean button – activates snooze for the set duration
+<applianceId>.controls.snooze.stop       boolean button – deactivates snooze immediately
+```
+
+The `active` state is read from the Grohe API every 3rd poll and updated immediately after start/stop actions.
+
+**Water limits:**
+
+```
+<applianceId>.controls.withdrawalAmountLimit   number  0–2000 l
+```
+
+Setting this value writes immediately to the Grohe API. The value is re-read from the API every 10th poll.
+
+**Sprinkler mode** – watering/irrigation schedule:
+
+```
+<applianceId>.controls.sprinkler.startHour      number  0–23 h
+<applianceId>.controls.sprinkler.startMinute    number  0–59 min
+<applianceId>.controls.sprinkler.stopHour       number  0–23 h
+<applianceId>.controls.sprinkler.stopMinute     number  0–59 min
+
+<applianceId>.controls.sprinkler.activeMonday     boolean switch
+<applianceId>.controls.sprinkler.activeTuesday    boolean switch
+<applianceId>.controls.sprinkler.activeWednesday  boolean switch
+<applianceId>.controls.sprinkler.activeThursday   boolean switch
+<applianceId>.controls.sprinkler.activeFriday     boolean switch
+<applianceId>.controls.sprinkler.activeSaturday   boolean switch
+<applianceId>.controls.sprinkler.activeSunday     boolean switch
+
+<applianceId>.controls.sprinkler.save   boolean button – sends all sprinkler values to the API
+```
+
+> Start and stop times are stored as separate hour (0–23) and minute (0–59) states. The adapter combines them into minutes-from-midnight internally when sending to the API. Changes to individual fields are acknowledged locally but **not** sent to the API until **Save** is pressed.
+
+The sprinkler schedule is re-read from the Grohe API every 10th poll.
 
 ---
 
 ## Grohe Blue Home / Professional (type 104 / 105)
 
-States:
+### Measurements
 
 ```
-<applianceId>.remainingCo2                (%)
-<applianceId>.remainingFilter             (%)
-<applianceId>.remainingCo2Liters          (l)
-<applianceId>.remainingFilterLiters       (l)
+<applianceId>.remainingCo2              %
+<applianceId>.remainingFilter           %
+<applianceId>.remainingCo2Liters        l
+<applianceId>.remainingFilterLiters     l
 
 <applianceId>.cyclesCarbonated
 <applianceId>.cyclesStill
 
-<applianceId>.operatingTime               (min)
-<applianceId>.pumpRunningTime             (min)
-<applianceId>.maxIdleTime                 (min)
-<applianceId>.timeSinceRestart            (min)
+<applianceId>.operatingTime             min
+<applianceId>.pumpRunningTime           min
+<applianceId>.maxIdleTime               min
+<applianceId>.timeSinceRestart          min
 
-<applianceId>.waterRunningCarbonated      (min)
-<applianceId>.waterRunningMedium          (min)
-<applianceId>.waterRunningStill           (min)
+<applianceId>.waterRunningCarbonated    min
+<applianceId>.waterRunningMedium        min
+<applianceId>.waterRunningStill         min
 
-<applianceId>.dateCleaning                (date string)
-<applianceId>.dateCo2Replacement          (date string)
-<applianceId>.dateFilterReplacement       (date string)
-<applianceId>.lastMeasurement             (date string)
+<applianceId>.dateCleaning              date string
+<applianceId>.dateCo2Replacement        date string
+<applianceId>.dateFilterReplacement     date string
+<applianceId>.lastMeasurement           date string
 
 <applianceId>.cleaningCount
 <applianceId>.filterChangeCount
@@ -266,77 +295,100 @@ States:
 <applianceId>.pumpCount
 ```
 
-Controls:
+> **Measurement freshness:** Grohe Blue devices do **not** push measurements automatically. The adapter sends a `get_current_measurement` command every 3rd poll cycle. A background verify loop then re-polls `/details` every 10 s (up to 3 attempts / 30 s total) until a fresh timestamp appears. After adapter start it may take 1–2 poll cycles before current values are shown.
+
+### Controls
 
 ```
-<applianceId>.controls.tapType            (number)  1=still, 2=medium, 3=carbonated
-<applianceId>.controls.tapAmount          (number)  amount in ml (50–2000, multiples of 50)
-<applianceId>.controls.dispenseTrigger    (boolean button)
+<applianceId>.controls.tapType        number  1 = still · 2 = medium · 3 = carbonated
+<applianceId>.controls.tapAmount      number  ml, 50–2000 in steps of 50
+<applianceId>.controls.dispenseTrigger  boolean button
 
-<applianceId>.controls.resetCo2           (boolean button)
-<applianceId>.controls.resetFilter        (boolean button)
+<applianceId>.controls.resetCo2       boolean button
+<applianceId>.controls.resetFilter    boolean button
 ```
 
-When `dispenseTrigger` is set to `true`, the adapter reads `tapType` and `tapAmount`, triggers dispensing, and resets `dispenseTrigger` back to `false`. After the dispense, `tapType` and `tapAmount` are automatically reset to `0` to prevent unintended re-use of the values in subsequent polling cycles. They are also reset to `0` each time the adapter starts.
-
-> **Note on measurement freshness:** Unlike Sense/Guard devices, Grohe Blue does **not** push measurement data automatically. The adapter periodically sends a `get_current_measurement` command to the device (every 3rd poll cycle) to trigger a data refresh. After the command is sent, a **background verify loop** re-polls the `/details` endpoint every 10 seconds (up to 3 attempts / 30 seconds total) until a newer measurement timestamp appears. Once detected, the states are updated. This ensures that values like `remainingFilter` and `remainingCo2` reflect the latest device data. After starting the adapter, it may take 1–2 poll cycles before current values are displayed.
+Setting `dispenseTrigger` to `true` reads `tapType` and `tapAmount`, executes the dispense, then resets all three states back to `false` / `0`.
 
 ---
 
-## Polling and Discovery
+## Polling Strategy
 
-- The adapter polls the endpoint `/dashboard` and iterates:
-  - `locations[] → rooms[] → appliances[]`
-- **Fallback discovery**: If `/dashboard` returns HTTP 404 (some older accounts), the adapter extracts the user ID from the JWT token, calls `/users/{userId}` to discover locations, then fetches `/rooms` → `/appliances` + `/details` + `/notifications` per device. This is detected once and remembered for the lifetime of the adapter instance.
-- Appliances with `registration_complete === false` are skipped.
+To minimize API calls and avoid rate-limiting (HTTP 403), different endpoints are polled at different frequencies:
 
-### Tiered polling strategy
-
-To minimize API calls and avoid HTTP 403 rate-limiting errors, not every endpoint is called on every poll cycle. The adapter uses a **poll counter** and fetches additional data at different intervals:
-
-| Endpoint | Frequency | Applies to | Reason |
+| Endpoint | Frequency | Devices | Notes |
 |---|---|---|---|
-| `/dashboard` | **every** poll | All | Core sensor data (temperature, flow, pressure, …) |
-| `/status` | every **5th** poll | All | Online/WiFi/update status changes slowly |
-| `/command` (read) | every **3rd** poll | Sense Guard | Valve state (also read back immediately after commands) |
-| `/command` (`get_current_measurement`) | every **3rd** poll | Blue | Triggers a fresh measurement on the device |
-| `/details` (verify) | up to **3×** after refresh | Blue | Background poll to verify fresh data arrived (10s interval, max 30s total) |
-| `/data/aggregated` (today) | every **5th** poll | Sense Guard | Current day's water consumption for totalWaterConsumption |
-| `/data/aggregated` (historical) | **once per day** | Sense Guard | Historical base for totalWaterConsumption |
-| `/pressuremeasurement` | every **10th** poll | Sense Guard | Only changes after a manual pressure test |
+| `/dashboard` | every poll | All | Core sensor data |
+| `/status` | every 5th poll | All | Online / WiFi / update status changes slowly |
+| `/command` (read) | every 3rd poll | Sense Guard | Valve state; also read back immediately after commands |
+| `/snooze` (read) | every 3rd poll | Sense Guard | Snooze status; HTTP 404 = no active snooze |
+| `/command` (`get_current_measurement`) | every 3rd poll | Blue | Triggers fresh measurement on device |
+| `/details` (verify) | up to 3× after refresh | Blue | Background poll for fresh data (10 s intervals, max 30 s) |
+| `/details` (config) | every 10th poll | Sense Guard | Sprinkler schedule, withdrawal limit; always on first poll |
+| `/data/aggregated` (today) | every 5th poll | Sense Guard | Today's consumption for `totalWaterConsumption` |
+| `/data/aggregated` (historical) | once per day | Sense Guard | Historical base for `totalWaterConsumption` |
+| `/pressuremeasurement` | every 10th poll | Sense Guard | Only changes after a pipe check |
 
-> **Tip:** If you still encounter HTTP 403 errors, increase the polling interval in the adapter settings. The Grohe API has rate limits.
+> **Tip:** If HTTP 403 errors occur, increase the poll interval. The Grohe cloud API has rate limits.
 
 ### Exponential backoff
 
-On polling errors the adapter automatically increases the polling interval:
+On polling errors the adapter automatically increases the interval:
 
-1. Each consecutive failure **doubles** the interval (e.g. 300 → 600 → 1200 → 2400 → 3600s).
-2. Maximum backoff: **1 hour**.
-3. After reaching 1 hour: the adapter pauses until **12:00** (noon) or, if already past noon, until **00:00** (midnight). This avoids unnecessary API traffic for the rest of the day.
+1. Each consecutive failure **doubles** the interval (300 → 600 → 1200 → 2400 → 3600 s).
+2. Maximum: **1 hour**.
+3. After reaching 1 hour: pauses until **12:00** noon, or if already past noon until **00:00** midnight.
 4. After a **successful** poll the interval resets to the configured value.
 
 ---
 
-## Error Handling Notes
+## Authentication
 
-- If polling fails, `info.connection` is set to `false`.
-- Special handling for **HTTP 403**: the adapter logs a message suggesting to verify that the Grohe app/account is still working/active. With every failed attempt the timeout is increased up to max. 1h.
-- Token refresh is automatic on **401** and then the request is retried once.
-- All error catches log at **warn** level (except expected HTTP 404 for pressure measurements which stays at debug).
+On startup:
+
+1. The saved refresh token is read from `auth.refreshToken`.
+2. If available, the adapter refreshes tokens automatically.
+3. If refresh fails or no token exists, a full login is performed with email / password.
+4. The new refresh token is stored **encrypted** (`enc:<...>`) in `auth.refreshToken`.
+
+Unencrypted tokens from older versions are migrated automatically to encrypted storage.
+
+On **HTTP 401**, the request is retried once after a token refresh.
+
+---
+
+## Fallback Discovery
+
+If `/dashboard` returns HTTP 404 (some older accounts), the adapter switches to fallback discovery:
+
+1. Extracts the user ID from the JWT access token.
+2. Calls `/users/{userId}` to get locations.
+3. Fetches `/rooms` → `/appliances` + `/details` + `/notifications` per device.
+
+Fallback mode is detected once on startup and maintained for the lifetime of the instance.
 
 ---
 
-## Development Notes
+## Error Handling
 
-Core modules:
-
-- `main.js`: ioBroker adapter logic (objects, polling, state updates, command handling, message handler for Device Manager)
-- `lib/device-manager.js`: Device Manager integration (tiles, tabs, per-device templates)
-- `lib/groheClient.js`: Grohe API wrapper with authenticated requests
-- `lib/auth.js`: OAuth/Keycloak login + refresh handling (manual redirect chain, cookie jar)
-- `lib/notificationManager.js`: Dispatches push notifications to configured provider instances
-- `lib/notificationMessages.js`: Localized notification message templates and Grohe notification type texts (11 languages)
-- `lib/apiDump.js`: Full API structure dump for diagnostics (triggered by rawStates option)
+| Situation | Behaviour |
+|---|---|
+| Polling failure | `info.connection` → `false`; exponential backoff |
+| HTTP 401 | Token refreshed, request retried once |
+| HTTP 403 | Warning logged; suggests checking Grohe account / app |
+| HTTP 404 on `/pressuremeasurement` | Debug log only (no measurement data yet is normal) |
+| HTTP 404 on `/dashboard` | Switches to fallback discovery |
 
 ---
+
+## Module Overview
+
+| File | Purpose |
+|---|---|
+| `main.js` | Adapter core: polling, state management, command handling, Device Manager messages |
+| `lib/device-manager.js` | Device Manager integration: tiles, info/controls tabs, per-device templates |
+| `lib/groheClient.js` | Grohe API client: authenticated requests, auto-refresh on 401 |
+| `lib/auth.js` | OAuth / Keycloak login and token refresh |
+| `lib/notificationManager.js` | Dispatches push notifications to configured providers |
+| `lib/notificationMessages.js` | Localized message templates and Grohe notification type texts (11 languages) |
+| `lib/apiDump.js` | Full API structure dump for diagnostics (triggered by Raw states option) |

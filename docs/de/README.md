@@ -1,264 +1,293 @@
 # ioBroker Grohe Smarthome Adapter
 
-Dieser Adapter verbindet ioBroker mit der **Grohe Smarthome / Ondus**-Cloud und stellt Grohe-Geräte als Zustände (und einige Steuerungen) in ioBroker zur Verfügung.
+Dieser Adapter verbindet ioBroker mit der **Grohe Smarthome / Ondus**-Cloud und stellt Grohe-Geräte als States und Steuerungen in ioBroker bereit.
 
-Unterstützt werden:
+Unterstützte Geräte:
 
-- **Grohe Sense** (Typ `101`)
-- **Grohe Sense Guard** (Typ `103`)
-- **Grohe Blue Home** (Typ `104`)
-- **Grohe Blue Professional** (Typ `105`)
+| Gerät | Typ |
+|---|---|
+| **Grohe Sense** | `101` |
+| **Grohe Sense Guard** | `103` |
+| **Grohe Blue Home** | `104` |
+| **Grohe Blue Professional** | `105` |
 
 Der Adapter meldet sich über den OIDC/Keycloak-Login von Grohe an, speichert ein **Refresh-Token verschlüsselt** in einem State und fragt die Grohe-Cloud-API in einem konfigurierbaren Intervall ab.
 
----
-
-## Device Manager
-
-Der Adapter nutzt den ioBroker **Device Manager** und liefert keinen `admin/tab.html` mehr.
-
-Wähle im Device Manager ein registriertes Grohe-Gerät aus, um die zugehörige **Gerätekachel** zu öffnen.
-
-### Kachel-Inhalte je Gerätetyp
-
-| Gerätetyp | Status-Icons | Kachel-Werte |
-|---|---|---|
-| **Grohe Sense** | Online, WLAN-Qualität, Batterie | Temperatur, Luftfeuchtigkeit, Batterie |
-| **Grohe Sense Guard** | Online, WLAN-Qualität, Ventil-Status | Wassertemperatur, Durchfluss, Druck, Tagesverbrauch, Ventil öffnen / schließen |
-| **Grohe Blue** | Online, WLAN-Qualität | CO₂ verbleibend, Filter verbleibend, Letzte Messung |
-
-### Detail-Tabs
-
-Jedes Gerät bietet bei Klick auf die Kachel zwei Detail-Tabs:
-
-- **Info**: allgemeine Informationen (Geräte-ID, Typ, Online, Update verfügbar, WLAN-Qualität, letzte Meldung + Zeitstempel) sowie gerätespezifische Messwerte
-- **Steuerung**: Schreibaktionen und Eingabefelder (entfällt bei Grohe Sense)
-
-Steueraktionen:
-
-- **Grohe Sense Guard**: Ventil öffnen / schließen, Druckmessung starten
-- **Grohe Blue Home / Professional**: Zapfart (Still/Medium/Sprudel), Menge (ml), Zapfen auslösen, CO₂ zurücksetzen, Filter zurücksetzen
-
-Für Grohe Sense gibt es keine Schreib-Steuerungen (kein Steuerungstab).
-
----
-
-## Funktionen
-
-- Cloud-Login mit **E-Mail/Passwort** (initial) und automatischer **Token-Erneuerung**
-- Refresh-Token wird **verschlüsselt** in `grohe-smarthome.0.auth.refreshToken` gespeichert
-- Periodisches Abfragen des Grohe-Dashboards:
-  - erkennt Standorte → Räume → Geräte
-  - erstellt ioBroker-Geräte/Kanäle/States automatisch
-- Gerätedaten als lesbare States (Messwerte, Status, Benachrichtigungen)
-- **Steuerungen** (beschreibbare States) für:
-  - Sense Guard Ventil öffnen/schließen
-  - Sense Guard Druckmessung starten
-  - Grohe Blue Zapfen + CO₂-/Filter-Resets
-- Optionaler **Raw-States**-Modus: gibt die vollständige API-Struktur ins Log aus für Diagnose (Polling stoppt nach 3 Zyklen)
+Idee und Konzept stammen aus der Home-Assistant-Integration **ha-grohe_smarthome**. Besonderer Dank gilt **Flo-Schilli**.
 
 ---
 
 ## Konfiguration
 
-Die Adapterkonfiguration ist in zwei Tabs aufgeteilt:
+Die Adapterkonfiguration ist in zwei Tabs aufgeteilt.
 
-### Tab „Einstellungen“
+### Tab „Einstellungen"
 
-- **E-Mail**: E-Mail-Adresse deines Grohe/Ondus-Kontos
-- **Passwort**: Passwort deines Grohe/Ondus-Kontos
-- **Abfrageintervall (Sekunden)**: Polling-Intervall in Sekunden  
-  - Minimum **60 Sekunden**
-  - Standard-Fallback **300 Sekunden**
-- **Raw-States** (`rawStates`): Wenn aktiviert, gibt der Adapter die vollständige API-Struktur ins Log aus für Diagnose. Das Polling stoppt nach 3 Zyklen – Option deaktivieren und Adapter neu starten für Normalbetrieb.
+| Einstellung | Beschreibung |
+|---|---|
+| **E-Mail** | E-Mail-Adresse des Grohe- / Ondus-Kontos |
+| **Passwort** | Passwort des Grohe- / Ondus-Kontos |
+| **Abfrageintervall (Sekunden)** | Polling-Intervall – Minimum **60 s**, Standard **300 s** |
+| **Raw-States** | Gibt die vollständige API-Antwortstruktur ins Log aus (Diagnose). Polling stoppt nach 3 Zyklen. Option deaktivieren und Adapter neu starten für Normalbetrieb. |
 
-> Hinweis: Der Adapter speichert das Refresh-Token **nicht** in der Konfiguration, da jede Konfigurationsänderung einen Neustart der Instanz auslöst. Stattdessen wird es in einem State (`auth.refreshToken`) gespeichert und mit den integrierten ioBroker-Verschlüsselungsfunktionen verschlüsselt.
+> Der Adapter speichert das Refresh-Token im State `auth.refreshToken` (verschlüsselt), **nicht** in der Konfiguration. Das Schreiben der Konfiguration würde einen Neustart auslösen und den Token-Ablauf unterbrechen.
 
-### Tab „Benachrichtigungen“
+### Tab „Benachrichtigungen"
 
-Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werden. Alle Meldungen werden in der in ioBroker konfigurierten Systemsprache verschickt.
+Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werden. Meldungen werden in der in ioBroker eingestellten Systemsprache verschickt.
 
 #### Benachrichtigungskategorien
 
 | # | Kategorie | Beispiele |
 |---|---|---|
 | 1 | **Kritische Meldungen** | Überschwemmung erkannt, Sensorfehler, Systemfehler |
-| 2 | **Warnungen** | Batterie schwach, Temperatur/Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Blue Filter/CO₂ niedrig, Gerät online/offline, `latestMessage` bei `latestTimestamp`-Änderung |
-| 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet/geschlossen, Zapfvorgang |
-| 4 | **Verbindungsfehler** | HTTP Polling-Fehler (z.B. HTTP 403), werden bei jedem Fehler gesendet |
+| 2 | **Warnungen** | Batterie schwach, Temperatur / Luftfeuchtigkeit außerhalb des Bereichs, WLAN-Verlust, Gerät online / offline, Blue Filter / CO₂ niedrig |
+| 3 | **Ventil- & Steuerungsereignisse** | Ventil geöffnet / geschlossen, Zapfvorgang |
+| 4 | **Verbindungsfehler** | HTTP-Polling-Fehler (z. B. HTTP 403), werden bei jedem Fehler gesendet |
 
-#### Icons in Benachrichtigungen
+#### Benachrichtigungs-Icons
 
-Jede Benachrichtigung wird mit einem Emoji-Icon für schnelle Zuordnung versehen:
-
-| Icon | Nachricht |
+| Icon | Bedeutung |
 |---|---|
-| 🚨 | Kritischer Alarm (Präfix für Kategorie 30 Benachrichtigungen) |
-| ⚠️ | Warnung (Präfix für Kategorie 20 Benachrichtigungen), Gerät offline, Polling-Fehler |
-| ✅ | Gerät online, Polling-Verbindung wiederhergestellt |
+| 🚨 | Kritischer Alarm (Grohe-Kategorie 30) |
+| ⚠️ | Warnung (Grohe-Kategorie 20), Gerät offline, Polling-Fehler |
+| ✅ | Gerät online, Polling wiederhergestellt |
 | 🔓 | Ventil geöffnet |
 | 🔒 | Ventil geschlossen |
 | 💧 | Wasser gezapft |
-| ℹ️ | Letzte Meldung geändert (latestTimestamp-Änderung) |
-
-> Hinweis: Verbindungsfehler (Kategorie 4) werden bei jedem einzelnen Polling-Fehler gesendet, nicht nur beim ersten. Das kann zu häufigen Meldungen führen, wenn die API dauerhaft nicht erreichbar ist. Erhöhe das Polling-Intervall, wenn du zu viele solche Benachrichtigungen erhältst.
-
-> Hinweis zu `latestMessage` (in Kategorie 2 „Warnungen” enthalten): Ist „Warnungen” aktiviert, sendet der Adapter bei jeder Änderung von `latestTimestamp` eine ℹ️-Meldung mit dem aktuellen `latestMessage`-Text. Um doppelte Benachrichtigungen zu vermeiden, wird die ℹ️-Meldung **nur** gesendet, wenn die Benachrichtigung nicht bereits als 🚨 kritischer Alarm (Kategorie 30) oder ⚠️ Warnung (Kategorie 20) gesendet wurde. Beim ersten Poll nach Adapterstart wird der vorhandene Stand als Basis übernommen (kein Flooding alter Meldungen). Wenn ein Gerät anfangs noch keine Notification hat und später die erste Meldung erhält, wird diese Änderung benachrichtigt.
+| ℹ️ | Letzte Benachrichtigung geändert |
 
 #### Unterstützte Anbieter
 
-Für jeden Anbieter wird die Adapter-Instanz (z.B. `telegram.0`) über ein Dropdown in der Konfiguration ausgewählt.
-
-| Anbieter | Konfiguration |
+| Anbieter | Hinweise |
 |---|---|
-| **Telegram** | Instanz; optional: Benutzer oder Chat-ID |
-| **Pushover** | Instanz; optional: Titel, Gerät |
-| **WhatsApp** (`whatsapp-cmb`) | Instanz; optional: Telefonnummer |
-| **E-Mail** | Instanz; optional: Empfänger, Betreff |
-| **Signal** (`signal-cmb`) | Instanz; optional: Telefonnummer |
+| **Telegram** | Instanz; optional Benutzer oder Chat-ID |
+| **Pushover** | Instanz; optional Titel, Gerät |
+| **WhatsApp** (`whatsapp-cmb`) | Instanz; optional Telefonnummer |
+| **E-Mail** | Instanz; optional Empfänger, Betreff |
+| **Signal** (`signal-cmb`) | Instanz; optional Telefonnummer |
 | **Matrix** (`matrix-org`) | Instanz |
 | **Synology Chat** | Instanz; Kanalname (erforderlich) |
 
 ---
 
-## Authentifizierung und Token-Handling
+## Device Manager
 
-Beim Start:
+Der Adapter ist in den ioBroker **Device Manager** integriert. Wähle ein registriertes Grohe-Gerät aus, um dessen Kachel zu öffnen.
 
-1. Der Adapter liest das gespeicherte Refresh-Token aus `auth.refreshToken`.
-2. Falls vorhanden, wird versucht, die Tokens zu erneuern.
-3. Schlägt das Refresh fehl oder existiert kein Token, erfolgt ein kompletter Login mit E-Mail/Passwort.
-4. Das erhaltene Refresh-Token wird **verschlüsselt** (`enc:<...>`) in `auth.refreshToken` gespeichert.
+### Gerätekachel
 
-Wird ein altes (unverschlüsseltes) Token gefunden, migriert der Adapter dieses automatisch in eine verschlüsselte Speicherung.
+Jede Kachel zeigt Live-Status-Indikatoren und die wichtigsten Messwerte auf einen Blick.
 
-Der HTTP-Client wiederholt Anfragen automatisch einmal, wenn ein **401 Unauthorized** auftritt (Token-Refresh + erneuter Request).
+| Gerät | Status-Indikatoren | Kachel-Werte |
+|---|---|---|
+| **Grohe Sense** | Online, WLAN-Qualität, Batterie | Temperatur, Luftfeuchtigkeit, Batterie |
+| **Grohe Sense Guard** | Online, WLAN-Qualität, Ventil-Warnung | Wassertemperatur, Durchfluss, Druck, Tagesverbrauch, Ventil öffnen / schließen |
+| **Grohe Blue** | Online, WLAN-Qualität | CO₂ verbleibend, Filter verbleibend, Letzte Messung |
+
+### Detailansicht (Tab „Info")
+
+Klick auf die Kachel öffnet die Detailansicht. Der **Info**-Tab zeigt:
+
+- Geräte-ID, Typ, Online-Status, Update verfügbar, WLAN-Qualität
+- Letzte Benachrichtigung und Zeitstempel
+- Gerätespezifische Messwerte (siehe Abschnitte je Gerätetyp)
+
+### Detailansicht (Tab „Steuerung")
+
+Der **Steuerungs**-Tab ist für Grohe Sense Guard und Grohe Blue verfügbar. Die Steuerungen sind in Funktionsgruppen aufgeteilt, jeweils durch einen Trennstrich voneinander abgegrenzt.
+
+**Grohe Sense Guard – Steuerungs-Tab:**
+
+| Gruppe | Steuerungen |
+|---|---|
+| **Ventilsteuerung** | Ventil öffnen (Button), Ventil schließen (Button) |
+| **Druckmessung** | Starten (Button) – *Ventil muss geschlossen sein (siehe Hinweis)* |
+| **Snooze** | Aktiv-Anzeige (nur lesen), Dauer-Eingabe (1–240 min), Snooze starten (Button), Snooze beenden (Button) |
+| **Wasserlimits** | Entnahmelimit-Eingabe (0–2000 l) |
+| **Bewässerungsmodus** | Startzeit (Std + min), Stoppzeit (Std + min), Aktive Tage (Mo–So), Speichern (Button) |
+
+> **Hinweis zur Druckmessung:** Der Leitungscheck (Pipe Check) wird vom Gerät **automatisch** durchgeführt – typischerweise nachts, wenn kein Wasserfluss erkannt wird. Der Start-Button sendet den Befehl `measure_now`, den das Gerät nur ausführt, wenn das **Ventil geschlossen** ist und kein Wasser fließt. Die Ergebnisse sind immer in den `pressureMeasurement.*`-States zu sehen, unabhängig davon, ob der Test manuell oder automatisch ausgelöst wurde. Die Grohe App bietet ebenfalls keine manuelle Auslösung.
+
+> **Hinweis zum Bewässerungsmodus:** Änderungen an einzelnen Bewässerungsfeldern (Zeiten, Tages-Schalter) werden lokal bestätigt, aber **nicht** sofort an die API gesendet. Erst durch den Button **„Bewässerung speichern"** werden alle Werte in einem einzigen API-Aufruf übertragen. So werden unnötige API-Aufrufe beim Umschalten einzelner Wochentage vermieden.
+
+> **Hinweis zu Entnahmelimit und Bewässerungseinstellungen:** Diese Werte werden vom Grohe-API jeden 10. Poll-Zyklus gelesen (~50 Minuten bei 300 s Intervall, immer beim ersten Poll). Änderungen aus der Grohe App erscheinen innerhalb dieses Zeitfensters in ioBroker.
+
+**Grohe Blue Home / Professional – Steuerungs-Tab:**
+
+| Gruppe | Steuerungen |
+|---|---|
+| **Zapfen** | Zapfart (Still / Medium / Sprudel), Menge (ml), Zapfen (Button) |
+| **Service** | CO₂ zurücksetzen (Button), Filter zurücksetzen (Button) |
 
 ---
 
-## Gerätestruktur in ioBroker
+## ioBroker-Staatsstruktur
 
-Geräte werden unterhalb des Adapter-Namespaces erstellt:
+Geräte werden unterhalb des Adapter-Namespaces angelegt:
 
 ```
 grohe-smarthome.0.<applianceId>.*
 ```
 
-Jedes Gerät wird als **Device-Objekt** angelegt, mit zusätzlichen Kanälen je nach Typ.
-
-### Gemeinsame States für alle Geräte
-
-#### Status-Kanal
+### Gemeinsame States aller Geräte
 
 ```
-<applianceId>.status.online                (boolean)
-<applianceId>.status.updateAvailable       (boolean)
-<applianceId>.status.wifiQuality           (number, falls verfügbar)
+<applianceId>.status.online                 boolean
+<applianceId>.status.updateAvailable        boolean
+<applianceId>.status.wifiQuality            number (falls verfügbar)
+
+<applianceId>.notifications.latestMessage       string
+<applianceId>.notifications.latestTimestamp     string (Datum)
+<applianceId>.notifications.latestCategory      number
+<applianceId>.notifications.latestCategoryName  string
+<applianceId>.notifications.latestType          number
 ```
 
-#### Benachrichtigungen-Kanal (letzter Eintrag)
-
-```
-<applianceId>.notifications.latestMessage       (string)
-<applianceId>.notifications.latestTimestamp     (string/date)
-<applianceId>.notifications.latestCategory      (number)
-<applianceId>.notifications.latestCategoryName  (string)
-<applianceId>.notifications.latestType          (number)
-```
-
-Zuordnung der Benachrichtigungskategorien:
-
-- `0` Werbung
-- `10` Information
-- `20` Warnung
-- `30` Alarm
-- `40` Web-URL
+Grohe-Benachrichtigungskategorien: `0` Werbung · `10` Information · `20` Warnung · `30` Alarm · `40` Web-URL
 
 ---
 
 ## Grohe Sense (Typ 101)
 
-States:
+### Messwerte
 
 ```
-<applianceId>.temperature        (°C)
-<applianceId>.humidity           (%)
-<applianceId>.battery            (%)
-<applianceId>.lastMeasurement    (Datumsstring)
+<applianceId>.temperature           °C
+<applianceId>.humidity              %
+<applianceId>.battery               %
+<applianceId>.lastMeasurement       Datumsstring
 ```
 
 ---
 
 ## Grohe Sense Guard (Typ 103)
 
-States:
+### Messwerte
 
 ```
-<applianceId>.temperature        (°C, Wassertemperatur)
-<applianceId>.flowRate           (l/min)
-<applianceId>.pressure           (bar)
-<applianceId>.lastMeasurement    (Datumsstring)
-<applianceId>.valveOpen          (boolean, Anzeige)
+<applianceId>.temperature           °C    Wassertemperatur
+<applianceId>.flowRate              l/min
+<applianceId>.pressure              bar
+<applianceId>.lastMeasurement       Datumsstring
+<applianceId>.valveOpen             boolean (Anzeige – nur lesbar)
 ```
 
-Verbrauchs-Kanal:
+### Verbrauchs-Kanal
 
 ```
-<applianceId>.consumption.daily
-<applianceId>.consumption.averageDaily
-<applianceId>.consumption.averageMonthly
-<applianceId>.consumption.totalWaterConsumption   (berechnet, siehe unten)
-<applianceId>.consumption.lastWaterConsumption   (l)
-<applianceId>.consumption.lastMaxFlowRate          (l/min)
+<applianceId>.consumption.daily                  l
+<applianceId>.consumption.averageDaily           l
+<applianceId>.consumption.averageMonthly         l
+<applianceId>.consumption.totalWaterConsumption  l   (berechnet, siehe Hinweis)
+<applianceId>.consumption.lastWaterConsumption   l
+<applianceId>.consumption.lastMaxFlowRate        l/min
 ```
 
-> **Hinweis zu `totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn daher über den Endpunkt `/data/aggregated` – analog zur [HA Grohe-Integration](https://github.com/Flo-Schilli/ha-grohe_smarthome). Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, gruppiert nach Jahr) abgerufen; jeden 5. Poll wird der aktuelle Tagesverbrauch hinzuaddiert.
+> **`totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn aus `/data/aggregated`: Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, nach Jahr gruppiert) abgerufen; jeden 5. Poll wird der aktuelle Tagesverbrauch addiert.
 
-Druckmessungs-Kanal (nur wenn die API Daten liefert; kann anfangs fehlen):
+### Druckmessungs-Kanal
 
-```
-<applianceId>.pressureMeasurement.dropOfPressure   (bar)
-<applianceId>.pressureMeasurement.isLeakage        (boolean)
-<applianceId>.pressureMeasurement.leakageLevel     (string)
-<applianceId>.pressureMeasurement.startTime        (Datumsstring)
-```
-
-Steuerungen (beschreibbare „Button“-States, werden nach Ausführung automatisch wieder auf `false` gesetzt):
+Wird jeden 10. Poll aktualisiert. Kann anfangs fehlen, wenn die API noch keine Daten liefert.
 
 ```
-<applianceId>.controls.valveOpen                  (boolean button)
-<applianceId>.controls.valveClose                 (boolean button)
-<applianceId>.controls.startPressureMeasurement   (boolean button)
+<applianceId>.pressureMeasurement.dropOfPressure   bar
+<applianceId>.pressureMeasurement.isLeakage        boolean
+<applianceId>.pressureMeasurement.leakageLevel     string
+<applianceId>.pressureMeasurement.startTime        Datumsstring
 ```
+
+> Der Leitungscheck läuft automatisch (typischerweise nachts). Der Button „Druckmessung starten" kann ihn manuell auslösen, aber das **Ventil muss geschlossen** und kein Wasser darf fließen, damit das Gerät den Befehl ausführt. Die Benachrichtigung `20_333` (Leitungscheck abgeschlossen) erscheint, wenn der Test beendet ist.
+
+### Steuerungen
+
+Steuerungen sind im **Steuerungs-Tab** der Device-Manager-Detailansicht und als beschreibbare ioBroker-States verfügbar.
+
+**Ventil:**
+
+```
+<applianceId>.controls.valveOpen       boolean button – öffnet das Ventil
+<applianceId>.controls.valveClose      boolean button – schließt das Ventil
+```
+
+**Druckmessung:**
+
+```
+<applianceId>.controls.startPressureMeasurement   boolean button
+```
+
+> Ventil muss vor dem Auslösen geschlossen sein. Das Gerät führt den Check aus, wenn die Bedingungen erfüllt sind.
+
+**Snooze** – Alarme vorübergehend deaktivieren:
+
+```
+<applianceId>.controls.snooze.active     boolean (nur lesen) – Snooze aktuell aktiv
+<applianceId>.controls.snooze.duration   number  1–240 min
+<applianceId>.controls.snooze.start      boolean button – aktiviert Snooze für die eingestellte Dauer
+<applianceId>.controls.snooze.stop       boolean button – deaktiviert Snooze sofort
+```
+
+Der `active`-State wird jeden 3. Poll aus der Grohe-API gelesen und nach Starten/Stoppen sofort aktualisiert.
+
+**Wasserlimits:**
+
+```
+<applianceId>.controls.withdrawalAmountLimit   number  0–2000 l
+```
+
+Das Setzen dieses Wertes schreibt sofort in die Grohe-API. Der Wert wird jeden 10. Poll aus der API neu gelesen.
+
+**Bewässerungsmodus** – Bewässerungsplan / Sprinklerprogramm:
+
+```
+<applianceId>.controls.sprinkler.startHour      number  0–23 Std
+<applianceId>.controls.sprinkler.startMinute    number  0–59 min
+<applianceId>.controls.sprinkler.stopHour       number  0–23 Std
+<applianceId>.controls.sprinkler.stopMinute     number  0–59 min
+
+<applianceId>.controls.sprinkler.activeMonday     boolean Schalter
+<applianceId>.controls.sprinkler.activeTuesday    boolean Schalter
+<applianceId>.controls.sprinkler.activeWednesday  boolean Schalter
+<applianceId>.controls.sprinkler.activeThursday   boolean Schalter
+<applianceId>.controls.sprinkler.activeFriday     boolean Schalter
+<applianceId>.controls.sprinkler.activeSaturday   boolean Schalter
+<applianceId>.controls.sprinkler.activeSunday     boolean Schalter
+
+<applianceId>.controls.sprinkler.save   boolean button – sendet alle Bewässerungswerte an die API
+```
+
+> Start- und Stoppzeiten werden als separate Stunden- (0–23) und Minuten-States (0–59) gespeichert. Der Adapter kombiniert sie intern zu Minuten ab Mitternacht für die API. Änderungen an einzelnen Feldern werden lokal bestätigt, aber **nicht** an die API gesendet, bis **Speichern** gedrückt wird.
+
+Die Bewässerungseinstellungen werden jeden 10. Poll aus der Grohe-API neu gelesen.
 
 ---
 
 ## Grohe Blue Home / Professional (Typ 104 / 105)
 
-States:
+### Messwerte
 
 ```
-<applianceId>.remainingCo2                (%)
-<applianceId>.remainingFilter             (%)
-<applianceId>.remainingCo2Liters          (l)
-<applianceId>.remainingFilterLiters       (l)
+<applianceId>.remainingCo2              %
+<applianceId>.remainingFilter           %
+<applianceId>.remainingCo2Liters        l
+<applianceId>.remainingFilterLiters     l
 
 <applianceId>.cyclesCarbonated
 <applianceId>.cyclesStill
 
-<applianceId>.operatingTime               (min)
-<applianceId>.pumpRunningTime             (min)
-<applianceId>.maxIdleTime                 (min)
-<applianceId>.timeSinceRestart            (min)
+<applianceId>.operatingTime             min
+<applianceId>.pumpRunningTime           min
+<applianceId>.maxIdleTime               min
+<applianceId>.timeSinceRestart          min
 
-<applianceId>.waterRunningCarbonated      (min)
-<applianceId>.waterRunningMedium          (min)
-<applianceId>.waterRunningStill           (min)
+<applianceId>.waterRunningCarbonated    min
+<applianceId>.waterRunningMedium        min
+<applianceId>.waterRunningStill         min
 
-<applianceId>.dateCleaning                (Datumsstring)
-<applianceId>.dateCo2Replacement          (Datumsstring)
-<applianceId>.dateFilterReplacement       (Datumsstring)
-<applianceId>.lastMeasurement             (Datumsstring)
+<applianceId>.dateCleaning              Datumsstring
+<applianceId>.dateCo2Replacement        Datumsstring
+<applianceId>.dateFilterReplacement     Datumsstring
+<applianceId>.lastMeasurement           Datumsstring
 
 <applianceId>.cleaningCount
 <applianceId>.filterChangeCount
@@ -266,76 +295,100 @@ States:
 <applianceId>.pumpCount
 ```
 
-Steuerungen:
+> **Messdaten-Aktualität:** Grohe-Blue-Geräte senden Messdaten **nicht** automatisch. Der Adapter sendet jeden 3. Poll-Zyklus einen `get_current_measurement`-Befehl. Danach prüft eine Hintergrund-Verifizierung alle 10 s (bis zu 3 Versuche / max. 30 s), ob neue Daten angekommen sind. Nach dem Adapterstart kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte angezeigt werden.
+
+### Steuerungen
 
 ```
-<applianceId>.controls.tapType            (number)  1=still, 2=medium, 3=sprudel
-<applianceId>.controls.tapAmount          (number)  Menge in ml (50–2000, Vielfache von 50)
-<applianceId>.controls.dispenseTrigger    (boolean button)
+<applianceId>.controls.tapType          number  1 = still · 2 = medium · 3 = sprudel
+<applianceId>.controls.tapAmount        number  ml, 50–2000 in Schritten von 50
+<applianceId>.controls.dispenseTrigger  boolean button
 
-<applianceId>.controls.resetCo2           (boolean button)
-<applianceId>.controls.resetFilter        (boolean button)
+<applianceId>.controls.resetCo2         boolean button
+<applianceId>.controls.resetFilter      boolean button
 ```
 
-Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, startet den Zapfvorgang und setzt `dispenseTrigger` anschließend wieder auf `false`. Nach dem Zapfvorgang werden `tapType` und `tapAmount` automatisch auf `0` zurückgesetzt, um eine unbeabsichtigte Wiederverwendung der Werte in nachfolgenden Polling-Zyklen zu verhindern. Sie werden auch bei jedem Adapterstart auf `0` zurückgesetzt.
-
-> **Hinweis zur Messdaten-Aktualität:** Anders als Sense/Guard-Geräte senden Grohe-Blue-Geräte ihre Messdaten **nicht** automatisch. Der Adapter sendet periodisch einen `get_current_measurement`-Befehl an das Gerät (jeden 3. Poll-Zyklus), um eine Datenaktualisierung auszulösen. Nach dem Senden des Befehls startet eine **Hintergrund-Verifizierung**, die den `/details`-Endpunkt alle 10 Sekunden erneut abfragt (bis zu 3 Versuche / maximal 30 Sekunden insgesamt), bis ein neuerer Messwert-Timestamp erscheint. Nach Erkennung werden alle States aktualisiert. So wird sichergestellt, dass Werte wie `remainingFilter` und `remainingCo2` die aktuellen Gerätedaten widerspiegeln. Nach dem Start des Adapters kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte angezeigt werden.
+Wenn `dispenseTrigger` auf `true` gesetzt wird, liest der Adapter `tapType` und `tapAmount`, führt den Zapfvorgang aus und setzt anschließend alle drei States auf `false` / `0` zurück.
 
 ---
 
-## Polling und Geräteerkennung
+## Polling-Strategie
 
-- Der Adapter fragt den Endpunkt `/dashboard` ab und durchläuft:
-  - `locations[] → rooms[] → appliances[]`
-- **Fallback-Erkennung**: Wenn `/dashboard` HTTP 404 zurückgibt (bei manchen älteren Accounts), extrahiert der Adapter die User-ID aus dem JWT-Token, ruft `/users/{userId}` auf um Locations zu ermitteln, und holt dann `/rooms` → `/appliances` + `/details` + `/notifications` pro Gerät. Dies wird einmalig erkannt und für die Laufzeit der Adapterinstanz beibehalten.
-- Geräte mit `registration_complete === false` werden übersprungen.
+Um API-Aufrufe zu minimieren und Rate-Limiting (HTTP 403) zu vermeiden, werden verschiedene Endpunkte in unterschiedlichen Intervallen abgefragt:
 
-### Gestaffeltes Polling
-
-Um die Anzahl der API-Aufrufe zu minimieren und HTTP-403-Fehler durch Rate-Limiting zu vermeiden, wird nicht bei jedem Polling-Zyklus jeder Endpunkt abgefragt. Der Adapter verwendet einen **Poll-Zähler** und ruft zusätzliche Daten in unterschiedlichen Intervallen ab:
-
-| Endpunkt | Häufigkeit | Gilt für | Grund |
+| Endpunkt | Häufigkeit | Geräte | Hinweise |
 |---|---|---|---|
-| `/dashboard` | **jeder** Poll | Alle | Kern-Sensordaten (Temperatur, Durchfluss, Druck, …) |
-| `/status` | jeder **5.** Poll | Alle | Online-/WLAN-/Update-Status ändert sich selten |
-| `/command` (lesen) | jeder **3.** Poll | Sense Guard | Ventilzustand (wird nach Befehlen sofort zurückgelesen) |
-| `/command` (`get_current_measurement`) | jeder **3.** Poll | Blue | Löst eine frische Messung am Gerät aus |
-| `/details` (Verifizierung) | bis zu **3×** nach Refresh | Blue | Hintergrund-Abfrage ob frische Daten angekommen sind (10s-Intervall, max. 30s gesamt) |
-| `/data/aggregated` (heute) | jeder **5.** Poll | Sense Guard | Tagesverbrauch für totalWaterConsumption |
-| `/data/aggregated` (historisch) | **einmal pro Tag** | Sense Guard | Historische Basis für totalWaterConsumption |
-| `/pressuremeasurement` | jeder **10.** Poll | Sense Guard | Ändert sich nur nach manueller Druckmessung |
+| `/dashboard` | jeder Poll | Alle | Kern-Sensordaten |
+| `/status` | jeder 5. Poll | Alle | Online- / WLAN- / Update-Status ändert sich selten |
+| `/command` (lesen) | jeder 3. Poll | Sense Guard | Ventilzustand; wird nach Befehlen sofort zurückgelesen |
+| `/snooze` (lesen) | jeder 3. Poll | Sense Guard | Snooze-Status; HTTP 404 = kein aktiver Snooze |
+| `/command` (`get_current_measurement`) | jeder 3. Poll | Blue | Löst frische Messung am Gerät aus |
+| `/details` (Verifizierung) | bis zu 3× nach Refresh | Blue | Hintergrund-Abfrage ob neue Daten ankamen (10-s-Intervall, max. 30 s) |
+| `/details` (Konfiguration) | jeder 10. Poll | Sense Guard | Bewässerungsplan, Entnahmelimit; immer beim ersten Poll |
+| `/data/aggregated` (heute) | jeder 5. Poll | Sense Guard | Tagesverbrauch für `totalWaterConsumption` |
+| `/data/aggregated` (historisch) | einmal pro Tag | Sense Guard | Historische Basis für `totalWaterConsumption` |
+| `/pressuremeasurement` | jeder 10. Poll | Sense Guard | Ändert sich nur nach einem Leitungscheck |
 
-> **Tipp:** Falls weiterhin HTTP-403-Fehler auftreten, erhöhe das Polling-Intervall in den Adapter-Einstellungen. Die Grohe-API hat Rate-Limits.
+> **Tipp:** Bei anhaltenden HTTP-403-Fehlern das Polling-Intervall erhöhen. Die Grohe-Cloud-API hat Rate-Limits.
 
 ### Exponentieller Backoff
 
 Bei Polling-Fehlern erhöht der Adapter das Intervall automatisch:
 
-1. Jeder aufeinanderfolgende Fehler **verdoppelt** das Intervall (z. B. 300 → 600 → 1200 → 2400 → 3600s).
-2. Maximaler Backoff: **1 Stunde**.
-3. Nach Erreichen von 1 Stunde: Der Adapter pausiert bis **12:00** (Mittag) bzw., falls bereits nach 12:00, bis **00:00** (Mitternacht). So wird unnötiger API-Verkehr für den Rest des Tages vermieden.
+1. Jeder aufeinanderfolgende Fehler **verdoppelt** das Intervall (300 → 600 → 1200 → 2400 → 3600 s).
+2. Maximum: **1 Stunde**.
+3. Nach Erreichen von 1 Stunde: Pause bis **12:00** Uhr (Mittag) bzw. bis **00:00** Uhr (Mitternacht), falls bereits nach 12:00 Uhr.
 4. Nach einem **erfolgreichen** Poll wird das Intervall auf den konfigurierten Wert zurückgesetzt.
 
 ---
 
-## Hinweise zur Fehlerbehandlung
+## Authentifizierung
 
-- Wenn das Polling fehlschlägt, wird `info.connection` auf `false` gesetzt.
-- Spezielle Behandlung für **HTTP 403**: Der Adapter protokolliert einen Hinweis, dass überprüft werden sollte, ob die Grohe-App bzw. das Konto noch aktiv und funktionsfähig ist.
-Mit jedem fehlgeschlagenen Pollingversuch wird die Zeit bis zum nächsten Versuch bis max. 1h erhöht. 
-- Token-Refresh erfolgt automatisch bei **401**, anschließend wird die Anfrage einmal wiederholt.
-- Alle Fehler in catch-Blöcken werden auf **warn**-Stufe geloggt (außer erwartete HTTP 404 bei Druckmessungen, die auf debug bleiben).
+Beim Start:
+
+1. Das gespeicherte Refresh-Token wird aus `auth.refreshToken` gelesen.
+2. Falls vorhanden, werden die Tokens automatisch erneuert.
+3. Schlägt das Refresh fehl oder existiert kein Token, erfolgt ein kompletter Login mit E-Mail / Passwort.
+4. Das neue Refresh-Token wird **verschlüsselt** (`enc:<...>`) in `auth.refreshToken` gespeichert.
+
+Unverschlüsselte Tokens aus älteren Versionen werden automatisch in verschlüsselte Speicherung migriert.
+
+Bei **HTTP 401** wird die Anfrage nach einem Token-Refresh einmalig wiederholt.
 
 ---
 
-## Hinweise zur Entwicklung
+## Fallback-Erkennung
 
-Zentrale Module:
+Gibt `/dashboard` HTTP 404 zurück (manche älteren Accounts), wechselt der Adapter in die Fallback-Erkennung:
 
-- `main.js`: ioBroker-Adapterlogik (Objekte, Polling, State-Updates, Befehle, Message-Handler für Device Manager)
-- `lib/device-manager.js`: Device Manager Integration (Kacheln, Tabs, Templates je Gerätetyp)
-- `lib/groheClient.js`: Grohe-API-Wrapper mit authentifizierten Requests
-- `lib/auth.js`: OAuth/Keycloak-Login und -Refresh (manuelle Redirect-Kette, Cookie-Jar)
-- `lib/notificationManager.js`: Versendet Push-Benachrichtigungen an konfigurierte Anbieter-Instanzen
-- `lib/notificationMessages.js`: Lokalisierte Benachrichtigungsvorlagen und Grohe-Benachrichtigungstyp-Texte (11 Sprachen)
-- `lib/apiDump.js`: Vollständiger API-Struktur-Dump für Diagnose (ausgelöst durch die rawStates-Option)
+1. User-ID wird aus dem JWT-Access-Token extrahiert.
+2. `/users/{userId}` wird aufgerufen, um Standorte zu ermitteln.
+3. Pro Gerät werden `/rooms` → `/appliances` + `/details` + `/notifications` abgerufen.
+
+Der Fallback-Modus wird einmalig beim Start erkannt und für die gesamte Laufzeit der Instanz beibehalten.
+
+---
+
+## Fehlerbehandlung
+
+| Situation | Verhalten |
+|---|---|
+| Polling-Fehler | `info.connection` → `false`; exponentieller Backoff |
+| HTTP 401 | Token-Refresh, Anfrage einmalig wiederholt |
+| HTTP 403 | Warnung geloggt; Hinweis, Grohe-Konto / App zu prüfen |
+| HTTP 404 bei `/pressuremeasurement` | Nur Debug-Log (kein Messwert bisher ist normal) |
+| HTTP 404 bei `/dashboard` | Wechsel in Fallback-Erkennung |
+
+---
+
+## Modul-Übersicht
+
+| Datei | Funktion |
+|---|---|
+| `main.js` | Adapter-Kern: Polling, State-Verwaltung, Befehlsverarbeitung, Device-Manager-Messages |
+| `lib/device-manager.js` | Device-Manager-Integration: Kacheln, Info-/Steuerungs-Tabs, Templates je Gerätetyp |
+| `lib/groheClient.js` | Grohe-API-Client: authentifizierte Requests, Auto-Refresh bei 401 |
+| `lib/auth.js` | OAuth / Keycloak-Login und Token-Refresh |
+| `lib/notificationManager.js` | Versendet Push-Benachrichtigungen an konfigurierte Anbieter |
+| `lib/notificationMessages.js` | Lokalisierte Benachrichtigungsvorlagen und Grohe-Benachrichtigungstyp-Texte (11 Sprachen) |
+| `lib/apiDump.js` | Vollständiger API-Struktur-Dump für Diagnose (ausgelöst durch Raw-States-Option) |
