@@ -82,6 +82,9 @@ void GroheSenseGuard::process_frame_() {
   ESP_LOGD(TAG, "Frame: type=0x%02X flags=0x%02X seq=%u payload=%u bytes",
            frame.msg_type, frame.flags, frame.seq, (unsigned)frame.payload.size());
 
+  // Publish to raw sensors + fire callbacks for every frame
+  publish_raw_frame_(frame, rx_buf_);
+
   switch (frame.msg_type) {
     case MSG_INFO:      handle_info_(frame);    break;
     case MSG_STATUS:    handle_status_(frame);  break;
@@ -94,7 +97,11 @@ void GroheSenseGuard::process_frame_() {
       ESP_LOGD(TAG, "Water data seq=%u", frame.seq);
       break;
     default:
-      ESP_LOGD(TAG, "Unknown type 0x%02X", frame.msg_type);
+      ESP_LOGW(TAG, "UNKNOWN type=0x%02X flags=0x%02X seq=%u payload: %s",
+               frame.msg_type, frame.flags, frame.seq,
+               to_hex_(frame.payload).c_str());
+      if (last_unknown_frame_)
+        last_unknown_frame_->publish_state(to_hex_(rx_buf_));
       break;
   }
 }
@@ -280,6 +287,39 @@ void GroheSenseGuard::sprinkler_off() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Send a raw frame via UART
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hex helper + raw frame publisher
+// ─────────────────────────────────────────────────────────────────────────────
+
+std::string GroheSenseGuard::to_hex_(const std::vector<uint8_t> &data) {
+  std::string out;
+  out.reserve(data.size() * 3);
+  char buf[4];
+  for (size_t i = 0; i < data.size(); i++) {
+    snprintf(buf, sizeof(buf), i ? " %02X" : "%02X", data[i]);
+    out += buf;
+  }
+  return out;
+}
+
+void GroheSenseGuard::publish_raw_frame_(const GroheFrame &f,
+                                          const std::vector<uint8_t> &raw) {
+  // Format: "type=0x04 flags=0x20 seq=11 | FE FE FE FE 68 ..."
+  char header[48];
+  snprintf(header, sizeof(header), "type=0x%02X flags=0x%02X seq=%u | ",
+           f.msg_type, f.flags, f.seq);
+  std::string full = std::string(header) + to_hex_(raw);
+
+  ESP_LOGV(TAG, "RAW: %s", full.c_str());
+
+  if (last_raw_frame_)
+    last_raw_frame_->publish_state(full);
+
+  // Fire registered callbacks
+  for (auto &cb : on_frame_callbacks_)
+    cb(f.msg_type, f.flags, to_hex_(raw));
+}
 
 void GroheSenseGuard::send_frame_(const std::vector<uint8_t> &frame) {
   ESP_LOGD(TAG, "TX %u bytes", (unsigned)frame.size());

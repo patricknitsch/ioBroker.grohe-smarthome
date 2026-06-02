@@ -21,6 +21,25 @@ api:
 
 logger:
   level: DEBUG
+  # Für Protokoll-Analyse: level auf VERBOSE setzen.
+  # Dann erscheinen alle RAW-Frames auch im seriellen Log:
+  # logger:
+  #   level: VERBOSE
+
+# ── Optional: MQTT für Frame-Dump ────────────────────────────────────────────
+# Wenn aktiviert: jedes Frame landet auf grohe/raw_frame
+# → Perfekt zum Aufzeichnen und späteren Analysieren neuer Pakete
+# mqtt:
+#   broker: !secret mqtt_broker
+#   username: !secret mqtt_user
+#   password: !secret mqtt_password
+#   on_connect:
+#     - lambda: |-
+#         id(grohe).add_on_frame_callback([](uint8_t type, uint8_t flags, std::string hex) {
+#           char topic[64];
+#           snprintf(topic, sizeof(topic), "grohe/frame/0x%02X", type);
+#           id(mqtt_client).publish(topic, hex);
+#         });
 
 # ── External component ────────────────────────────────────────────────────────
 external_components:
@@ -101,6 +120,19 @@ text_sensor:
 
     firmware_version:
       name: "Grohe Firmware Version"
+
+    # Jeder empfangene Frame als Hex-String:
+    # "type=0x05 flags=0x20 seq=9 | FE FE FE FE 68 99 ..."
+    # Damit kannst du neue Pakete in HA ablesen und hier analysieren.
+    last_raw_frame:
+      name: "Grohe Letztes Frame (RAW)"
+      entity_category: diagnostic
+
+    # Nur Frames mit unbekanntem type-Byte landen hier.
+    # Wenn Grohe neue Nachrichtentypen schickt, erscheinen sie hier.
+    last_unknown_frame:
+      name: "Grohe Unbekanntes Frame"
+      entity_category: diagnostic
 
 # ── Buttons (valve control & snooze) ─────────────────────────────────────────
 # These only work reliably in Phase 2 (when Grohe cloud is blocked).

@@ -33,6 +33,17 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   void set_sprinkler_stop(sensor::Sensor *s)  { sprinkler_stop_ = s; }
   void set_firmware_version(text_sensor::TextSensor *s) { firmware_version_ = s; }
 
+  // Raw frame capture – every received frame as hex string
+  void set_last_raw_frame(text_sensor::TextSensor *s)     { last_raw_frame_ = s; }
+  // Unknown frame types only
+  void set_last_unknown_frame(text_sensor::TextSensor *s) { last_unknown_frame_ = s; }
+
+  // Callback: fires for every successfully parsed frame (type, flags, hex payload)
+  // Register from YAML via on_frame automation trigger (future).
+  void add_on_frame_callback(std::function<void(uint8_t, uint8_t, std::string)> cb) {
+    on_frame_callbacks_.push_back(std::move(cb));
+  }
+
   // ── ESPHome lifecycle ────────────────────────────────────────────────────
   void setup() override;
   void loop() override;
@@ -67,6 +78,10 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   sensor::Sensor *sprinkler_start_{nullptr};
   sensor::Sensor *sprinkler_stop_{nullptr};
   text_sensor::TextSensor *firmware_version_{nullptr};
+  text_sensor::TextSensor *last_raw_frame_{nullptr};
+  text_sensor::TextSensor *last_unknown_frame_{nullptr};
+
+  std::vector<std::function<void(uint8_t, uint8_t, std::string)>> on_frame_callbacks_;
 
   // ── Internal helpers ─────────────────────────────────────────────────────
   void process_byte_(uint8_t byte);
@@ -76,6 +91,11 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   void handle_config_(const GroheFrame &f);
   void send_frame_(const std::vector<uint8_t> &frame);
   uint8_t next_seq_() { return tx_seq_++; }
+
+  // Convert a byte vector to a hex string like "FE FE 68 ..."
+  static std::string to_hex_(const std::vector<uint8_t> &data);
+  // Publish frame to raw sensors and fire callbacks
+  void publish_raw_frame_(const GroheFrame &f, const std::vector<uint8_t> &raw);
 };
 
 }  // namespace grohe_sense_guard
