@@ -1,0 +1,138 @@
+esphome:
+  name: grohe-tap
+  friendly_name: Grohe Sense Guard Tap
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# ── WiFi / OTA / API ──────────────────────────────────────────────────────────
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+ota:
+  password: !secret ota_password
+
+api:
+  encryption:
+    key: !secret api_key
+
+logger:
+  level: DEBUG
+
+# ── External component ────────────────────────────────────────────────────────
+external_components:
+  - source:
+      type: local
+      path: components
+
+# ── UART wiring ───────────────────────────────────────────────────────────────
+# Connect to MCU TX line (MCU → ESP8266 direction, also readable for tap).
+# Phase 1 (listen only): connect ESP32 RX to MCU TX.
+# Phase 2 (inject):      connect ESP32 TX to MCU RX (same line as ESP8266 UTXD).
+#
+# WT-8266-S1 pin reference:
+#   URXD = MCU TX → ESP8266 → connect ESP32 RX here
+#   UTXD = ESP8266 TX → MCU RX → connect ESP32 TX here (phase 2 only)
+#
+uart:
+  id: grohe_uart
+  rx_pin: GPIO16   # ESP32 RX ← MCU TX (URXD pad)
+  tx_pin: GPIO17   # ESP32 TX → MCU RX (UTXD pad, phase 2)
+  baud_rate: 115200
+  data_bits: 8
+  stop_bits: 1
+  parity: NONE
+
+# ── Grohe Sense Guard component ───────────────────────────────────────────────
+grohe_sense_guard:
+  id: grohe
+  uart_id: grohe_uart
+
+# ── Binary sensors ────────────────────────────────────────────────────────────
+binary_sensor:
+  - platform: grohe_sense_guard
+    grohe_id: grohe
+
+    valve_open:
+      name: "Grohe Ventil offen"
+      device_class: opening
+
+    snooze_active:
+      name: "Grohe Pause aktiv"
+      device_class: running
+
+    pressure_test:
+      name: "Grohe Drucktest läuft"
+      device_class: running
+
+    sprinkler_monday:
+      name: "Sprinkler Montag"
+    sprinkler_tuesday:
+      name: "Sprinkler Dienstag"
+    sprinkler_wednesday:
+      name: "Sprinkler Mittwoch"
+    sprinkler_thursday:
+      name: "Sprinkler Donnerstag"
+    sprinkler_friday:
+      name: "Sprinkler Freitag"
+    sprinkler_saturday:
+      name: "Sprinkler Samstag"
+    sprinkler_sunday:
+      name: "Sprinkler Sonntag"
+
+# ── Sensors ───────────────────────────────────────────────────────────────────
+sensor:
+  - platform: grohe_sense_guard
+    grohe_id: grohe
+
+    sprinkler_start_time:
+      name: "Sprinkler Startzeit (min)"
+
+    sprinkler_stop_time:
+      name: "Sprinkler Stopzeit (min)"
+
+# ── Text sensors ──────────────────────────────────────────────────────────────
+text_sensor:
+  - platform: grohe_sense_guard
+    grohe_id: grohe
+
+    firmware_version:
+      name: "Grohe Firmware Version"
+
+# ── Buttons (valve control & snooze) ─────────────────────────────────────────
+# These only work reliably in Phase 2 (when Grohe cloud is blocked).
+button:
+  - platform: template
+    name: "Ventil öffnen"
+    on_press:
+      - lambda: 'id(grohe).valve_open();'
+
+  - platform: template
+    name: "Ventil schließen"
+    on_press:
+      - lambda: 'id(grohe).valve_close();'
+
+  - platform: template
+    name: "Pause starten (30 min)"
+    on_press:
+      - lambda: 'id(grohe).snooze_start(30);'
+
+  - platform: template
+    name: "Pause stoppen"
+    on_press:
+      - lambda: 'id(grohe).snooze_stop();'
+
+  - platform: template
+    name: "Sprinkler alle Tage 0:00-23:59"
+    on_press:
+      - lambda: |-
+          bool days[7] = {true, true, true, true, true, true, true};
+          id(grohe).set_sprinkler(0, 1439, days);
+
+  - platform: template
+    name: "Sprinkler aus"
+    on_press:
+      - lambda: 'id(grohe).sprinkler_off();'
