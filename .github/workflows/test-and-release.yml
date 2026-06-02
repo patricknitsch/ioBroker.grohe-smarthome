@@ -26,7 +26,7 @@ jobs:
           echo "fetch-retry-mintimeout=20000" >> ~/.npmrc
           echo "fetch-retry-maxtimeout=120000" >> ~/.npmrc
 
-      - uses: ioBroker/testing-action-check@v1
+      - uses: ioBroker/testing-action-check@v2
         with:
           node-version: '24.x'
           lint: true
