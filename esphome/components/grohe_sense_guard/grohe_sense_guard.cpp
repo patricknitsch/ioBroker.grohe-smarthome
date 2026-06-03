@@ -219,8 +219,12 @@ bool GroheSenseGuard::build_status_cmd_(std::vector<uint8_t> &payload,
                                          int snooze,  // -1=keep, 0=off, 1=on
                                          uint16_t snooze_min) {
   if (last_status_payload_.size() <= STATUS_SNOOZE) {
-    ESP_LOGW(TAG, "No STATUS cached yet – wait for first status packet");
-    return false;
+    // No STATUS received yet — use safe default matching observed app format.
+    // 16 bytes: 00 00 [seq] 00 00 00 07 [valve=0] 00 00 00 00 [snooze=0] 00 00 02
+    ESP_LOGD(TAG, "No STATUS cached, using default template");
+    last_status_payload_.assign(16, 0x00);
+    last_status_payload_[6]  = 0x07;
+    last_status_payload_[15] = 0x02;
   }
   payload = last_status_payload_;
   payload[PAY_SEQ] = next_seq_();
