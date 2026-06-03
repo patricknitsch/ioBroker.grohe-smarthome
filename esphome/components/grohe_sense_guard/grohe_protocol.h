@@ -152,9 +152,11 @@ inline std::vector<uint8_t> build_frame(
   frame.push_back(seq);
   frame.insert(frame.end(), data.begin(), data.end());
 
-  // Checksum: sum of all bytes from second 68 to last data byte, mod 256
+  // Checksum: sum of bytes from second 0x68 (index 11) to last data byte, minus 2, mod 256.
+  // Verified empirically from captured frames: actual_cs = candidate_A - 2.
   uint8_t cs = 0;
-  for (size_t i = 4 + 1; i < frame.size(); i++) cs += frame[i]; // skip FE×4 + first 68
+  for (size_t i = 11; i < frame.size(); i++) cs += frame[i]; // second 0x68 is at index 11
+  cs = static_cast<uint8_t>(cs - 2);
   frame.push_back(cs);
   frame.push_back(GROHE_STOP_BYTE);
 

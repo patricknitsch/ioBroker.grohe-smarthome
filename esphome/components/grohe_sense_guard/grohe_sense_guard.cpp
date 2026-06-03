@@ -365,8 +365,13 @@ void GroheSenseGuard::verify_checksum_(const std::vector<uint8_t> &raw) {
   if (pos + 13 < raw.size() - 2)
     for (size_t i = pos + 13; i < raw.size() - 2; i++) cs_d += raw[i];
 
-  ESP_LOGD(TAG, "CS actual=0x%02X | A(from2nd68)=0x%02X B(fromCtrl)=0x%02X C(fromAddr)=0x%02X D(fromCI)=0x%02X",
-           actual_cs, cs_a, cs_b, cs_c, cs_d);
+  bool ok = (static_cast<uint8_t>(cs_a - 2) == actual_cs);
+  if (ok) {
+    ESP_LOGV(TAG, "CS 0x%02X OK", actual_cs);
+  } else {
+    ESP_LOGW(TAG, "CS MISMATCH actual=0x%02X A-2=0x%02X A=0x%02X B=0x%02X C=0x%02X D=0x%02X",
+             actual_cs, (uint8_t)(cs_a - 2), cs_a, cs_b, cs_c, cs_d);
+  }
 }
 
 void GroheSenseGuard::send_frame_(const std::vector<uint8_t> &frame) {
