@@ -24,7 +24,9 @@ static const uint8_t MSG_CONFIG_RESP   = 0x0C;
 
 // Flags
 static const uint8_t FLAG_READ         = 0x20;
-static const uint8_t FLAG_WRITE        = 0x60;
+// Note: 0x20 is used for BOTH reads (MCU broadcasts) and writes (app commands).
+// The MCU distinguishes commands from broadcasts via payload[6]=0x07 in write frames.
+static const uint8_t FLAG_WRITE        = 0x20;
 
 // Payload offsets (relative to start of payload, after flags byte)
 // Payload layout: 00 00 [seq] [data...]

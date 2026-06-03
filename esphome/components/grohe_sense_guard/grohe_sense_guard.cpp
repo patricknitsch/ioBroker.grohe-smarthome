@@ -224,6 +224,10 @@ bool GroheSenseGuard::build_status_cmd_(std::vector<uint8_t> &payload,
   }
   payload = last_status_payload_;
   payload[PAY_SEQ] = next_seq_();
+  // App write commands always use payload[5]=0x00, payload[6]=0x07.
+  // The MCU uses [5]=0x01, [6]=0x00 in broadcasts — override for commands.
+  payload[5] = 0x00;
+  payload[6] = 0x07;
   if (valve  >= 0) payload[STATUS_VALVE_STATE] = valve  ? 0x01 : 0x00;
   if (snooze >= 0) {
     payload[STATUS_SNOOZE] = snooze ? 0x01 : 0x00;
@@ -289,6 +293,8 @@ void GroheSenseGuard::set_sprinkler(uint16_t start_min, uint16_t stop_min, bool 
   // Modify a copy of the last known config
   std::vector<uint8_t> payload = last_config_payload_;
   payload[PAY_SEQ] = next_seq_();
+  payload[5] = 0x00;
+  payload[6] = 0x07; // app write commands always set this byte
   payload[CFG_SPRINKLER_START]     = start_min >> 8;      // big-endian
   payload[CFG_SPRINKLER_START + 1] = start_min & 0xFF;
   payload[CFG_SPRINKLER_STOP]      = stop_min >> 8;
