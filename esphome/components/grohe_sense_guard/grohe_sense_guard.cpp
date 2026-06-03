@@ -152,6 +152,9 @@ void GroheSenseGuard::handle_status_(const GroheFrame &f) {
     return;
   }
 
+  // Cache for use as write template (mirrors CONFIG cache pattern)
+  last_status_payload_ = p;
+
   bool ptest  = (p[STATUS_PRESSURE_TEST] == 0x08);
   bool vopen  = (p[STATUS_VALVE_STATE]   == 0x01);
   // Snooze is encoded in both flags bit 1 (0x02) and payload[STATUS_SNOOZE].
@@ -208,15 +211,34 @@ void GroheSenseGuard::handle_config_(const GroheFrame &f) {
 // Command: Valve open
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Build a write-STATUS payload from the last received STATUS, changing only
+// the requested fields. Returns false if no STATUS has been cached yet.
+bool GroheSenseGuard::build_status_cmd_(std::vector<uint8_t> &payload,
+                                         int valve,   // -1=keep, 0=close, 1=open
+                                         int snooze,  // -1=keep, 0=off, 1=on
+                                         uint16_t snooze_min) {
+  if (last_status_payload_.size() <= STATUS_SNOOZE) {
+    ESP_LOGW(TAG, "No STATUS cached yet – wait for first status packet");
+    return false;
+  }
+  payload = last_status_payload_;
+  payload[PAY_SEQ] = next_seq_();
+  if (valve  >= 0) payload[STATUS_VALVE_STATE] = valve  ? 0x01 : 0x00;
+  if (snooze >= 0) {
+    payload[STATUS_SNOOZE] = snooze ? 0x01 : 0x00;
+    if (snooze && last_status_payload_.size() > STATUS_SNOOZE + 2) {
+      payload[STATUS_SNOOZE + 1] = static_cast<uint8_t>(snooze_min & 0xFF);
+      payload[STATUS_SNOOZE + 2] = static_cast<uint8_t>(snooze_min >> 8);
+    }
+  }
+  return true;
+}
+
 void GroheSenseGuard::valve_open() {
   ESP_LOGI(TAG, "CMD: valve open");
-  // Status payload with valve=0x01
-  // Based on observed status packet structure: 00 00 [seq] 00 00 00 07 01 ...
-  std::vector<uint8_t> data = {0x00, 0x00, next_seq_(),
-                                0x00, 0x00, 0x00, 0x07,
-                                0x01, // valve open
-                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02};
-  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[2], data));
+  std::vector<uint8_t> data;
+  if (!build_status_cmd_(data, 1, -1)) return;
+  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[PAY_SEQ], data));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -225,11 +247,9 @@ void GroheSenseGuard::valve_open() {
 
 void GroheSenseGuard::valve_close() {
   ESP_LOGI(TAG, "CMD: valve close");
-  std::vector<uint8_t> data = {0x00, 0x00, next_seq_(),
-                                0x00, 0x00, 0x00, 0x07,
-                                0x00, // valve closed
-                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02};
-  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[2], data));
+  std::vector<uint8_t> data;
+  if (!build_status_cmd_(data, 0, -1)) return;
+  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[PAY_SEQ], data));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -238,15 +258,9 @@ void GroheSenseGuard::valve_close() {
 
 void GroheSenseGuard::snooze_start(uint16_t duration_minutes) {
   ESP_LOGI(TAG, "CMD: snooze start %u min", duration_minutes);
-  std::vector<uint8_t> data = {0x00, 0x00, next_seq_(),
-                                0x00, 0x00, 0x00, 0x07,
-                                0x00,
-                                0x00, 0x00, 0x00, 0x00,
-                                0x01, // snooze active
-                                static_cast<uint8_t>(duration_minutes & 0xFF),
-                                static_cast<uint8_t>(duration_minutes >> 8),
-                                0x02};
-  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[2], data));
+  std::vector<uint8_t> data;
+  if (!build_status_cmd_(data, -1, 1, duration_minutes)) return;
+  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[PAY_SEQ], data));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -255,13 +269,9 @@ void GroheSenseGuard::snooze_start(uint16_t duration_minutes) {
 
 void GroheSenseGuard::snooze_stop() {
   ESP_LOGI(TAG, "CMD: snooze stop");
-  std::vector<uint8_t> data = {0x00, 0x00, next_seq_(),
-                                0x00, 0x00, 0x00, 0x07,
-                                0x00,
-                                0x00, 0x00, 0x00, 0x00,
-                                0x00, // snooze off
-                                0x00, 0x00, 0x02};
-  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[2], data));
+  std::vector<uint8_t> data;
+  if (!build_status_cmd_(data, -1, 0)) return;
+  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[PAY_SEQ], data));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

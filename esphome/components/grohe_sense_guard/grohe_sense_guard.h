@@ -67,8 +67,9 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   uint8_t dev_addr_[6]{0x99, 0x99, 0x99, 0x99, 0x99, 0x99};
   uint8_t tx_seq_{0x20}; // outgoing sequence counter
 
-  // ── Last known config payload (used for partial writes) ─────────────────
+  // ── Last known config/status payloads (used for partial writes) ─────────
   std::vector<uint8_t> last_config_payload_;
+  std::vector<uint8_t> last_status_payload_;
 
   // ── Sensors ─────────────────────────────────────────────────────────────
   binary_sensor::BinarySensor *valve_open_{nullptr};
@@ -90,6 +91,8 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   void handle_water_data_(const GroheFrame &f);
   void handle_status_(const GroheFrame &f);
   void handle_config_(const GroheFrame &f);
+  bool build_status_cmd_(std::vector<uint8_t> &payload, int valve, int snooze,
+                          uint16_t snooze_min = 0);
   void send_frame_(const std::vector<uint8_t> &frame);
   void verify_checksum_(const std::vector<uint8_t> &raw);
   uint8_t next_seq_() { return tx_seq_++; }
