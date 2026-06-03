@@ -84,6 +84,7 @@ void GroheSenseGuard::process_frame_() {
 
   // Publish to raw sensors + fire callbacks for every frame
   publish_raw_frame_(frame, rx_buf_);
+  verify_checksum_(rx_buf_);
 
   switch (frame.msg_type) {
     case MSG_INFO:      handle_info_(frame);    break;
@@ -94,7 +95,7 @@ void GroheSenseGuard::process_frame_() {
       ESP_LOGD(TAG, "Heartbeat seq=%u", frame.seq);
       break;
     case MSG_WATER_DATA:
-      ESP_LOGD(TAG, "Water data seq=%u", frame.seq);
+      handle_water_data_(frame);
       break;
     default:
       ESP_LOGW(TAG, "UNKNOWN type=0x%02X flags=0x%02X seq=%u payload: %s",
@@ -131,6 +132,18 @@ void GroheSenseGuard::handle_info_(const GroheFrame &f) {
 // Status packet (valve, snooze, pressure test)
 // ─────────────────────────────────────────────────────────────────────────────
 
+void GroheSenseGuard::handle_water_data_(const GroheFrame &f) {
+  // Short counter/poll frames (type 0x03). Payload: 00 00 00 00 00 00 01 00 [counter]
+  // The last byte increments each transmission; CS tracks it linearly.
+  const auto &p = f.payload;
+  if (!p.empty()) {
+    ESP_LOGD(TAG, "WaterData: counter=0x%02X payload=%s",
+             p.back(), to_hex_(p).c_str());
+  } else {
+    ESP_LOGD(TAG, "WaterData: empty payload");
+  }
+}
+
 void GroheSenseGuard::handle_status_(const GroheFrame &f) {
   const auto &p = f.payload;
 
@@ -141,12 +154,15 @@ void GroheSenseGuard::handle_status_(const GroheFrame &f) {
 
   bool ptest  = (p[STATUS_PRESSURE_TEST] == 0x08);
   bool vopen  = (p[STATUS_VALVE_STATE]   == 0x01);
-  bool snooze = (p[STATUS_SNOOZE]        == 0x01);
+  // Snooze is encoded in both flags bit 1 (0x02) and payload[STATUS_SNOOZE].
+  // Use flags as primary since it appears in every status frame.
+  bool snooze = (f.flags & 0x02) || (p[STATUS_SNOOZE] == 0x01);
 
-  ESP_LOGI(TAG, "Status: valve=%s snooze=%s pressure_test=%s",
+  ESP_LOGI(TAG, "Status: valve=%s snooze=%s pressure_test=%s flags=0x%02X",
            vopen ? "OPEN" : "CLOSED",
            snooze ? "ON" : "OFF",
-           ptest ? "RUNNING" : "idle");
+           ptest ? "RUNNING" : "idle",
+           f.flags);
 
   if (valve_open_)    valve_open_->publish_state(vopen);
   if (snooze_active_) snooze_active_->publish_state(snooze);
@@ -253,8 +269,9 @@ void GroheSenseGuard::snooze_stop() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void GroheSenseGuard::set_sprinkler(uint16_t start_min, uint16_t stop_min, bool days[7]) {
-  if (last_config_payload_.empty()) {
-    ESP_LOGW(TAG, "No config cached yet – wait for first config packet");
+  if (last_config_payload_.size() <= CFG_SPRINKLER_SUN) {
+    ESP_LOGW(TAG, "Config not received yet (size=%u, need>%u) – trigger a config read first",
+             (unsigned)last_config_payload_.size(), (unsigned)CFG_SPRINKLER_SUN);
     return;
   }
 
@@ -321,8 +338,40 @@ void GroheSenseGuard::publish_raw_frame_(const GroheFrame &f,
     cb(f.msg_type, f.flags, to_hex_(raw));
 }
 
+void GroheSenseGuard::verify_checksum_(const std::vector<uint8_t> &raw) {
+  // raw ends with [CS] [0x16]. Compute CS candidates so we can identify the correct algorithm.
+  if (raw.size() < 4) return;
+  uint8_t actual_cs = raw[raw.size() - 2];
+
+  // Find position of first 0x68
+  size_t pos = 0;
+  while (pos < raw.size() && raw[pos] != 0x68) pos++;
+  if (pos >= raw.size()) return;
+
+  // Candidate A: sum from second 68 (pos+7) to last data byte (raw.size()-3), mod 256
+  uint8_t cs_a = 0;
+  for (size_t i = pos + 7; i < raw.size() - 2; i++) cs_a += raw[i];
+
+  // Candidate B: sum from ctrl byte (pos+8) to last data byte, mod 256
+  uint8_t cs_b = 0;
+  for (size_t i = pos + 8; i < raw.size() - 2; i++) cs_b += raw[i];
+
+  // Candidate C: sum from addr start (pos+1) to last data byte, mod 256
+  uint8_t cs_c = 0;
+  for (size_t i = pos + 1; i < raw.size() - 2; i++) cs_c += raw[i];
+
+  // Candidate D: sum from CI_SUB (pos+13) to last data byte, mod 256
+  uint8_t cs_d = 0;
+  if (pos + 13 < raw.size() - 2)
+    for (size_t i = pos + 13; i < raw.size() - 2; i++) cs_d += raw[i];
+
+  ESP_LOGD(TAG, "CS actual=0x%02X | A(from2nd68)=0x%02X B(fromCtrl)=0x%02X C(fromAddr)=0x%02X D(fromCI)=0x%02X",
+           actual_cs, cs_a, cs_b, cs_c, cs_d);
+}
+
 void GroheSenseGuard::send_frame_(const std::vector<uint8_t> &frame) {
-  ESP_LOGD(TAG, "TX %u bytes", (unsigned)frame.size());
+  uint8_t cs = frame.size() >= 2 ? frame[frame.size() - 2] : 0;
+  ESP_LOGD(TAG, "TX %u bytes CS=0x%02X", (unsigned)frame.size(), cs);
   for (uint8_t b : frame) write_byte(b);
 }
 

@@ -87,9 +87,11 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   void process_byte_(uint8_t byte);
   void process_frame_();
   void handle_info_(const GroheFrame &f);
+  void handle_water_data_(const GroheFrame &f);
   void handle_status_(const GroheFrame &f);
   void handle_config_(const GroheFrame &f);
   void send_frame_(const std::vector<uint8_t> &frame);
+  void verify_checksum_(const std::vector<uint8_t> &raw);
   uint8_t next_seq_() { return tx_seq_++; }
 
   // Convert a byte vector to a hex string like "FE FE 68 ..."
