@@ -187,10 +187,11 @@ void GroheSenseGuard::handle_config_(const GroheFrame &f) {
   // Cache config for later partial writes (e.g. only change sprinkler days)
   last_config_payload_ = p;
 
-  uint16_t start_min = (static_cast<uint16_t>(p[CFG_SPRINKLER_START + 1]) << 8)
-                      | p[CFG_SPRINKLER_START];
-  uint16_t stop_min  = (static_cast<uint16_t>(p[CFG_SPRINKLER_STOP + 1]) << 8)
-                      | p[CFG_SPRINKLER_STOP];
+  // Sprinkler times are stored big-endian (high byte first) in the CONFIG payload.
+  uint16_t start_min = (static_cast<uint16_t>(p[CFG_SPRINKLER_START]) << 8)
+                      | p[CFG_SPRINKLER_START + 1];
+  uint16_t stop_min  = (static_cast<uint16_t>(p[CFG_SPRINKLER_STOP]) << 8)
+                      | p[CFG_SPRINKLER_STOP + 1];
 
   ESP_LOGI(TAG, "Config: sprinkler %02u:%02u – %02u:%02u  days=",
            start_min / 60, start_min % 60,
@@ -288,10 +289,10 @@ void GroheSenseGuard::set_sprinkler(uint16_t start_min, uint16_t stop_min, bool 
   // Modify a copy of the last known config
   std::vector<uint8_t> payload = last_config_payload_;
   payload[PAY_SEQ] = next_seq_();
-  payload[CFG_SPRINKLER_START]     = start_min & 0xFF;
-  payload[CFG_SPRINKLER_START + 1] = start_min >> 8;
-  payload[CFG_SPRINKLER_STOP]      = stop_min & 0xFF;
-  payload[CFG_SPRINKLER_STOP + 1]  = stop_min >> 8;
+  payload[CFG_SPRINKLER_START]     = start_min >> 8;      // big-endian
+  payload[CFG_SPRINKLER_START + 1] = start_min & 0xFF;
+  payload[CFG_SPRINKLER_STOP]      = stop_min >> 8;
+  payload[CFG_SPRINKLER_STOP + 1]  = stop_min & 0xFF;
   for (int d = 0; d < 7; d++)
     payload[CFG_SPRINKLER_MON + d] = days[d] ? 0x01 : 0x00;
 
