@@ -247,6 +247,7 @@ bool GroheSenseGuard::build_status_cmd_(std::vector<uint8_t> &payload,
     ESP_LOGD(TAG, "No STATUS cached, using default template");
     last_status_payload_.assign(16, 0x00);
     last_status_payload_[6]  = 0x07;
+    last_status_payload_[12] = 0x01; // app always sets this byte; required for MCU to execute
     last_status_payload_[15] = 0x02;
   }
   payload = last_status_payload_;
