@@ -104,13 +104,15 @@ inline bool parse_frame(const std::vector<uint8_t> &buf, GroheFrame &frame) {
   return true;
 }
 
-// Build a config frame to send to MCU (valve open/close, snooze, sprinkler)
-// Based on flags=0x60 write packets observed in capture.
+// Build a frame to send to MCU.
+// data = complete payload including the leading 00 00 seq prefix.
+// L = CI_SUB + CI_APP + type + flags + data = 4 + data.size() + 1 = data.size() + 5
+// (empirically verified: STATUS 16-byte payload → L=21, CONFIG 85-byte → L=90)
 inline std::vector<uint8_t> build_frame(
     const uint8_t *addr,
     uint8_t msg_type,
     uint8_t flags,
-    uint8_t seq,
+    uint8_t /*seq*/,
     const std::vector<uint8_t> &data)
 {
   std::vector<uint8_t> frame;
@@ -118,24 +120,7 @@ inline std::vector<uint8_t> build_frame(
   // Wake preamble
   frame.insert(frame.end(), 4, GROHE_WAKE_BYTE);
 
-  // Compute inner data: ctrl + addr + CI_SUB + CI_APP + type + flags + 00 00 seq + data
-  std::vector<uint8_t> inner;
-  inner.push_back(GROHE_CTRL);
-  for (int i = 0; i < 6; i++) inner.push_back(addr[i]);
-  inner.push_back(GROHE_CI_SUB);
-  inner.push_back(GROHE_CI_APP);
-  inner.push_back(msg_type);
-  inner.push_back(flags);
-  inner.push_back(0x00);
-  inner.push_back(0x00);
-  inner.push_back(seq);
-  inner.insert(inner.end(), data.begin(), data.end());
-
-  uint8_t length = static_cast<uint8_t>(inner.size() - 1); // excl ctrl in some variants
-  // Length = number of bytes from CI_SUB to end of data (excl ctrl, addr, and 68 bytes)
-  // From observed packets: length = total payload + overhead - frame bytes
-  // Empirically: length = data.size() + 9 (CI_SUB + CI_APP + type + flags + 00 00 seq = 7 + correction)
-  length = static_cast<uint8_t>(data.size() + 7 + 3); // approximate; refine from captures
+  uint8_t length = static_cast<uint8_t>(data.size() + 5);
 
   frame.push_back(GROHE_START_BYTE);
   for (int i = 0; i < 6; i++) frame.push_back(addr[i]);
@@ -149,15 +134,12 @@ inline std::vector<uint8_t> build_frame(
   frame.push_back(GROHE_CI_APP);
   frame.push_back(msg_type);
   frame.push_back(flags);
-  frame.push_back(0x00);
-  frame.push_back(0x00);
-  frame.push_back(seq);
+  // data contains the complete payload (00 00 seq prefix is part of data, not added separately)
   frame.insert(frame.end(), data.begin(), data.end());
 
-  // Checksum: sum of bytes from second 0x68 (index 11) to last data byte, minus 2, mod 256.
-  // Verified empirically from captured frames: actual_cs = candidate_A - 2.
+  // CS = sum from second 0x68 (frame[11]) to last data byte, minus 2, mod 256.
   uint8_t cs = 0;
-  for (size_t i = 11; i < frame.size(); i++) cs += frame[i]; // second 0x68 is at index 11
+  for (size_t i = 11; i < frame.size(); i++) cs += frame[i];
   cs = static_cast<uint8_t>(cs - 2);
   frame.push_back(cs);
   frame.push_back(GROHE_STOP_BYTE);
