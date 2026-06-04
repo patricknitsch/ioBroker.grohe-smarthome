@@ -13,14 +13,14 @@ void GroheSenseGuard::setup() {
 }
 
 void GroheSenseGuard::update() {
-  // Send a STATUS read request (type=0x05, flags=0x20, minimal payload).
-  // This mirrors how the app polls current device state.
-  request_status();
+  // Periodic keep-alive: only log that we are alive; the MCU drives heartbeat timing.
+  // Real polling happens in handle_water_data_ (we echo back MCU type=0x03 frames).
+  ESP_LOGD(TAG, "Alive (waiting for MCU heartbeat)");
 }
 
 void GroheSenseGuard::request_status() {
   ESP_LOGI(TAG, "CMD: request status");
-  // Try STATUS read: minimal payload 00 00 seq 00 00 00 00 → ask MCU for current state
+  // Send a minimal STATUS read request to ask MCU for current state.
   uint8_t seq = next_seq_();
   std::vector<uint8_t> data(7, 0x00);
   data[2] = seq;
@@ -148,15 +148,17 @@ void GroheSenseGuard::handle_info_(const GroheFrame &f) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void GroheSenseGuard::handle_water_data_(const GroheFrame &f) {
-  // Short counter/poll frames (type 0x03). Payload: 00 00 00 00 00 00 01 00 [counter]
-  // The last byte increments each transmission; CS tracks it linearly.
+  // Periodic MCU heartbeat (type=0x03). Counter byte increments each frame.
+  // The ESP8266 likely responds to these to keep the session alive.
+  // We mirror the same frame back so the MCU sees an active controller.
   const auto &p = f.payload;
-  if (!p.empty()) {
-    ESP_LOGD(TAG, "WaterData: counter=0x%02X payload=%s",
-             p.back(), to_hex_(p).c_str());
-  } else {
-    ESP_LOGD(TAG, "WaterData: empty payload");
-  }
+  uint8_t counter = p.empty() ? 0x01 : p.back();
+  ESP_LOGD(TAG, "WaterData heartbeat counter=0x%02X – echoing back", counter);
+
+  // Echo: same payload format the MCU sent, counter unchanged
+  std::vector<uint8_t> reply(p.size(), 0x00);
+  if (!reply.empty()) reply.back() = counter;
+  send_frame_(build_frame(dev_addr_, MSG_WATER_DATA, FLAG_READ, 0, reply));
 }
 
 void GroheSenseGuard::handle_status_(const GroheFrame &f) {
