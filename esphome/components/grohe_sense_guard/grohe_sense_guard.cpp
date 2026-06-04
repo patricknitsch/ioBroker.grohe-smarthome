@@ -13,11 +13,18 @@ void GroheSenseGuard::setup() {
 }
 
 void GroheSenseGuard::update() {
-  // Send a type=0x03 poll frame so the MCU sends back STATUS + CONFIG.
-  // The MCU sends these counter frames periodically itself; we mirror the format.
-  std::vector<uint8_t> data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, poll_counter_++};
-  send_frame_(build_frame(dev_addr_, MSG_WATER_DATA, FLAG_READ, 0, data));
-  ESP_LOGD(TAG, "Poll: counter=0x%02X", poll_counter_ - 1);
+  // Send a STATUS read request (type=0x05, flags=0x20, minimal payload).
+  // This mirrors how the app polls current device state.
+  request_status();
+}
+
+void GroheSenseGuard::request_status() {
+  ESP_LOGI(TAG, "CMD: request status");
+  // Try STATUS read: minimal payload 00 00 seq 00 00 00 00 → ask MCU for current state
+  uint8_t seq = next_seq_();
+  std::vector<uint8_t> data(7, 0x00);
+  data[2] = seq;
+  send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_READ, seq, data));
 }
 
 void GroheSenseGuard::loop() {
@@ -295,19 +302,6 @@ void GroheSenseGuard::snooze_stop() {
   std::vector<uint8_t> data;
   if (!build_status_cmd_(data, -1, 0)) return;
   send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[PAY_SEQ], data));
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Command: Request current status/config from MCU
-// ─────────────────────────────────────────────────────────────────────────────
-
-void GroheSenseGuard::request_status() {
-  ESP_LOGI(TAG, "CMD: request status");
-  // Short poll frame matching observed type=0x03 counter frames.
-  // Payload: 00 00 00 00 00 00 01 00 [counter]
-  uint8_t counter = next_seq_();
-  std::vector<uint8_t> data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, counter};
-  send_frame_(build_frame(dev_addr_, MSG_WATER_DATA, FLAG_READ, counter, data));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
