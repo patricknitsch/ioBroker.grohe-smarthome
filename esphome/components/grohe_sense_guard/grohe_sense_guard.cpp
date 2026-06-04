@@ -12,6 +12,14 @@ void GroheSenseGuard::setup() {
   ESP_LOGI(TAG, "Grohe Sense Guard component ready");
 }
 
+void GroheSenseGuard::update() {
+  // Send a type=0x03 poll frame so the MCU sends back STATUS + CONFIG.
+  // The MCU sends these counter frames periodically itself; we mirror the format.
+  std::vector<uint8_t> data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, poll_counter_++};
+  send_frame_(build_frame(dev_addr_, MSG_WATER_DATA, FLAG_READ, 0, data));
+  ESP_LOGD(TAG, "Poll: counter=0x%02X", poll_counter_ - 1);
+}
+
 void GroheSenseGuard::loop() {
   const uint32_t now = millis();
 

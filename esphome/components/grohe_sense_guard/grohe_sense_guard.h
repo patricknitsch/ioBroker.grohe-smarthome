@@ -14,7 +14,7 @@ namespace grohe_sense_guard {
 
 static const char *const TAG = "grohe";
 
-class GroheSenseGuard : public Component, public uart::UARTDevice {
+class GroheSenseGuard : public PollingComponent, public uart::UARTDevice {
  public:
   // ── Sensor setters (called from sensor.py / binary_sensor.py) ────────────
   void set_valve_open(binary_sensor::BinarySensor *s)   { valve_open_ = s; }
@@ -48,6 +48,7 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   void setup() override;
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
+  void update() override;
 
   // ── Command API ──────────────────────────────────────────────────────────
   void valve_open();
@@ -66,7 +67,8 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
 
   // ── Last known device address ────────────────────────────────────────────
   uint8_t dev_addr_[6]{0x99, 0x99, 0x99, 0x99, 0x99, 0x99};
-  uint8_t tx_seq_{0x20}; // outgoing sequence counter
+  uint8_t tx_seq_{0x01}; // outgoing sequence counter (start at 1, matching observed app frames)
+  uint8_t poll_counter_{0x01}; // type=0x03 counter byte, mirrors MCU behaviour
 
   // ── Last known config/status payloads (used for partial writes) ─────────
   std::vector<uint8_t> last_config_payload_;

@@ -8,7 +8,7 @@ AUTO_LOAD = ["sensor", "binary_sensor", "switch", "number", "text_sensor"]
 
 grohe_ns = cg.esphome_ns.namespace("grohe_sense_guard")
 GroheSenseGuard = grohe_ns.class_(
-    "GroheSenseGuard", cg.Component, uart.UARTDevice
+    "GroheSenseGuard", cg.PollingComponent, uart.UARTDevice
 )
 
 CONF_GROHE_ID = "grohe_id"
@@ -20,7 +20,7 @@ CONFIG_SCHEMA = (
         }
     )
     .extend(uart.UART_DEVICE_SCHEMA)
-    .extend(cv.COMPONENT_SCHEMA)
+    .extend(cv.polling_component_schema("30s"))
 )
 
 
