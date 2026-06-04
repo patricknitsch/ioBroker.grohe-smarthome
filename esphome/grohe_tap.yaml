@@ -168,3 +168,9 @@ button:
     name: "Sprinkler aus"
     on_press:
       - lambda: 'id(grohe).sprinkler_off();'
+
+  - platform: template
+    name: "Status abrufen"
+    entity_category: diagnostic
+    on_press:
+      - lambda: 'id(grohe).request_status();'

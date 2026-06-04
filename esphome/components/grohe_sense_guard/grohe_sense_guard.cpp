@@ -147,6 +147,12 @@ void GroheSenseGuard::handle_water_data_(const GroheFrame &f) {
 void GroheSenseGuard::handle_status_(const GroheFrame &f) {
   const auto &p = f.payload;
 
+  // flags bit 0 (0x01) = short ACK frame (7 bytes), sent by MCU to confirm receipt of a command.
+  if (f.flags & 0x01) {
+    ESP_LOGD(TAG, "ACK: seq=%u flags=0x%02X", f.seq, f.flags);
+    return;
+  }
+
   if (p.size() <= STATUS_SNOOZE) {
     ESP_LOGW(TAG, "Status packet too short: %u", (unsigned)p.size());
     return;
@@ -281,6 +287,19 @@ void GroheSenseGuard::snooze_stop() {
   std::vector<uint8_t> data;
   if (!build_status_cmd_(data, -1, 0)) return;
   send_frame_(build_frame(dev_addr_, MSG_STATUS, FLAG_WRITE, data[PAY_SEQ], data));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Command: Request current status/config from MCU
+// ─────────────────────────────────────────────────────────────────────────────
+
+void GroheSenseGuard::request_status() {
+  ESP_LOGI(TAG, "CMD: request status");
+  // Short poll frame matching observed type=0x03 counter frames.
+  // Payload: 00 00 00 00 00 00 01 00 [counter]
+  uint8_t counter = next_seq_();
+  std::vector<uint8_t> data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, counter};
+  send_frame_(build_frame(dev_addr_, MSG_WATER_DATA, FLAG_READ, counter, data));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

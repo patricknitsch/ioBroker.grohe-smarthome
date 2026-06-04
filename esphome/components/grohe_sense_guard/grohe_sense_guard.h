@@ -56,6 +56,7 @@ class GroheSenseGuard : public Component, public uart::UARTDevice {
   void snooze_stop();
   void set_sprinkler(uint16_t start_min, uint16_t stop_min, bool days[7]);
   void sprinkler_off();
+  void request_status();
 
  protected:
   // ── Receive buffer ───────────────────────────────────────────────────────
