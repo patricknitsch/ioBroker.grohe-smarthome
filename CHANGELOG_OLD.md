@@ -1,4 +1,8 @@
 # Older changes
+## 0.5.0 (2026-05-08)
+* (copilot) Integrate Adapter in ioBroker Device Manager
+* (copilot) Remove tab
+
 ## 0.4.0 (2026-05-05)
 * (copilot) Add Notification Manager
 

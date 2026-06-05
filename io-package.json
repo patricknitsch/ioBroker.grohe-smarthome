@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.5.4",
+    "version": "0.6.0",
     "news": {
+      "0.6.0": {
+        "en": "Fixes Repo Checker\nChange Raw-States to Bump Funktion for Debugging(see Doc.)\nFixes Problems Error 404\nNew functions for Grohe with Snooze, Withdrawal and Sprinkler\nExtend Documentation",
+        "de": "Repo Checker repariert\nÄndern Sie Raw-States auf Bump Funktion für Debugging (siehe Doc.)\nFehler behoben 404\nNeue Funktionen für Grohe mit Snooze, Entnahme und Sprinkler\nErweiterte Dokumentation",
+        "ru": "Обсуждение Repo Checker\nИзменить сырьевой штат на Bump Funktion для отладки (см. Док)\nИсправить ошибку 404\nНовые функции для Grohe with Snooze, Withdrawal и Sprinkler\nРасширить документацию",
+        "pt": "Corrige o Verificador de Repo\nMudar os estados brutos para o Bump Funktion para depuração (ver Doc.)\nCorrige o Erro dos Problemas 404\nNovas funções para Grohe com Snooze, Retirada e Aspersor\nExpandir a Documentação",
+        "nl": "Repo-checker herstellen\nRaw-States wijzigen in Bump Funktion for Debugging(zie Doc.)\nProblemen oplossen Fout 404\nNieuwe functies voor Grohe met Snooze, Rewal en Sprinkler\nDocumentatie uitbreiden",
+        "fr": "Corrige le vérificateur de repo\nChanger les états bruts en bouffées pour le débogage (voir Doc.)\nCorrection des problèmes Erreur 404\nNouvelles fonctions pour Grohe avec Snooze, Retrait et Sprinkler\nÉlargir la documentation",
+        "it": "Risolve il controllo del repo\nCambiare gli stati crudi a bump Funktion per il debugging (vedi Doc.)\nErrore di risolvere problemi 404\nNuove funzioni per Grohe con Snooze, Ritiro e Sprinkler\nEstendere la documentazione",
+        "es": "Corrección Repo Checker\nCambiar los Estados crudos a la Función de Bomba para Debugging (ver Doc.)\nCorrección Problemas Error 404\nNuevas funciones para Grohe con Snooze, Retiro y Sprinkler\nDocumentación amplia",
+        "pl": "Fixes Repo Checker\nZmień Raw- Stany na Bump Funktion dla Debugowania (patrz Doc.)\nProblemy z ustawieniami Błąd 404\nNowe funkcje dla Grohe z Snooze, Wycofanie i zraszacz\nRozszerzenie dokumentacji",
+        "uk": "Виправлення Repo Checker\nЗміна сировинних станів до Bump Funktion для видалення (див. Doc.)\nВиправлення помилок помилка 404\nНові функції для Grohe з Snooze\nРозширена документація",
+        "zh-cn": "修复 Repo 检查器\n将 Raw- States 更改为调试的 Bump Funktion( 见 Doc.)\n解决问题错误 404\n带有 Snooze 、 退出和喷洒器的 Grohe 的新功能\n扩展文档"
+      },
       "0.5.4": {
         "en": "Add latest Message for Notifications\nAdd Icons in Notifications",
         "de": "Neueste Meldungen hinzufügen\nIcons in Notifications hinzufügen",
@@ -80,19 +93,6 @@
         "pl": "Dodaj menedżera powiadomień",
         "uk": "Додати менеджер повідомлень",
         "zh-cn": "添加通知管理器"
-      },
-      "0.3.4": {
-        "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
-        "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
-        "ru": "Адаптер требует node.js >= 22 сейчас\nОбновление зависимостей",
-        "pt": "Adaptador requer nod.js >= 22 agora\nAtualizar dependências",
-        "nl": "Voor de adapter zijn node.js < 22 nu nodig\nAfhankelijkheden bijwerken",
-        "fr": "Adaptateur nécessite node.js >= 22 maintenant\nMettre à jour les dépendances",
-        "it": "Adattatore richiede node.js >= 22 ora\nDipendenze di aggiornamento",
-        "es": "Adaptador requiere node.js ю= 22 ahora\nDependencias de actualización",
-        "pl": "Adapter wymaga node.js > = 22\nAktualizuj zależności",
-        "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлення залежності",
-        "zh-cn": "适配器需要节点.js 现在22\n更新依赖关系"
       }
     },
     "titleLang": {
