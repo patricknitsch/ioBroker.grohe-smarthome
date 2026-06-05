@@ -110,7 +110,7 @@ class GroheSmarthome extends utils.Adapter {
 		});
 
 		try {
-			this.client = new GroheClient(this.log);
+			this.client = new GroheClient(this.log, this.setTimeout.bind(this));
 
 			const email = (this.config.email || '').trim();
 			const password = this.config.password || '';
