@@ -63,7 +63,9 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 * (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
 * Important Note: From 0.4.0 to 0.5.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3
 
-Older entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).## License
+Older entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
+
+## License
 MIT License
 
 Copyright (c) 2026 patricknitsch <patricknitsch@web.de>
