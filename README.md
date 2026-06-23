@@ -7,6 +7,10 @@
 
 [![NPM](https://nodei.co/npm/iobroker.grohe-smarthome.png?downloads=true)](https://nodei.co/npm/iobroker.grohe-smarthome/)
 
+![ioBroker](https://img.shields.io/badge/ioBroker-Adapter-blue)
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-green)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.grohe-smarthome/workflows/Test%20and%20Release/badge.svg)
 
 ## ioBroker Grohe Smarthome Adapter
