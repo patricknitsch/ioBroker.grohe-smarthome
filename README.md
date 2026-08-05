@@ -43,6 +43,10 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (patricknitsch) Isolate per-appliance errors during polling so one broken device doesn't abort the whole poll cycle
+* (patricknitsch) Add app-matching remaining filter sensor for Grohe Blue (`remainingFilterApp`)
+
 ### 0.6.0 (2026-06-05)
 * (copilot) Fixes Repo Checker
 * (copilot) Change Raw-States to Bump Funktion for Debugging(see Doc.)
