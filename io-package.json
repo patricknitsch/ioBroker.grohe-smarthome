@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "news": {
+      "0.7.0": {
+        "en": "Isolate per-appliance errors during polling so one broken device doesn't abort the whole poll cycle\nAdd app-matching remaining filter sensor for Grohe Blue (`remainingFilterApp`)",
+        "de": "Isolieren Sie gerätespezifische Fehler während der Abfrage, damit ein defektes Gerät nicht den gesamten Abfragezyklus abbricht.\nFügen Sie einen passenden Restfiltersensor für Grohe Blue hinzu (`remainingFilterApp`).",
+        "ru": "Изолируйте ошибки, возникающие в каждом отдельном устройстве во время опроса, чтобы одно неисправное устройство не прерывало весь цикл опроса.\nДобавить соответствующий приложению датчик оставшегося фильтра для Grohe Blue (`remainingFilterApp`).",
+        "pt": "Isolar erros por aparelho durante a verificação para que um dispositivo com defeito não interrompa todo o ciclo de verificação.\nAdicionar sensor de filtro restante compatível com o aplicativo para Grohe Blue (`remainingFilterApp`)",
+        "nl": "Isoleer fouten per apparaat tijdens het pollen, zodat één defect apparaat de hele pollcyclus niet afbreekt.\nVoeg een app-compatibele sensor voor het resterende filtermateriaal toe voor Grohe Blue (`remainingFilterApp`).",
+        "fr": "Isoler les erreurs par appareil pendant l'interrogation afin qu'un appareil défectueux n'interrompe pas l'ensemble du cycle d'interrogation.\nAjouter un capteur de filtre restant compatible avec l'application Grohe Blue (`remainingFilterApp`)",
+        "it": "Isola gli errori di ciascun dispositivo durante il polling, in modo che un dispositivo guasto non interrompa l'intero ciclo di polling.\nAggiungi il sensore del filtro rimanente corrispondente all'app per Grohe Blue (`remainingFilterApp`)",
+        "es": "Aísle los errores de cada dispositivo durante el sondeo para que un dispositivo averiado no interrumpa todo el ciclo de sondeo.\nAgregar sensor de filtro restante compatible con la aplicación Grohe Blue (`remainingFilterApp`)",
+        "pl": "Izoluj błędy poszczególnych urządzeń podczas sondowania, aby jedno uszkodzone urządzenie nie przerywało całego cyklu sondowania\nDodaj czujnik pozostałego filtra pasujący do aplikacji Grohe Blue (`remainingFilterApp`)",
+        "uk": "Ізолюйте помилки кожного пристрою під час опитування, щоб один несправний пристрій не переривав увесь цикл опитування\nДодати датчик залишку фільтра, що відповідає застосунку, для Grohe Blue (`remainingFilterApp`)",
+        "zh-cn": "在轮询过程中隔离单个设备的错误，以避免单个设备故障导致整个轮询周期中止。\n为 Grohe Blue 添加应用程序匹配的剩余滤芯传感器（`remainingFilterApp`）"
+      },
       "0.6.0": {
         "en": "Fixes Repo Checker\nChange Raw-States to Bump Funktion for Debugging(see Doc.)\nFixes Problems Error 404\nNew functions for Grohe with Snooze, Withdrawal and Sprinkler\nExtend Documentation",
         "de": "Repo Checker repariert\nÄndern Sie Raw-States auf Bump Funktion für Debugging (siehe Doc.)\nFehler behoben 404\nNeue Funktionen für Grohe mit Snooze, Entnahme und Sprinkler\nErweiterte Dokumentation",
@@ -80,19 +93,6 @@
         "pl": "Zintegruj adapter w menedżerze urządzeń joBroker\nUsuń kartę",
         "uk": "Інтеграція адаптера в ioBroker Manager\nВидалити вкладку",
         "zh-cn": "在 ioBroker 设备管理器中整合适配器\n删除标签"
-      },
-      "0.4.0": {
-        "en": "Add Notification Manager",
-        "de": "Notification Manager hinzufügen",
-        "ru": "Добавить менеджер уведомлений",
-        "pt": "Adicionar Gerenciador de Notificações",
-        "nl": "Notificatiebeheer toevoegen",
-        "fr": "Ajouter un gestionnaire de notification",
-        "it": "Aggiungi Gestione notifiche",
-        "es": "Añadir administrador de notificaciones",
-        "pl": "Dodaj menedżera powiadomień",
-        "uk": "Додати менеджер повідомлень",
-        "zh-cn": "添加通知管理器"
       }
     },
     "titleLang": {

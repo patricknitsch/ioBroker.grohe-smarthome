@@ -1,4 +1,8 @@
 # Older changes
+## 0.5.1 (2026-05-09)
+* (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
+* Important Note: From 0.4.0 to 0.5.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3
+
 ## 0.5.0 (2026-05-08)
 * (copilot) Integrate Adapter in ioBroker Device Manager
 * (copilot) Remove tab
