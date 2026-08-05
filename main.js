@@ -266,13 +266,22 @@ class GroheSmarthome extends utils.Adapter {
 							this.log.debug(`Appliance ${appliance.appliance_id} not registered – skipped`);
 							continue;
 						}
-						await this._processAppliance(locationId, roomId, appliance, {
-							fetchStatus,
-							fetchCommand,
-							fetchPressure,
-							fetchConsumption,
-							fetchConfig,
-						});
+						try {
+							await this._processAppliance(locationId, roomId, appliance, {
+								fetchStatus,
+								fetchCommand,
+								fetchPressure,
+								fetchConsumption,
+								fetchConfig,
+							});
+						} catch (err) {
+							// A single malformed/misbehaving appliance must not abort polling
+							// for the remaining devices in this cycle (mirrors ha-grohe_smarthome
+							// discovery robustness fix in v0.3.1-b1).
+							this.log.warn(
+								`Processing appliance ${appliance.appliance_id} failed, skipping for this poll: ${err.message}`,
+							);
+						}
 					}
 				}
 			}
