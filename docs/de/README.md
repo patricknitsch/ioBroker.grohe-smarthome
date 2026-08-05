@@ -269,6 +269,7 @@ Die Bewässerungseinstellungen werden jeden 10. Poll aus der Grohe-API neu geles
 ```
 <applianceId>.remainingCo2              %
 <applianceId>.remainingFilter           %
+<applianceId>.remainingFilterApp        %
 <applianceId>.remainingCo2Liters        l
 <applianceId>.remainingFilterLiters     l
 
@@ -296,6 +297,8 @@ Die Bewässerungseinstellungen werden jeden 10. Poll aus der Grohe-API neu geles
 ```
 
 > **Messdaten-Aktualität:** Grohe-Blue-Geräte senden Messdaten **nicht** automatisch. Der Adapter sendet jeden 3. Poll-Zyklus einen `get_current_measurement`-Befehl. Danach prüft eine Hintergrund-Verifizierung alle 10 s (bis zu 3 Versuche / max. 30 s), ob neue Daten angekommen sind. Nach dem Adapterstart kann es 1–2 Poll-Zyklen dauern, bis aktuelle Werte angezeigt werden.
+
+> **`remainingFilter` vs. `remainingFilterApp`:** Die Grohe-App zeigt für den Filter nicht den rohen, verbrauchsbasierten API-Wert (`remainingFilter`), sondern deckelt ihn zusätzlich zeitbasiert auf eine feste Lebensdauer von 360 Tagen ab dem letzten Filterwechsel (`dateFilterReplacement`) – damit spätestens nach rund einem Jahr zum Wechsel aufgefordert wird, auch bei geringem Verbrauch. `remainingFilterApp` bildet dieses Verhalten nach (Minimum aus verbrauchsbasiertem und zeitbasiertem Wert) und entspricht damit dem Wert, den die Grohe-App anzeigt.
 
 ### Steuerungen
 
