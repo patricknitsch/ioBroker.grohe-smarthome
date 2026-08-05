@@ -266,13 +266,22 @@ class GroheSmarthome extends utils.Adapter {
 							this.log.debug(`Appliance ${appliance.appliance_id} not registered – skipped`);
 							continue;
 						}
-						await this._processAppliance(locationId, roomId, appliance, {
-							fetchStatus,
-							fetchCommand,
-							fetchPressure,
-							fetchConsumption,
-							fetchConfig,
-						});
+						try {
+							await this._processAppliance(locationId, roomId, appliance, {
+								fetchStatus,
+								fetchCommand,
+								fetchPressure,
+								fetchConsumption,
+								fetchConfig,
+							});
+						} catch (err) {
+							// A single malformed/misbehaving appliance must not abort polling
+							// for the remaining devices in this cycle (mirrors ha-grohe_smarthome
+							// discovery robustness fix in v0.3.1-b1).
+							this.log.warn(
+								`Processing appliance ${appliance.appliance_id} failed, skipping for this poll: ${err.message}`,
+							);
+						}
 					}
 				}
 			}
@@ -724,6 +733,14 @@ class GroheSmarthome extends utils.Adapter {
 		await this._setNum(id, 'remainingFilter', 'Remaining filter', '%', 'value.fill', m.remaining_filter);
 		await this._setNum(
 			id,
+			'remainingFilterApp',
+			'Remaining filter (App)',
+			'%',
+			'value.fill',
+			this._adjustFilterRemaining(m.remaining_filter, m.date_of_filter_replacement),
+		);
+		await this._setNum(
+			id,
 			'remainingCo2Liters',
 			'Remaining CO₂ (liters)',
 			'l',
@@ -817,6 +834,25 @@ class GroheSmarthome extends utils.Adapter {
 		await this._ensureWritableBool(`${id}.controls`, 'resetFilter', 'Reset filter', 'button');
 
 		// Raw measurement data (optional)
+	}
+
+	/**
+	 * The Grohe app caps the remaining filter percentage on a fixed lifetime so the
+	 * user is prompted to replace the filter roughly once a year, showing the lower
+	 * of the raw API value and this time-based value. Mirrors the HA
+	 * ha-grohe_smarthome "Filter Remaining Adjusted" sensor.
+	 */
+	_adjustFilterRemaining(apiValue, replacementDate) {
+		const FILTER_LIFETIME_DAYS = 360;
+		if (apiValue === undefined || apiValue === null || !replacementDate) {
+			return apiValue;
+		}
+		const daysSinceReplacement = (Date.now() - new Date(replacementDate).getTime()) / 86400000;
+		if (Number.isNaN(daysSinceReplacement)) {
+			return apiValue;
+		}
+		const timeBasedValue = 100 - (daysSinceReplacement / FILTER_LIFETIME_DAYS) * 100;
+		return Math.max(0, Math.round(Math.min(apiValue, timeBasedValue)));
 	}
 
 	/* ================================================================== */

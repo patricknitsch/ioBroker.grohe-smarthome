@@ -269,6 +269,7 @@ The sprinkler schedule is re-read from the Grohe API every 10th poll.
 ```
 <applianceId>.remainingCo2              %
 <applianceId>.remainingFilter           %
+<applianceId>.remainingFilterApp        %
 <applianceId>.remainingCo2Liters        l
 <applianceId>.remainingFilterLiters     l
 
@@ -296,6 +297,8 @@ The sprinkler schedule is re-read from the Grohe API every 10th poll.
 ```
 
 > **Measurement freshness:** Grohe Blue devices do **not** push measurements automatically. The adapter sends a `get_current_measurement` command every 3rd poll cycle. A background verify loop then re-polls `/details` every 10 s (up to 3 attempts / 30 s total) until a fresh timestamp appears. After adapter start it may take 1–2 poll cycles before current values are shown.
+
+> **`remainingFilter` vs. `remainingFilterApp`:** The Grohe app does not show the raw, consumption-based API value (`remainingFilter`) for the filter. It additionally caps it based on a fixed 360-day lifetime since the last filter change (`dateFilterReplacement`), so users are prompted to replace the filter after roughly a year regardless of actual usage. `remainingFilterApp` mirrors this behavior (minimum of the consumption-based and time-based value) and matches what the Grohe app displays.
 
 ### Controls
 
