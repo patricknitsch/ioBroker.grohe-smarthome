@@ -111,7 +111,7 @@ Der **Steuerungs**-Tab ist für Grohe Sense Guard und Grohe Blue verfügbar. Die
 
 > **Hinweis zum Bewässerungsmodus:** Änderungen an einzelnen Bewässerungsfeldern (Zeiten, Tages-Schalter) werden lokal bestätigt, aber **nicht** sofort an die API gesendet. Erst durch den Button **„Bewässerung speichern"** werden alle Werte in einem einzigen API-Aufruf übertragen. So werden unnötige API-Aufrufe beim Umschalten einzelner Wochentage vermieden.
 
-> **Hinweis zu Entnahmelimit und Bewässerungseinstellungen:** Diese Werte werden vom Grohe-API jeden 10. Poll-Zyklus gelesen (~50 Minuten bei 300 s Intervall, immer beim ersten Poll). Änderungen aus der Grohe App erscheinen innerhalb dieses Zeitfensters in ioBroker.
+> **Hinweis zu Entnahmelimit und Bewässerungseinstellungen:** Diese Werte werden bei jedem Poll aus den Dashboard-Daten übernommen (ohne zusätzlichen API-Aufruf). Liefert das Dashboard keine Konfiguration, wird sie jeden 10. Poll über `/details` gelesen. Änderungen aus der Grohe App erscheinen daher normalerweise beim nächsten Poll in ioBroker. Solange `controls.sprinkler.pending` = `true` ist (ungespeicherte Änderungen), werden die Bewässerungsfelder **nicht** von der API überschrieben.
 
 **Grohe Blue Home / Professional – Steuerungs-Tab:**
 
@@ -235,7 +235,7 @@ Der `active`-State wird jeden 3. Poll aus der Grohe-API gelesen und nach Starten
 <applianceId>.controls.withdrawalAmountLimit   number  0–2000 l
 ```
 
-Das Setzen dieses Wertes schreibt sofort in die Grohe-API. Der Wert wird jeden 10. Poll aus der API neu gelesen.
+Das Setzen dieses Wertes schreibt sofort in die Grohe-API; der State übernimmt den Wert aus der API-Antwort. Der Wert wird bei jedem Poll aus den Dashboard-Daten aktualisiert.
 
 **Bewässerungsmodus** – Bewässerungsplan / Sprinklerprogramm:
 
@@ -253,12 +253,13 @@ Das Setzen dieses Wertes schreibt sofort in die Grohe-API. Der Wert wird jeden 1
 <applianceId>.controls.sprinkler.activeSaturday   boolean Schalter
 <applianceId>.controls.sprinkler.activeSunday     boolean Schalter
 
-<applianceId>.controls.sprinkler.save   boolean button – sendet alle Bewässerungswerte an die API
+<applianceId>.controls.sprinkler.save     boolean button – sendet alle Bewässerungswerte an die API
+<applianceId>.controls.sprinkler.pending  boolean indicator (nur lesen) – true = ungespeicherte Änderungen
 ```
 
 > Start- und Stoppzeiten werden als separate Stunden- (0–23) und Minuten-States (0–59) gespeichert. Der Adapter kombiniert sie intern zu Minuten ab Mitternacht für die API. Änderungen an einzelnen Feldern werden lokal bestätigt, aber **nicht** an die API gesendet, bis **Speichern** gedrückt wird.
 
-Die Bewässerungseinstellungen werden jeden 10. Poll aus der Grohe-API neu gelesen.
+Die Bewässerungseinstellungen werden bei jedem Poll aus den Dashboard-Daten aktualisiert – außer solange `pending` = `true` ist. Nach dem Speichern werden die States aus der API-Antwort gesetzt und `pending` zurückgesetzt. Beim Adapterstart gilt immer die Konfiguration des Geräts.
 
 ---
 
@@ -327,7 +328,7 @@ Um API-Aufrufe zu minimieren und Rate-Limiting (HTTP 403) zu vermeiden, werden v
 | `/snooze` (lesen) | jeder 3. Poll | Sense Guard | Snooze-Status; HTTP 404 = kein aktiver Snooze |
 | `/command` (`get_current_measurement`) | jeder 3. Poll | Blue | Löst frische Messung am Gerät aus |
 | `/details` (Verifizierung) | bis zu 3× nach Refresh | Blue | Hintergrund-Abfrage ob neue Daten ankamen (10-s-Intervall, max. 30 s) |
-| `/details` (Konfiguration) | jeder 10. Poll | Sense Guard | Bewässerungsplan, Entnahmelimit; immer beim ersten Poll |
+| `/details` (Konfiguration) | jeder 10. Poll | Sense Guard | Nur falls das Dashboard keine `config` enthält; Bewässerungsplan, Entnahmelimit |
 | `/data/aggregated` (heute) | jeder 5. Poll | Sense Guard | Tagesverbrauch für `totalWaterConsumption` |
 | `/data/aggregated` (historisch) | einmal pro Tag | Sense Guard | Historische Basis für `totalWaterConsumption` |
 | `/pressuremeasurement` | jeder 10. Poll | Sense Guard | Ändert sich nur nach einem Leitungscheck |
