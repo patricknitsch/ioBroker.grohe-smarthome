@@ -105,7 +105,7 @@ Der **Steuerungs**-Tab ist für Grohe Sense Guard und Grohe Blue verfügbar. Die
 | **Druckmessung** | Starten (Button) – *Ventil muss geschlossen sein (siehe Hinweis)* |
 | **Snooze** | Aktiv-Anzeige (nur lesen), Dauer-Eingabe (1–240 min), Snooze starten (Button), Snooze beenden (Button) |
 | **Wasserlimits** | Entnahmelimit-Eingabe (0–2000 l) |
-| **Bewässerungsmodus** | Startzeit (Std + min), Stoppzeit (Std + min), Aktive Tage (Mo–So), Speichern (Button) |
+| **Bewässerungsmodus** | Startzeit (Std + min), Stoppzeit (Std + min), Aktive Tage (Mo–So), Status (gespeichert / ungespeichert), Speichern (Button) |
 
 > **Hinweis zur Druckmessung:** Der Leitungscheck (Pipe Check) wird vom Gerät **automatisch** durchgeführt – typischerweise nachts, wenn kein Wasserfluss erkannt wird. Der Start-Button sendet den Befehl `measure_now`, den das Gerät nur ausführt, wenn das **Ventil geschlossen** ist und kein Wasser fließt. Die Ergebnisse sind immer in den `pressureMeasurement.*`-States zu sehen, unabhängig davon, ob der Test manuell oder automatisch ausgelöst wurde. Die Grohe App bietet ebenfalls keine manuelle Auslösung.
 

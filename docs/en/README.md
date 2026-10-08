@@ -105,7 +105,7 @@ The **Controls** tab is available for Grohe Sense Guard and Grohe Blue devices. 
 | **Pressure measurement** | Start button *(valve must be closed – see note below)* |
 | **Snooze** | Active indicator (read-only), Duration input (1–240 min), Start snooze button, Stop snooze button |
 | **Water limits** | Withdrawal amount limit input (0–2000 l) |
-| **Sprinkler mode** | Start time (h + min), Stop time (h + min), Active days (Mon–Sun), Save button |
+| **Sprinkler mode** | Start time (h + min), Stop time (h + min), Active days (Mon–Sun), Status (saved / unsaved), Save button |
 
 > **Note on pressure measurement:** The pipe check (Leitungscheck) is performed automatically by the device – typically overnight when no water is flowing. Pressing the start button sends the `measure_now` command, which the device will only execute when the **valve is closed** and no water is flowing. The results are always shown in the `pressureMeasurement.*` states regardless of whether the test was triggered manually or automatically.
 
