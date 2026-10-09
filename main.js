@@ -17,6 +17,7 @@ const GROHE_SENSE = 101;
 const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
+const SPRINKLER_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 class GroheSmarthome extends utils.Adapter {
 	/** @param {Partial<utils.AdapterOptions>} [options] Adapter options */
@@ -273,6 +274,7 @@ class GroheSmarthome extends utils.Adapter {
 								fetchPressure,
 								fetchConsumption,
 								fetchConfig,
+								isFirstPoll,
 							});
 						} catch (err) {
 							// A single malformed/misbehaving appliance must not abort polling
@@ -596,8 +598,7 @@ class GroheSmarthome extends utils.Adapter {
 			write: false,
 		});
 
-		// Sprinkler sub-channel inside controls – states always present; values refreshed every 10th poll
-		const sprinklerDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+		// Sprinkler sub-channel inside controls – states always present; values synced from the appliance config
 		await this._ensureChannel(`${id}.controls.sprinkler`, 'Sprinkler mode');
 		await this._ensureWritableNum(`${id}.controls.sprinkler`, 'startHour', 'Start time – hours', 'value', 0, {
 			min: 0,
@@ -619,11 +620,19 @@ class GroheSmarthome extends utils.Adapter {
 			max: 59,
 			unit: 'min',
 		});
-		for (const day of sprinklerDays) {
+		for (const day of SPRINKLER_DAYS) {
 			const cap = day.charAt(0).toUpperCase() + day.slice(1);
 			await this._ensureWritableBool(`${id}.controls.sprinkler`, `active${cap}`, `Active on ${cap}`, 'switch');
 		}
 		await this._ensureWritableBool(`${id}.controls.sprinkler`, 'save', 'Save sprinkler settings', 'button');
+		await this._ensureState(`${id}.controls.sprinkler.pending`, {
+			name: 'Unsaved sprinkler changes',
+			type: 'boolean',
+			role: 'indicator',
+			read: true,
+			write: false,
+			def: false,
+		});
 		await this._ensureWritableNum(
 			`${id}.controls`,
 			'withdrawalAmountLimit',
@@ -633,51 +642,64 @@ class GroheSmarthome extends utils.Adapter {
 			{ min: 0, max: 2000, unit: 'l' },
 		);
 
-		if (flags.fetchConfig && this.client) {
+		// The dashboard already carries the appliance config on every poll (HA reads it from there too);
+		// only fall back to the separate /details request on config cycles.
+		let cfg = appliance.config;
+		if (!cfg && flags.fetchConfig && this.client) {
 			try {
 				const details = await this.client.getApplianceDetails(locationId, roomId, id);
-				const cfg = details?.config || {};
-				if (cfg.sprinkler_mode_start_time !== undefined) {
-					const totalMin = Number(cfg.sprinkler_mode_start_time);
-					await this.setState(`${id}.controls.sprinkler.startHour`, {
-						val: Math.floor(totalMin / 60),
-						ack: true,
-					});
-					await this.setState(`${id}.controls.sprinkler.startMinute`, {
-						val: totalMin % 60,
-						ack: true,
-					});
-				}
-				if (cfg.sprinkler_mode_stop_time !== undefined) {
-					const totalMin = Number(cfg.sprinkler_mode_stop_time);
-					await this.setState(`${id}.controls.sprinkler.stopHour`, {
-						val: Math.floor(totalMin / 60),
-						ack: true,
-					});
-					await this.setState(`${id}.controls.sprinkler.stopMinute`, {
-						val: totalMin % 60,
-						ack: true,
-					});
-				}
-				for (const day of sprinklerDays) {
-					const cap = day.charAt(0).toUpperCase() + day.slice(1);
-					const apiVal = cfg[`sprinkler_mode_active_${day}`];
-					if (apiVal !== undefined) {
-						await this.setState(`${id}.controls.sprinkler.active${cap}`, { val: !!apiVal, ack: true });
-					}
-				}
-				if (cfg.withdrawel_amount_limit !== undefined) {
-					await this.setState(`${id}.controls.withdrawalAmountLimit`, {
-						val: Number(cfg.withdrawel_amount_limit),
-						ack: true,
-					});
-				}
+				cfg = details?.config;
 			} catch (err) {
 				this.log.warn(`Config query for ${id} failed: ${err.message}`);
 			}
 		}
+		if (cfg) {
+			// On adapter start the device config wins over leftover unsaved changes
+			await this._applySenseGuardConfig(id, cfg, !!flags.isFirstPoll);
+		}
 
 		// Raw measurement data (optional)
+	}
+
+	/**
+	 * Write Sense Guard config values (sprinkler mode, withdrawal limit) into the states.
+	 * Sprinkler fields with unsaved local changes (`pending`) are kept unless `overwritePending` is set.
+	 *
+	 * @param {string} id - Appliance ID
+	 * @param {object} cfg - `config` object from the API
+	 * @param {boolean} overwritePending - Overwrite unsaved sprinkler changes
+	 */
+	async _applySenseGuardConfig(id, cfg, overwritePending) {
+		const base = `${id}.controls.sprinkler`;
+		const pending = (await this.getStateAsync(`${base}.pending`))?.val === true;
+		if (pending && !overwritePending) {
+			this.log.debug(`Sprinkler settings for ${id} have unsaved changes – not overwritten by device config`);
+		} else {
+			if (cfg.sprinkler_mode_start_time !== undefined) {
+				const totalMin = Number(cfg.sprinkler_mode_start_time);
+				await this.setStateChangedAsync(`${base}.startHour`, { val: Math.floor(totalMin / 60), ack: true });
+				await this.setStateChangedAsync(`${base}.startMinute`, { val: totalMin % 60, ack: true });
+			}
+			if (cfg.sprinkler_mode_stop_time !== undefined) {
+				const totalMin = Number(cfg.sprinkler_mode_stop_time);
+				await this.setStateChangedAsync(`${base}.stopHour`, { val: Math.floor(totalMin / 60), ack: true });
+				await this.setStateChangedAsync(`${base}.stopMinute`, { val: totalMin % 60, ack: true });
+			}
+			for (const day of SPRINKLER_DAYS) {
+				const cap = day.charAt(0).toUpperCase() + day.slice(1);
+				const apiVal = cfg[`sprinkler_mode_active_${day}`];
+				if (apiVal !== undefined) {
+					await this.setStateChangedAsync(`${base}.active${cap}`, { val: !!apiVal, ack: true });
+				}
+			}
+			await this.setStateChangedAsync(`${base}.pending`, { val: false, ack: true });
+		}
+		if (cfg.withdrawel_amount_limit !== undefined) {
+			await this.setStateChangedAsync(`${id}.controls.withdrawalAmountLimit`, {
+				val: Number(cfg.withdrawel_amount_limit),
+				ack: true,
+			});
+		}
 	}
 
 	/* ================================================================== */
@@ -1123,16 +1145,16 @@ class GroheSmarthome extends utils.Adapter {
 				const requestedLimit = Number(state.val);
 				const val = Number.isFinite(requestedLimit) ? Math.min(2000, Math.max(0, requestedLimit)) : 300;
 				this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
-				await this.client.setApplianceConfig(locationId, roomId, applianceId, {
+				const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, {
 					withdrawel_amount_limit: val,
 				});
-				await this.setState(stateId, { val, ack: true });
+				const respLimit = resp?.config?.withdrawel_amount_limit;
+				await this.setState(stateId, { val: respLimit !== undefined ? Number(respLimit) : val, ack: true });
 				return;
 			}
 			// Sense Guard: sprinkler – save button sends all values in one call
 			if (tail === 'controls.sprinkler.save' && state.val) {
 				const base = `${this.namespace}.${applianceId}.controls.sprinkler`;
-				const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 				const startH = await this.getStateAsync(`${base}.startHour`);
 				const startM = await this.getStateAsync(`${base}.startMinute`);
 				const stopH = await this.getStateAsync(`${base}.stopHour`);
@@ -1161,19 +1183,27 @@ class GroheSmarthome extends utils.Adapter {
 					sprinkler_mode_start_time: startTime,
 					sprinkler_mode_stop_time: stopTime,
 				};
-				for (const day of days) {
+				for (const day of SPRINKLER_DAYS) {
 					const cap = day.charAt(0).toUpperCase() + day.slice(1);
 					const daySt = await this.getStateAsync(`${base}.active${cap}`);
 					configFields[`sprinkler_mode_active_${day}`] = !!daySt?.val;
 				}
 				this.log.info(`Saving sprinkler settings for ${applianceId}`);
-				await this.client.setApplianceConfig(locationId, roomId, applianceId, configFields);
+				const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, configFields);
 				await this.setState(stateId, { val: false, ack: true });
+				// Take the device's answer as the new state (falls back to what was sent)
+				await this._applySenseGuardConfig(applianceId, resp?.config || configFields, true);
 				return;
 			}
-			// Sense Guard: sprinkler field changed – acknowledge locally, no API call
+			// Sense Guard: sprinkler field changed – acknowledge locally, mark as unsaved, no API call
 			if (tail.startsWith('controls.sprinkler.')) {
 				await this.setState(stateId, { val: state.val, ack: true });
+				if (tail !== 'controls.sprinkler.save' && tail !== 'controls.sprinkler.pending') {
+					await this.setState(`${this.namespace}.${applianceId}.controls.sprinkler.pending`, {
+						val: true,
+						ack: true,
+					});
+				}
 				return;
 			}
 			// Blue: dispense trigger
@@ -1263,7 +1293,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.debug(`Skipping total consumption for ${applianceId}: client not initialized`);
 				return;
 			}
-			const todayStr = new Date().toISOString().split('T')[0];
+			const todayStr = this._localDateStr(new Date());
 
 			// Fetch today's consumption
 			const todayData = await this.client.getApplianceData(
@@ -1281,7 +1311,7 @@ class GroheSmarthome extends utils.Adapter {
 			if (!cache || cache.lastDay !== todayStr) {
 				const installDate = appliance.installation_date || appliance.register_date;
 				if (installDate) {
-					const fromStr = new Date(installDate).toISOString().split('T')[0];
+					const fromStr = this._localDateStr(new Date(installDate));
 					const histData = await this.client.getApplianceData(
 						locationId,
 						roomId,
@@ -1316,6 +1346,18 @@ class GroheSmarthome extends utils.Adapter {
 		} catch (err) {
 			this.log.warn(`Total consumption for ${applianceId} failed: ${err.message}`);
 		}
+	}
+
+	/**
+	 * Format a date as YYYY-MM-DD in local time (toISOString() would use UTC and
+	 * return the previous day shortly after local midnight).
+	 *
+	 * @param {Date} date - Date to format
+	 * @returns {string} Local date string
+	 */
+	_localDateStr(date) {
+		const pad = n => String(n).padStart(2, '0');
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 	}
 
 	/**

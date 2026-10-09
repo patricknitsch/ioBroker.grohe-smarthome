@@ -47,6 +47,12 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### **WORK IN PROGRESS**
 * (patricknitsch) Add Node.js 26 in test-and-release.yml
 * (patricknitsch) Update Dependencies
+* (patricknitsch) Sense Guard: config updates (sprinkler, withdrawal limit) send only the changed keys via PUT – no more extra `/details` request before writing
+* (patricknitsch) Sense Guard: sprinkler and withdrawal limit states are updated from the API response after saving
+* (patricknitsch) Sense Guard: config is synced from the dashboard data on every poll instead of every 10th poll
+* (patricknitsch) Sense Guard: new state `controls.sprinkler.pending` shows unsaved sprinkler changes; unsaved changes are no longer overwritten by polling
+* (patricknitsch) Device Manager: show sprinkler save status (saved / unsaved changes)
+* (patricknitsch) Fix total water consumption using the UTC date instead of the local date (wrong day shortly after midnight)
 
 ### 0.7.0 (2026-08-05)
 * (patricknitsch) Isolate per-appliance errors during polling so one broken device doesn't abort the whole poll cycle
