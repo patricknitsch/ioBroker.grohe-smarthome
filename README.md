@@ -52,6 +52,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 * (patricknitsch) Sense Guard: config is synced from the dashboard data on every poll instead of every 10th poll
 * (patricknitsch) Sense Guard: new state `controls.sprinkler.pending` shows unsaved sprinkler changes; unsaved changes are no longer overwritten by polling
 * (patricknitsch) Device Manager: show sprinkler save status (saved / unsaved changes)
+* (patricknitsch) Sense Guard: withdrawal limit is sent 3 s after the last change instead of on every keystroke; Device Manager applies it only with Set / Enter
 * (patricknitsch) Fix total water consumption using the UTC date instead of the local date (wrong day shortly after midnight)
 
 ### 0.7.0 (2026-08-05)

@@ -235,7 +235,7 @@ The `active` state is read from the Grohe API every 3rd poll and updated immedia
 <applianceId>.controls.withdrawalAmountLimit   number  0–2000 l
 ```
 
-Setting this value writes immediately to the Grohe API; the state takes the value from the API response. The value is refreshed from the dashboard data on every poll.
+A changed value is sent to the Grohe API after **3 seconds** without further changes (only the last value counts, e.g. while typing). In the Device Manager the value is only applied with **Set** or Enter. The state takes the value from the API response. The value is refreshed from the dashboard data on every poll.
 
 **Sprinkler mode** – watering/irrigation schedule:
 

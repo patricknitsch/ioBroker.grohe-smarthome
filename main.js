@@ -17,6 +17,8 @@ const GROHE_SENSE = 101;
 const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
+/** Wait time before a changed withdrawal limit is sent, so typing doesn't send every keystroke */
+const WITHDRAWAL_LIMIT_DELAY_MS = 3000;
 const SPRINKLER_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 class GroheSmarthome extends utils.Adapter {
@@ -31,6 +33,9 @@ class GroheSmarthome extends utils.Adapter {
 
 		/** Device registry – maps appliance_id to { locationId, roomId, applianceId, type, name } */
 		this.devices = new Map();
+
+		/** Pending (delayed) withdrawal limit writes – maps appliance_id to timer */
+		this.withdrawalLimitTimers = new Map();
 
 		/**
 		 * Poll cycle counter – used to reduce API calls for slowly changing data.
@@ -694,7 +699,7 @@ class GroheSmarthome extends utils.Adapter {
 			}
 			await this.setStateChangedAsync(`${base}.pending`, { val: false, ack: true });
 		}
-		if (cfg.withdrawel_amount_limit !== undefined) {
+		if (cfg.withdrawel_amount_limit !== undefined && !this.withdrawalLimitTimers.has(id)) {
 			await this.setStateChangedAsync(`${id}.controls.withdrawalAmountLimit`, {
 				val: Number(cfg.withdrawel_amount_limit),
 				ack: true,
@@ -1144,12 +1149,31 @@ class GroheSmarthome extends utils.Adapter {
 			if (tail === 'controls.withdrawalAmountLimit') {
 				const requestedLimit = Number(state.val);
 				const val = Number.isFinite(requestedLimit) ? Math.min(2000, Math.max(0, requestedLimit)) : 300;
-				this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
-				const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, {
-					withdrawel_amount_limit: val,
-				});
-				const respLimit = resp?.config?.withdrawel_amount_limit;
-				await this.setState(stateId, { val: respLimit !== undefined ? Number(respLimit) : val, ack: true });
+				// Only the last value within the wait time is sent (e.g. while typing in a UI)
+				const pendingTimer = this.withdrawalLimitTimers.get(applianceId);
+				if (pendingTimer) {
+					this.clearTimeout(pendingTimer);
+				}
+				const timer = this.setTimeout(async () => {
+					this.withdrawalLimitTimers.delete(applianceId);
+					if (!this.client) {
+						return;
+					}
+					try {
+						this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
+						const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, {
+							withdrawel_amount_limit: val,
+						});
+						const respLimit = resp?.config?.withdrawel_amount_limit;
+						await this.setState(stateId, {
+							val: respLimit !== undefined ? Number(respLimit) : val,
+							ack: true,
+						});
+					} catch (err) {
+						this.log.error(`Action failed (${stateId}): ${err.message}`);
+					}
+				}, WITHDRAWAL_LIMIT_DELAY_MS);
+				this.withdrawalLimitTimers.set(applianceId, timer);
 				return;
 			}
 			// Sense Guard: sprinkler – save button sends all values in one call
@@ -1523,6 +1547,10 @@ class GroheSmarthome extends utils.Adapter {
 				this.clearTimeout(this.pollTimer);
 			}
 			this._blueRefreshRunning.clear();
+			for (const timer of this.withdrawalLimitTimers.values()) {
+				this.clearTimeout(timer);
+			}
+			this.withdrawalLimitTimers.clear();
 			this.client = null;
 			callback();
 		} catch {
