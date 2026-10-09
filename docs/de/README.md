@@ -235,7 +235,7 @@ Der `active`-State wird jeden 3. Poll aus der Grohe-API gelesen und nach Starten
 <applianceId>.controls.withdrawalAmountLimit   number  0–2000 l
 ```
 
-Das Setzen dieses Wertes schreibt sofort in die Grohe-API; der State übernimmt den Wert aus der API-Antwort. Der Wert wird bei jedem Poll aus den Dashboard-Daten aktualisiert.
+Ein geänderter Wert wird nach **3 Sekunden** ohne weitere Änderung an die Grohe-API gesendet (nur der letzte Wert zählt, z. B. beim Tippen). Der State übernimmt den Wert aus der API-Antwort. Der Wert wird bei jedem Poll aus den Dashboard-Daten aktualisiert.
 
 **Bewässerungsmodus** – Bewässerungsplan / Sprinklerprogramm:
 
