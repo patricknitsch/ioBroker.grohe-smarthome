@@ -19,6 +19,11 @@ const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
 /** Wait time before a changed withdrawal limit is sent, so typing doesn't send every keystroke */
 const WITHDRAWAL_LIMIT_DELAY_MS = 3000;
+/**
+ * How long a written config value is protected against older values from the API.
+ * The dashboard can still deliver the previous config for a while after a PUT.
+ */
+const CONFIG_WRITE_GRACE_MS = 15 * 60 * 1000;
 const SPRINKLER_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 class GroheSmarthome extends utils.Adapter {
@@ -36,6 +41,9 @@ class GroheSmarthome extends utils.Adapter {
 
 		/** Pending (delayed) withdrawal limit writes – maps appliance_id to timer */
 		this.withdrawalLimitTimers = new Map();
+
+		/** Recently written config values – maps appliance_id to { key: { val, ts } } */
+		this.configWrites = new Map();
 
 		/**
 		 * Poll cycle counter – used to reduce API calls for slowly changing data.
@@ -680,31 +688,77 @@ class GroheSmarthome extends utils.Adapter {
 		if (pending && !overwritePending) {
 			this.log.debug(`Sprinkler settings for ${id} have unsaved changes – not overwritten by device config`);
 		} else {
-			if (cfg.sprinkler_mode_start_time !== undefined) {
+			if (this._isConfirmedConfigValue(id, cfg, 'sprinkler_mode_start_time')) {
 				const totalMin = Number(cfg.sprinkler_mode_start_time);
 				await this.setStateChangedAsync(`${base}.startHour`, { val: Math.floor(totalMin / 60), ack: true });
 				await this.setStateChangedAsync(`${base}.startMinute`, { val: totalMin % 60, ack: true });
 			}
-			if (cfg.sprinkler_mode_stop_time !== undefined) {
+			if (this._isConfirmedConfigValue(id, cfg, 'sprinkler_mode_stop_time')) {
 				const totalMin = Number(cfg.sprinkler_mode_stop_time);
 				await this.setStateChangedAsync(`${base}.stopHour`, { val: Math.floor(totalMin / 60), ack: true });
 				await this.setStateChangedAsync(`${base}.stopMinute`, { val: totalMin % 60, ack: true });
 			}
 			for (const day of SPRINKLER_DAYS) {
 				const cap = day.charAt(0).toUpperCase() + day.slice(1);
-				const apiVal = cfg[`sprinkler_mode_active_${day}`];
-				if (apiVal !== undefined) {
-					await this.setStateChangedAsync(`${base}.active${cap}`, { val: !!apiVal, ack: true });
+				const key = `sprinkler_mode_active_${day}`;
+				if (this._isConfirmedConfigValue(id, cfg, key)) {
+					await this.setStateChangedAsync(`${base}.active${cap}`, { val: !!cfg[key], ack: true });
 				}
 			}
 			await this.setStateChangedAsync(`${base}.pending`, { val: false, ack: true });
 		}
-		if (cfg.withdrawel_amount_limit !== undefined && !this.withdrawalLimitTimers.has(id)) {
+		if (!this.withdrawalLimitTimers.has(id) && this._isConfirmedConfigValue(id, cfg, 'withdrawel_amount_limit')) {
 			await this.setStateChangedAsync(`${id}.controls.withdrawalAmountLimit`, {
 				val: Number(cfg.withdrawel_amount_limit),
 				ack: true,
 			});
 		}
+	}
+
+	/**
+	 * Remember config values that were just written, so older values still delivered
+	 * by the API (dashboard cache, poll running in parallel to the PUT) don't reset them.
+	 *
+	 * @param {string} id - Appliance ID
+	 * @param {object} fields - Written config keys
+	 */
+	_rememberConfigWrite(id, fields) {
+		const writes = this.configWrites.get(id) || {};
+		const ts = Date.now();
+		for (const [key, val] of Object.entries(fields)) {
+			writes[key] = { val, ts };
+		}
+		this.configWrites.set(id, writes);
+	}
+
+	/**
+	 * Check whether an API config value may be applied to the states. Returns false if the key
+	 * is missing or if it differs from a value written within CONFIG_WRITE_GRACE_MS (stale).
+	 * Once the API confirms the written value (or the grace time is over) the protection ends.
+	 *
+	 * @param {string} id - Appliance ID
+	 * @param {object} cfg - `config` object from the API
+	 * @param {string} key - Config key
+	 * @returns {boolean} True if the value can be applied
+	 */
+	_isConfirmedConfigValue(id, cfg, key) {
+		const apiVal = cfg[key];
+		if (apiVal === undefined) {
+			return false;
+		}
+		const writes = this.configWrites.get(id);
+		const written = writes?.[key];
+		if (!written) {
+			return true;
+		}
+		const same =
+			typeof written.val === 'boolean' ? !!apiVal === written.val : Number(apiVal) === Number(written.val);
+		if (same || Date.now() - written.ts > CONFIG_WRITE_GRACE_MS) {
+			delete writes[key];
+			return true;
+		}
+		this.log.debug(`Ignoring outdated ${key}=${apiVal} for ${id} (written: ${written.val})`);
+		return false;
 	}
 
 	/* ================================================================== */
@@ -1155,22 +1209,28 @@ class GroheSmarthome extends utils.Adapter {
 					this.clearTimeout(pendingTimer);
 				}
 				const timer = this.setTimeout(async () => {
-					this.withdrawalLimitTimers.delete(applianceId);
-					if (!this.client) {
-						return;
-					}
+					// Entry stays in the map until the write is done, so a parallel poll can't reset the value
 					try {
+						if (!this.client) {
+							return;
+						}
+						const fields = { withdrawel_amount_limit: val };
 						this.log.info(`Setting withdrawal amount limit to ${val}l for ${applianceId}`);
-						const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, {
-							withdrawel_amount_limit: val,
-						});
-						const respLimit = resp?.config?.withdrawel_amount_limit;
+						this._rememberConfigWrite(applianceId, fields);
+						const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, fields);
+						const confirmed =
+							resp?.config &&
+							this._isConfirmedConfigValue(applianceId, resp.config, 'withdrawel_amount_limit');
 						await this.setState(stateId, {
-							val: respLimit !== undefined ? Number(respLimit) : val,
+							val: confirmed ? Number(resp.config.withdrawel_amount_limit) : val,
 							ack: true,
 						});
 					} catch (err) {
 						this.log.error(`Action failed (${stateId}): ${err.message}`);
+					} finally {
+						if (this.withdrawalLimitTimers.get(applianceId) === timer) {
+							this.withdrawalLimitTimers.delete(applianceId);
+						}
 					}
 				}, WITHDRAWAL_LIMIT_DELAY_MS);
 				this.withdrawalLimitTimers.set(applianceId, timer);
@@ -1213,6 +1273,7 @@ class GroheSmarthome extends utils.Adapter {
 					configFields[`sprinkler_mode_active_${day}`] = !!daySt?.val;
 				}
 				this.log.info(`Saving sprinkler settings for ${applianceId}`);
+				this._rememberConfigWrite(applianceId, configFields);
 				const resp = await this.client.setApplianceConfig(locationId, roomId, applianceId, configFields);
 				await this.setState(stateId, { val: false, ack: true });
 				// Take the device's answer as the new state (falls back to what was sent)
@@ -1551,6 +1612,7 @@ class GroheSmarthome extends utils.Adapter {
 				this.clearTimeout(timer);
 			}
 			this.withdrawalLimitTimers.clear();
+			this.configWrites.clear();
 			this.client = null;
 			callback();
 		} catch {
