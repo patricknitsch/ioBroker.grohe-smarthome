@@ -43,8 +43,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.7.1 (2026-10-09)
 * (patricknitsch) Add Node.js 26 in test-and-release.yml
 * (patricknitsch) Update Dependencies
 * (patricknitsch) Sense Guard: config updates (sprinkler, withdrawal limit) send only the changed keys via PUT – no more extra `/details` request before writing
@@ -74,11 +73,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.5.3 (2026-05-21)
 * (copilot) Modify notification manager to work with instances
 * (copilot) Update Dependencies
-
-### 0.5.2 (2026-05-14)
-* (patricknitsch) Fix Header when Device offline
-* (patricknitsch) Add Icon and Online State on each Device
-* (patricknitsch) Update Readme and Doc
 
 **Older entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).**
 
