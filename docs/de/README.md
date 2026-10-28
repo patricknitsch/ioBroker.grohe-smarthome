@@ -180,11 +180,19 @@ Grohe-Benachrichtigungskategorien: `0` Werbung · `10` Information · `20` Warnu
 <applianceId>.consumption.averageDaily           l
 <applianceId>.consumption.averageMonthly         l
 <applianceId>.consumption.totalWaterConsumption  l   (berechnet, siehe Hinweis)
+<applianceId>.consumption.totalWaterConsumptionSync  (interne Sync-Daten, JSON)
 <applianceId>.consumption.lastWaterConsumption   l
 <applianceId>.consumption.lastMaxFlowRate        l/min
 ```
 
-> **`totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn aus `/data/aggregated`: Einmal täglich wird der historische Gesamtwert (ab Installationsdatum, nach Jahr gruppiert) abgerufen; jeden 5. Poll wird der aktuelle Tagesverbrauch addiert.
+> **`totalWaterConsumption`:** Die Grohe-Dashboard-API liefert den Gesamtverbrauch nicht zuverlässig. Der Adapter berechnet ihn aus `/data/aggregated`:
+>
+> - Die Historie ab Installationsdatum wird **nur einmal** abgerufen, aufgeteilt in Kalenderjahre (ein Timeout kostet nur ein Jahr; der nächste Versuch macht dort weiter). Das Ergebnis wird in `totalWaterConsumptionSync` gespeichert und übersteht Neustarts des Adapters.
+> - Danach werden nur noch der aktuelle und der vorige Monat abgerufen, **einmal pro Tag** (so werden auch spät hochgeladene Werte des Geräts erfasst).
+> - Jeden 5. Poll wird der aktuelle Tagesverbrauch addiert.
+> - Schlägt eine Abfrage fehl, behält der State seinen letzten Wert – er wird nie auf 0 gesetzt.
+>
+> Die erste Berechnung nach Installation oder Update des Adapters kann bei älteren Geräten einige Polls dauern. Um den Gesamtwert komplett neu zu berechnen, `totalWaterConsumptionSync` löschen.
 
 ### Druckmessungs-Kanal
 
@@ -330,7 +338,8 @@ Um API-Aufrufe zu minimieren und Rate-Limiting (HTTP 403) zu vermeiden, werden v
 | `/details` (Verifizierung) | bis zu 3× nach Refresh | Blue | Hintergrund-Abfrage ob neue Daten ankamen (10-s-Intervall, max. 30 s) |
 | `/details` (Konfiguration) | jeder 10. Poll | Sense Guard | Nur falls das Dashboard keine `config` enthält; Bewässerungsplan, Entnahmelimit |
 | `/data/aggregated` (heute) | jeder 5. Poll | Sense Guard | Tagesverbrauch für `totalWaterConsumption` |
-| `/data/aggregated` (historisch) | einmal pro Tag | Sense Guard | Historische Basis für `totalWaterConsumption` |
+| `/data/aggregated` (Historie) | einmalig | Sense Guard | Gesamte Historie in Kalenderjahren, gespeichert in `totalWaterConsumptionSync` |
+| `/data/aggregated` (letzte Monate) | einmal pro Tag | Sense Guard | Aktueller und voriger Monat für `totalWaterConsumption` |
 | `/pressuremeasurement` | jeder 10. Poll | Sense Guard | Ändert sich nur nach einem Leitungscheck |
 
 > **Tipp:** Bei anhaltenden HTTP-403-Fehlern das Polling-Intervall erhöhen. Die Grohe-Cloud-API hat Rate-Limits.
@@ -352,12 +361,19 @@ Beim Start:
 
 1. Das gespeicherte Refresh-Token wird aus `auth.refreshToken` gelesen.
 2. Falls vorhanden, werden die Tokens automatisch erneuert.
-3. Schlägt das Refresh fehl oder existiert kein Token, erfolgt ein kompletter Login mit E-Mail / Passwort.
+3. Wird das Refresh-Token abgelehnt oder existiert kein Token, erfolgt ein kompletter Login mit E-Mail / Passwort.
 4. Das neue Refresh-Token wird **verschlüsselt** (`enc:<...>`) in `auth.refreshToken` gespeichert.
+
+Schlägt die Anmeldung beim Start fehl (z. B. noch kein Netzwerk, Grohe lehnt Anfragen vorübergehend ab), bleibt der Adapter **nicht** stehen: Er versucht es mit dem normalen [exponentiellen Backoff](#exponentieller-backoff) erneut.
 
 Unverschlüsselte Tokens aus älteren Versionen werden automatisch in verschlüsselte Speicherung migriert.
 
-Bei **HTTP 401** wird die Anfrage nach einem Token-Refresh einmalig wiederholt.
+Während des Betriebs:
+
+- Bei **HTTP 401** (oder abgelaufenem Access-Token) werden die Tokens erneuert und die Anfrage einmalig wiederholt.
+- Lehnt Grohe das Refresh-Token selbst ab, **meldet sich der Adapter neu an** (E-Mail / Passwort) – kein Neustart nötig.
+- Netzwerkfehler, HTTP 429 und Serverfehler (5xx) beim Refresh lösen keinen neuen Login aus; der nächste Poll versucht es erneut.
+- Erneuerte Refresh-Tokens werden in `auth.refreshToken` gespeichert.
 
 ---
 
@@ -378,7 +394,8 @@ Der Fallback-Modus wird einmalig beim Start erkannt und für die gesamte Laufzei
 | Situation | Verhalten |
 |---|---|
 | Polling-Fehler | `info.connection` → `false`; exponentieller Backoff |
-| HTTP 401 | Token-Refresh, Anfrage einmalig wiederholt |
+| Anmeldung beim Start fehlgeschlagen | Neuer Versuch mit exponentiellem Backoff |
+| HTTP 401 | Token-Refresh, Anfrage einmalig wiederholt; wird das Refresh-Token abgelehnt, Neuanmeldung mit E-Mail / Passwort |
 | HTTP 403 | Warnung geloggt; Hinweis, Grohe-Konto / App zu prüfen |
 | HTTP 404 bei `/pressuremeasurement` | Nur Debug-Log (kein Messwert bisher ist normal) |
 | HTTP 404 bei `/dashboard` | Wechsel in Fallback-Erkennung |
@@ -391,7 +408,8 @@ Der Fallback-Modus wird einmalig beim Start erkannt und für die gesamte Laufzei
 |---|---|
 | `main.js` | Adapter-Kern: Polling, State-Verwaltung, Befehlsverarbeitung, Device-Manager-Messages |
 | `lib/device-manager.js` | Device-Manager-Integration: Kacheln, Info-/Steuerungs-Tabs, Templates je Gerätetyp |
-| `lib/groheClient.js` | Grohe-API-Client: authentifizierte Requests, Auto-Refresh bei 401 |
+| `lib/groheClient.js` | Grohe-API-Client: authentifizierte Requests, Token-Erneuerung / Neuanmeldung bei 401 |
+| `lib/waterConsumptionTracker.js` | Gespeicherter Gesamtwasserverbrauch der Sense Guard |
 | `lib/auth.js` | OAuth / Keycloak-Login und Token-Refresh |
 | `lib/notificationManager.js` | Versendet Push-Benachrichtigungen an konfigurierte Anbieter |
 | `lib/notificationMessages.js` | Lokalisierte Benachrichtigungsvorlagen und Grohe-Benachrichtigungstyp-Texte (11 Sprachen) |
