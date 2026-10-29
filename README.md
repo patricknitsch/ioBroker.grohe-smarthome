@@ -43,6 +43,13 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (patricknitsch) Adapter no longer stays idle when the login fails on startup (e.g. no network at boot) – it retries with the regular backoff
+* (patricknitsch) Log in again with email/password when Grohe rejects the refresh token during runtime, instead of failing until a restart
+* (patricknitsch) Store renewed refresh tokens during runtime
+* (patricknitsch) Sense Guard: total water consumption is stored persistently (`consumption.totalWaterConsumptionSync`) – the history is fetched only once in calendar-year chunks, afterwards only the recent months once per day
+* (patricknitsch) Sense Guard: total water consumption keeps its last value when the Grohe API fails
+
 ### 0.7.1 (2026-10-09)
 * (patricknitsch) Add Node.js 26 in test-and-release.yml
 * (patricknitsch) Update Dependencies

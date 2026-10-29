@@ -3,6 +3,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const GroheClient = require('./lib/groheClient');
+const { WaterConsumptionTracker, addDays } = require('./lib/waterConsumptionTracker');
 const { GroheDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
 const {
@@ -17,6 +18,9 @@ const GROHE_SENSE = 101;
 const GROHE_SENSE_GUARD = 103;
 const GROHE_BLUE_HOME = 104;
 const GROHE_BLUE_PROFESSIONAL = 105;
+/** Request timeout for aggregated consumption over long ranges (up to a year) */
+const HISTORICAL_CONSUMPTION_TIMEOUT_MS = 30000;
+
 /** Wait time before a changed withdrawal limit is sent, so typing doesn't send every keystroke */
 const WITHDRAWAL_LIMIT_DELAY_MS = 3000;
 /**
@@ -63,12 +67,10 @@ class GroheSmarthome extends utils.Adapter {
 		this.currentPollInterval = 0; // set in onReady from config
 
 		/**
-		 * Total consumption cache per Sense Guard.
-		 * Maps applianceId -> { base: number, lastDay: string }
-		 * base = cumulative from installation_date to yesterday (refreshed once/day).
-		 * Mirrors HA guard_coordinator.py logic.
+		 * Persistent total consumption tracker per Sense Guard.
+		 * Maps applianceId -> WaterConsumptionTracker
 		 */
-		this.totalConsumptionCache = new Map();
+		this.consumptionTrackers = new Map();
 
 		/**
 		 * Tracks running background refresh-and-verify tasks for Blue devices.
@@ -123,64 +125,95 @@ class GroheSmarthome extends utils.Adapter {
 			native: {},
 		});
 
-		try {
-			this.client = new GroheClient(this.log, this.setTimeout.bind(this));
+		this.client = new GroheClient(this.log, this.setTimeout.bind(this));
+		this.client.reloginHandler = () => this._login();
+		this.client.onTokensRenewed = token => this._persistRefreshToken(token);
 
-			const email = (this.config.email || '').trim();
-			const password = this.config.password || '';
-
-			if (email) {
-				const parts = email.split('@');
-				const masked =
-					parts.length === 2 ? `${parts[0].substring(0, 2)}***@${parts[1]}` : `${email.substring(0, 3)}***`;
-				this.log.debug(`Using email: ${masked} (length: ${email.length})`);
-			}
-			this.log.debug(`Password present: ${password.length > 0}, length: ${password.length}`);
-
-			// Read refresh token from state (not config – writing config triggers restart!)
-			const savedRefresh = await this._readRefreshToken();
-
-			// 1) Try refresh token if present
-			if (savedRefresh) {
-				this.log.debug('Trying saved refresh token');
-				this.client.setRefreshToken(savedRefresh);
-				try {
-					await this.client.refresh();
-					this.log.info('Refresh token used successfully');
-					await this._persistRefreshToken(this.client.refreshToken);
-				} catch (err) {
-					this.log.warn(`Refresh with saved token failed: ${err.message}`);
-					this.client.auth.accessToken = null;
-					this.client.auth.refreshToken = null;
-				}
-			}
-
-			// 2) Full login if no valid access token yet
-			if (!this.client.accessToken) {
-				if (!email || !password) {
-					throw new Error('Please set email and password in the adapter settings.');
-				}
-				this.log.info('Starting login with username/password...');
-				const tokens = await this.client.login(email, password);
-				await this._persistRefreshToken(tokens.refresh_token);
-			}
-
-			await this.setState('info.connection', { val: true, ack: true });
-
-			// 3) Initial poll
-			await this.pollDevices();
-
-			// 4) Set up polling interval (minimum 60s)
-			const configuredInterval = this.config.pollInterval;
-			this.log.debug(`Config pollInterval: ${configuredInterval} (type: ${typeof configuredInterval})`);
-			this.baseInterval = Math.max(60, Number(configuredInterval) > 0 ? Number(configuredInterval) : 300);
-			this.currentPollInterval = this.baseInterval;
-			this._schedulePoll();
-			this.log.info(`Polling active: every ${this.baseInterval}s`);
-		} catch (err) {
-			await this.setState('info.connection', { val: false, ack: true });
-			this.log.warn(`Initialization failed: ${err.message}`);
+		const email = (this.config.email || '').trim();
+		const password = this.config.password || '';
+		if (email) {
+			const parts = email.split('@');
+			const masked =
+				parts.length === 2 ? `${parts[0].substring(0, 2)}***@${parts[1]}` : `${email.substring(0, 3)}***`;
+			this.log.debug(`Using email: ${masked} (length: ${email.length})`);
 		}
+		this.log.debug(`Password present: ${password.length > 0}, length: ${password.length}`);
+
+		const savedRefresh = await this._readRefreshToken();
+		if (!savedRefresh && (!email || !password)) {
+			this.log.error('Please set email and password in the adapter settings.');
+			return;
+		}
+
+		// Polling interval (minimum 60s)
+		const configuredInterval = this.config.pollInterval;
+		this.log.debug(`Config pollInterval: ${configuredInterval} (type: ${typeof configuredInterval})`);
+		this.baseInterval = Math.max(60, Number(configuredInterval) > 0 ? Number(configuredInterval) : 300);
+		this.currentPollInterval = this.baseInterval;
+
+		// Initial poll – logs in first. If that fails (no network at boot, Grohe
+		// denying requests), the regular backoff retries it instead of leaving the
+		// adapter idle until a manual restart.
+		await this.pollDevices();
+		if (!this.client) {
+			return; // unloaded meanwhile
+		}
+		this._schedulePoll();
+		this.log.info(`Polling active: every ${this.baseInterval}s`);
+	}
+
+	/**
+	 * Get valid tokens: try the saved refresh token first, then log in with
+	 * email/password.
+	 */
+	async _connect() {
+		const client = this.client;
+		if (!client) {
+			throw new Error('Client not initialized');
+		}
+		// Read refresh token from state (not config – writing config triggers restart!)
+		const savedRefresh = await this._readRefreshToken();
+
+		// 1) Try refresh token if present
+		if (savedRefresh) {
+			this.log.debug('Trying saved refresh token');
+			client.setRefreshToken(savedRefresh);
+			try {
+				await client.refresh();
+				this.log.info('Refresh token used successfully');
+				await this._persistRefreshToken(client.refreshToken);
+				return;
+			} catch (err) {
+				if (!GroheClient.isTokenRejected(err, savedRefresh)) {
+					// Network error, 429 or server error – a login would fail the same
+					// way. Keep the token and try again with the next poll.
+					throw err;
+				}
+				this.log.warn(`Refresh with saved token failed: ${err.message}`);
+				client.auth.accessToken = null;
+				client.auth.refreshToken = null;
+			}
+		}
+
+		// 2) Full login
+		await this._login();
+	}
+
+	/**
+	 * Full login with email/password; stores the new refresh token.
+	 */
+	async _login() {
+		const email = (this.config.email || '').trim();
+		const password = this.config.password || '';
+		if (!email || !password) {
+			throw new Error('Please set email and password in the adapter settings.');
+		}
+		if (!this.client) {
+			throw new Error('Client not initialized');
+		}
+		this.log.info('Starting login with username/password...');
+		const tokens = await this.client.login(email, password);
+		await this._persistRefreshToken(tokens.refresh_token);
 	}
 
 	/* ================================================================== */
@@ -220,6 +253,10 @@ class GroheSmarthome extends utils.Adapter {
 		);
 
 		try {
+			if (!this.client.accessToken) {
+				await this._connect();
+			}
+
 			const dashboard = await this.client.getDashboard();
 			if (this.client.usingFallbackDiscovery && !this._fallbackLogged) {
 				this.log.info('Using fallback discovery mode because /dashboard is not available for this account');
@@ -1367,10 +1404,13 @@ class GroheSmarthome extends utils.Adapter {
 	/**
 	 * Calculate total water consumption from the aggregated data API.
 	 * The dashboard API does NOT provide total_water_consumption reliably.
-	 * This mirrors the HA guard_coordinator.py approach:
-	 * - Once per day: fetch historical sum (installation_date → today, groupBy=year)
-	 * - Every poll: fetch today's consumption (groupBy=day)
-	 * - Total = historical base + today's live value
+	 * This mirrors the HA guard_coordinator.py approach (v0.4.0):
+	 * - The total up to yesterday is kept by a WaterConsumptionTracker and stored in
+	 *   `consumption.totalWaterConsumptionSync`, so the history is only fetched once
+	 *   (in calendar-year chunks) and afterwards only the recent months once per day.
+	 * - Every 5th poll: fetch today's consumption (groupBy=day)
+	 * - Total = total up to yesterday + today's live value
+	 * On errors the state keeps its last value.
 	 */
 	async _updateTotalConsumption(applianceId, locationId, roomId, appliance) {
 		try {
@@ -1378,9 +1418,16 @@ class GroheSmarthome extends utils.Adapter {
 				this.log.debug(`Skipping total consumption for ${applianceId}: client not initialized`);
 				return;
 			}
-			const todayStr = this._localDateStr(new Date());
+			const installDate = appliance.installation_date || appliance.register_date;
+			if (!installDate || isNaN(new Date(installDate).getTime())) {
+				this.log.debug(`No installation_date for ${applianceId}, cannot calculate total consumption`);
+				return;
+			}
 
-			// Fetch today's consumption
+			const tracker = await this._getConsumptionTracker(applianceId, locationId, roomId);
+			await tracker.sync(this._localDateStr(new Date(installDate)));
+
+			const todayStr = this._localDateStr(new Date());
 			const todayData = await this.client.getApplianceData(
 				locationId,
 				roomId,
@@ -1391,35 +1438,14 @@ class GroheSmarthome extends utils.Adapter {
 			);
 			const todayConsumption = this._sumWithdrawals(todayData);
 
-			// Refresh historical base once per day
-			let cache = this.totalConsumptionCache.get(applianceId);
-			if (!cache || cache.lastDay !== todayStr) {
-				const installDate = appliance.installation_date || appliance.register_date;
-				if (installDate) {
-					const fromStr = this._localDateStr(new Date(installDate));
-					const histData = await this.client.getApplianceData(
-						locationId,
-						roomId,
-						applianceId,
-						fromStr,
-						todayStr,
-						'year',
-					);
-					const histTotal = this._sumWithdrawals(histData);
-					cache = {
-						base: Math.max(0, Math.round((histTotal - todayConsumption) * 100) / 100),
-						lastDay: todayStr,
-					};
-					this.totalConsumptionCache.set(applianceId, cache);
-					this.log.debug(`Total consumption base for ${applianceId}: ${cache.base}l (from ${fromStr})`);
-				} else {
-					this.log.debug(`No installation_date for ${applianceId}, cannot calculate total consumption`);
-					cache = { base: 0, lastDay: todayStr };
-					this.totalConsumptionCache.set(applianceId, cache);
-				}
+			const totalTillYesterday = tracker.totalUntil(addDays(todayStr, -1));
+			if (totalTillYesterday === null) {
+				return;
 			}
-
-			const total = Math.round((cache.base + todayConsumption) * 100) / 100;
+			const total = Math.round((totalTillYesterday + todayConsumption) * 100) / 100;
+			this.log.debug(
+				`Water consumption for ${applianceId}: till yesterday ${totalTillYesterday}l, today ${todayConsumption}l, total ${total}l`,
+			);
 			await this._setNum(
 				`${applianceId}.consumption`,
 				'totalWaterConsumption',
@@ -1429,8 +1455,71 @@ class GroheSmarthome extends utils.Adapter {
 				total,
 			);
 		} catch (err) {
-			this.log.warn(`Total consumption for ${applianceId} failed: ${err.message}`);
+			const status = err?.response?.status;
+			this.log.warn(
+				`Could not update the total water consumption of ${applianceId}, keeping the last value: ` +
+					`${status ? `HTTP ${status} ` : ''}${err.message}`,
+			);
 		}
+	}
+
+	/**
+	 * Get (or create) the persistent consumption tracker of a Sense Guard.
+	 *
+	 * @param {string} applianceId - The appliance ID
+	 * @param {string} locationId - The location ID
+	 * @param {string} roomId - The room ID
+	 */
+	async _getConsumptionTracker(applianceId, locationId, roomId) {
+		let tracker = this.consumptionTrackers.get(applianceId);
+		if (tracker) {
+			return tracker;
+		}
+
+		const syncId = `${applianceId}.consumption.totalWaterConsumptionSync`;
+		await this._ensureState(syncId, {
+			name: 'Total water consumption (sync data)',
+			type: 'string',
+			role: 'json',
+			read: true,
+			write: false,
+		});
+
+		tracker = new WaterConsumptionTracker({
+			applianceId,
+			log: this.log,
+			today: () => this._localDateStr(new Date()),
+			fetchTotal: async (start, end, groupBy) => {
+				// Long ranges (a year of history) can exceed the default timeout
+				if (!this.client) {
+					throw new Error('Client not initialized');
+				}
+				const data = await this.client.getApplianceData(locationId, roomId, applianceId, start, end, groupBy, {
+					timeout: HISTORICAL_CONSUMPTION_TIMEOUT_MS,
+				});
+				if (!data || typeof data !== 'object') {
+					// An empty answer is not "no consumption" – it must not be stored as 0
+					throw new Error(`Grohe returned no aggregated data for ${start} – ${end}`);
+				}
+				return this._sumWithdrawals(data);
+			},
+			load: async () => {
+				const state = await this.getStateAsync(syncId);
+				if (!state?.val) {
+					return null;
+				}
+				try {
+					return JSON.parse(String(state.val));
+				} catch {
+					return {};
+				}
+			},
+			save: async data => {
+				await this.setState(syncId, { val: JSON.stringify(data), ack: true });
+			},
+		});
+		this.consumptionTrackers.set(applianceId, tracker);
+		return tracker;
 	}
 
 	/**
