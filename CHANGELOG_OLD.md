@@ -1,4 +1,8 @@
 # Older changes
+## 0.5.3 (2026-05-21)
+* (copilot) Modify notification manager to work with instances
+* (copilot) Update Dependencies
+
 ## 0.5.2 (2026-05-14)
 * (patricknitsch) Fix Header when Device offline
 * (patricknitsch) Add Icon and Online State on each Device

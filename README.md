@@ -43,7 +43,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.7.2 (2026-10-29)
 * (patricknitsch) Adapter no longer stays idle when the login fails on startup (e.g. no network at boot) – it retries with the regular backoff
 * (patricknitsch) Log in again with email/password when Grohe rejects the refresh token during runtime, instead of failing until a restart
 * (patricknitsch) Store renewed refresh tokens during runtime
@@ -76,10 +76,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 ### 0.5.4 (2026-05-23)
 * (copilot) Add latest Message for Notifications
 * (copilot) Add Icons in Notifications
-
-### 0.5.3 (2026-05-21)
-* (copilot) Modify notification manager to work with instances
-* (copilot) Update Dependencies
 
 **Older entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).**
 
