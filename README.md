@@ -43,6 +43,9 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (patricknitsch) Web component `grohe-device-card` (ioBroker web-components): Grohe Sense, Sense Guard and Blue as a card in the look of the Device Manager, with an Info tab and a Controls tab, usable in devices, vis-2, admin and other hosts
+
 ### 0.7.2 (2026-10-29)
 * (patricknitsch) Adapter no longer stays idle when the login fails on startup (e.g. no network at boot) – it retries with the regular backoff
 * (patricknitsch) Log in again with email/password when Grohe rejects the refresh token during runtime, instead of failing until a restart

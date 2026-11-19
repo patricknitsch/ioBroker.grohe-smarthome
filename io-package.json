@@ -147,6 +147,7 @@
     "adminUI": {
       "config": "json"
     },
+    "webComponents": ["webcomponents/device-card.json"],
     "supportedMessages": {
       "deviceManager": true
     },

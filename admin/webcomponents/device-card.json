@@ -1,0 +1,34 @@
+{
+	"$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+	"manifestVersion": 1,
+	"tag": "grohe-device-card",
+	"name": { "en": "Grohe appliance", "de": "Grohe Gerät" },
+	"description": {
+		"en": "Grohe Sense, Sense Guard or Blue: values, status and controls, like the Device Manager card",
+		"de": "Grohe Sense, Sense Guard oder Blue: Werte, Status und Steuerung wie in der Device-Manager-Karte"
+	},
+	"icon": "device-card.svg",
+	"module": "device-card.js",
+	"size": { "width": 360, "height": 420 },
+	"settings": {
+		"type": "panel",
+		"items": {
+			"instance": {
+				"type": "instance",
+				"adapter": "grohe-smarthome",
+				"label": { "en": "Instance", "de": "Instanz" }
+			},
+			"device": {
+				"type": "selectSendTo",
+				"command": "getDevices",
+				"instance": "${data.instance || 'grohe-smarthome.0'}",
+				"alsoDependsOn": ["instance"],
+				"label": { "en": "Appliance", "de": "Gerät" },
+				"help": {
+					"en": "Empty: the first appliance of the instance",
+					"de": "Leer: das erste Gerät der Instanz"
+				}
+			}
+		}
+	}
+}
