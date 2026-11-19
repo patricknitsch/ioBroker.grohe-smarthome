@@ -298,6 +298,57 @@ describe('web component: element', function () {
 		el.remove();
 	});
 
+	it('shows general information in a dialog of the info button, also while offline', async () => {
+		const socket = mockSocket({
+			...guardValues,
+			[`${GUARD}.status.online`]: false,
+			[`${GUARD}.consumption.averageDaily`]: 152.4,
+			[`${GUARD}.pressureMeasurement.isLeakage`]: false,
+			[`${GUARD}.notifications.latestCategoryName`]: 'Information',
+		});
+		const el = await mount(socket, { device: GUARD });
+		/** @type {any} */
+		let request;
+		el.dialogs = {
+			open: async r => {
+				request = r;
+				return null;
+			},
+		};
+		el.shadowRoot.querySelector('[data-info]').click();
+		await tick();
+		await tick();
+		assert.ok(request.element, 'element dialog');
+		const text = request.element.shadowRoot.textContent;
+		assert.match(text, /Geräte-ID\s*guard1/);
+		assert.match(text, /Ø pro Tag\s*152 l/);
+		assert.match(text, /Leckage erkannt\s*Nein/);
+		assert.match(text, /Kategorie\s*Information/);
+		// rows without a value are left out
+		assert.doesNotMatch(text, /Leckage-Stufe/);
+		assert.deepEqual(socket.writes, []);
+		el.remove();
+	});
+
+	it('shows the maintenance data of a Blue in the info dialog', async () => {
+		const socket = mockSocket({
+			[`${BLUE}.status.online`]: true,
+			[`${BLUE}.operatingTime`]: 4 * 1440 + 125,
+			[`${BLUE}.filterChangeCount`]: 3,
+		});
+		const el = await mount(socket, { device: BLUE });
+		/** @type {any} */
+		let request;
+		el.dialogs = { open: async r => ((request = r), null) };
+		el.shadowRoot.querySelector('[data-info]').click();
+		await tick();
+		await tick();
+		const text = request.element.shadowRoot.textContent;
+		assert.match(text, /Betriebszeit\s*4 d 2 h/);
+		assert.match(text, /Filterwechsel\s*3/);
+		el.remove();
+	});
+
 	it('takes the first appliance of the instance without a setting', async () => {
 		const el = await mount(mockSocket(guardValues), {});
 		assert.equal(el.shadowRoot.querySelector('.name').textContent, 'Küche (Blue)');

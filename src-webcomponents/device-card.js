@@ -8,7 +8,7 @@
 // Writes go through the same controls.* states as the Device Manager, so the
 // adapter handles them in onStateChange like every other UI.
 
-import { IobWebComponent, defineWebComponent } from '@iobroker/web-components/element';
+import { IobWebComponent, defineWebComponent, getThemeCssVariables } from '@iobroker/web-components/element';
 import { svg } from './icons.js';
 
 /** @typedef {import('./icons.js').IconName} IconName */
@@ -100,6 +100,43 @@ const T = {
 		en: 'Reset the filter counter? Only do this after replacing the filter.',
 		de: 'Filterzähler zurücksetzen? Nur nach dem Filterwechsel ausführen.',
 	},
+	moreInfo: { en: 'Appliance information', de: 'Geräteinformationen' },
+	general: { en: 'General', de: 'Allgemein' },
+	applianceId: { en: 'Appliance ID', de: 'Geräte-ID' },
+	type: { en: 'Type', de: 'Typ' },
+	yes: { en: 'Yes', de: 'Ja' },
+	no: { en: 'No', de: 'Nein' },
+	category: { en: 'Category', de: 'Kategorie' },
+	message: { en: 'Message', de: 'Meldung' },
+	time: { en: 'Time', de: 'Zeitpunkt' },
+	consumption: { en: 'Consumption', de: 'Verbrauch' },
+	averageDaily: { en: 'Average per day', de: 'Ø pro Tag' },
+	averageMonthly: { en: 'Average per month', de: 'Ø pro Monat' },
+	lastWithdrawal: { en: 'Last withdrawal', de: 'Letzte Entnahme' },
+	lastMaxFlowRate: { en: 'Max. flow rate of the last withdrawal', de: 'Max. Durchfluss der letzten Entnahme' },
+	leakage: { en: 'Leakage detected', de: 'Leckage erkannt' },
+	leakageLevel: { en: 'Leakage level', de: 'Leckage-Stufe' },
+	snoozeDuration: { en: 'Snooze duration', de: 'Snooze-Dauer' },
+	maintenance: { en: 'Maintenance', de: 'Wartung' },
+	filterApp: { en: 'Filter remaining (app)', de: 'Filter verbleibend (App)' },
+	dateCleaning: { en: 'Last cleaning', de: 'Letzte Reinigung' },
+	dateCo2: { en: 'Last CO₂ replacement', de: 'Letzter CO₂-Tausch' },
+	dateFilter: { en: 'Last filter replacement', de: 'Letzter Filterwechsel' },
+	cleaningCount: { en: 'Cleanings', de: 'Reinigungen' },
+	filterChangeCount: { en: 'Filter changes', de: 'Filterwechsel' },
+	operation: { en: 'Operation', de: 'Betrieb' },
+	operatingTime: { en: 'Operating time', de: 'Betriebszeit' },
+	pumpRunningTime: { en: 'Pump running time', de: 'Pumpenlaufzeit' },
+	pumpCount: { en: 'Pump cycles', de: 'Pumpenzyklen' },
+	cyclesStill: { en: 'Tap cycles still', de: 'Zapfzyklen still' },
+	cyclesCarbonated: { en: 'Tap cycles carbonated', de: 'Zapfzyklen Sprudel' },
+	runningStill: { en: 'Water running still', de: 'Wasserlaufzeit still' },
+	runningMedium: { en: 'Water running medium', de: 'Wasserlaufzeit medium' },
+	runningCarbonated: { en: 'Water running carbonated', de: 'Wasserlaufzeit Sprudel' },
+	maxIdleTime: { en: 'Max. idle time', de: 'Max. Standzeit' },
+	timeSinceRestart: { en: 'Time since restart', de: 'Zeit seit Neustart' },
+	powerCutCount: { en: 'Power cuts', de: 'Stromausfälle' },
+	noInfo: { en: 'No further information yet', de: 'Noch keine weiteren Informationen' },
 	noDevice: { en: 'No Grohe appliance found', de: 'Kein Grohe-Gerät gefunden' },
 	readOnly: { en: 'Appliance offline – controls disabled', de: 'Gerät offline – Steuerung gesperrt' },
 };
@@ -123,6 +160,105 @@ const COMMON_STATES = [
 ];
 
 const SPRINKLER_TIMES = ['startHour', 'startMinute', 'stopHour', 'stopMinute'];
+
+/**
+ * Sections of the info dialog: what the card itself does not show. The states are read once when the
+ * dialog opens, so the card does not subscribe dozens of rarely needed states.
+ * `kind`: how the value is shown; `types`: only for these appliance types
+ *
+ * @type {{title: {en: string, de: string}, types?: string[], rows: {state: string, label: {en: string, de: string}, kind: 'num' | 'bool' | 'date' | 'minutes' | 'text', unit?: string, decimals?: number}[]}[]}
+ */
+const INFO_SECTIONS = [
+	{
+		title: T.general,
+		rows: [
+			{ state: 'status.online', label: T.online, kind: 'bool' },
+			{ state: 'status.wifiQuality', label: T.wifi, kind: 'num', decimals: 0 },
+			{ state: 'status.updateAvailable', label: T.updateAvailable, kind: 'bool' },
+			{ state: 'lastMeasurement', label: T.lastMeasurement, kind: 'date' },
+		],
+	},
+	{
+		title: T.notification,
+		rows: [
+			{ state: 'notifications.latestMessage', label: T.message, kind: 'text' },
+			{ state: 'notifications.latestCategoryName', label: T.category, kind: 'text' },
+			{ state: 'notifications.latestTimestamp', label: T.time, kind: 'date' },
+		],
+	},
+	{
+		title: T.consumption,
+		types: ['SENSE_GUARD'],
+		rows: [
+			{ state: 'consumption.averageDaily', label: T.averageDaily, kind: 'num', unit: 'l', decimals: 0 },
+			{ state: 'consumption.averageMonthly', label: T.averageMonthly, kind: 'num', unit: 'l', decimals: 0 },
+			{ state: 'consumption.lastWaterConsumption', label: T.lastWithdrawal, kind: 'num', unit: 'l', decimals: 1 },
+			{ state: 'consumption.lastMaxFlowRate', label: T.lastMaxFlowRate, kind: 'num', unit: 'l/min', decimals: 1 },
+		],
+	},
+	{
+		title: T.pressureMeasurement,
+		types: ['SENSE_GUARD'],
+		rows: [
+			{ state: 'pressureMeasurement.startTime', label: T.time, kind: 'date' },
+			{
+				state: 'pressureMeasurement.dropOfPressure',
+				label: T.pressureDrop,
+				kind: 'num',
+				unit: 'bar',
+				decimals: 2,
+			},
+			{ state: 'pressureMeasurement.isLeakage', label: T.leakage, kind: 'bool' },
+			{ state: 'pressureMeasurement.leakageLevel', label: T.leakageLevel, kind: 'text' },
+		],
+	},
+	{
+		title: T.snooze,
+		types: ['SENSE_GUARD'],
+		rows: [{ state: 'controls.snooze.duration', label: T.snoozeDuration, kind: 'num', unit: 'min', decimals: 0 }],
+	},
+	{
+		title: T.maintenance,
+		types: ['BLUE_HOME', 'BLUE_PROFESSIONAL'],
+		rows: [
+			{ state: 'remainingFilterApp', label: T.filterApp, kind: 'num', unit: '%', decimals: 0 },
+			{ state: 'dateCleaning', label: T.dateCleaning, kind: 'date' },
+			{ state: 'dateCo2Replacement', label: T.dateCo2, kind: 'date' },
+			{ state: 'dateFilterReplacement', label: T.dateFilter, kind: 'date' },
+			{ state: 'cleaningCount', label: T.cleaningCount, kind: 'num', decimals: 0 },
+			{ state: 'filterChangeCount', label: T.filterChangeCount, kind: 'num', decimals: 0 },
+		],
+	},
+	{
+		title: T.operation,
+		types: ['BLUE_HOME', 'BLUE_PROFESSIONAL'],
+		rows: [
+			{ state: 'operatingTime', label: T.operatingTime, kind: 'minutes' },
+			{ state: 'pumpRunningTime', label: T.pumpRunningTime, kind: 'minutes' },
+			{ state: 'pumpCount', label: T.pumpCount, kind: 'num', decimals: 0 },
+			{ state: 'cyclesStill', label: T.cyclesStill, kind: 'num', decimals: 0 },
+			{ state: 'cyclesCarbonated', label: T.cyclesCarbonated, kind: 'num', decimals: 0 },
+			{ state: 'waterRunningStill', label: T.runningStill, kind: 'minutes' },
+			{ state: 'waterRunningMedium', label: T.runningMedium, kind: 'minutes' },
+			{ state: 'waterRunningCarbonated', label: T.runningCarbonated, kind: 'minutes' },
+			{ state: 'maxIdleTime', label: T.maxIdleTime, kind: 'minutes' },
+			{ state: 'timeSinceRestart', label: T.timeSinceRestart, kind: 'minutes' },
+			{ state: 'powerCutCount', label: T.powerCutCount, kind: 'num', decimals: 0 },
+		],
+	},
+];
+
+/** Styles of the info dialog: its element is moved into the dialog of the host, outside the card */
+const INFO_STYLE = `
+:host { display: block; color: var(--iob-text); font-family: var(--iob-font-family); font-size: var(--iob-font-size); }
+h3 { margin: 14px 0 4px; font-size: .8em; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--iob-primary); }
+h3:first-child { margin-top: 0; }
+table { width: 100%; border-collapse: collapse; }
+td { padding: 5px 0; border-bottom: 1px solid var(--iob-divider); vertical-align: top; }
+td:first-child { color: var(--iob-text-secondary); padding-right: 16px; }
+td:last-child { text-align: right; word-break: break-word; }
+.empty { color: var(--iob-text-secondary); }
+`;
 
 /** States per type, relative to the device */
 const TYPE_STATES = {
@@ -244,6 +380,12 @@ const STYLE = `
 .name { font-size: 1.15em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sub { font-size: .85em; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .status { display: flex; align-items: center; gap: 6px; flex: none; }
+.info-btn {
+	width: 28px; height: 28px; padding: 3px; flex: none; border: 0; border-radius: 50%;
+	background: transparent; color: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.info-btn:hover { background: rgba(255,255,255,.2); }
+.info-btn svg { width: 22px; height: 22px; }
 .status .ico { display: inline-flex; align-items: center; gap: 2px; font-size: .8em; padding: 2px 4px; border-radius: 10px; background: rgba(255,255,255,.92); color: #333; }
 .status svg { width: 16px; height: 16px; }
 .tabs { display: flex; border-bottom: 1px solid var(--iob-divider); }
@@ -561,6 +703,7 @@ class GroheDeviceCard extends IobWebComponent {
 					<div class="sub">${esc(this.text(typeInfo?.label || T.device))}</div>
 				</div>
 				<div class="status">${this.#statusIcons(type, online)}</div>
+				<button class="info-btn" data-info="1" title="${esc(this.text(T.moreInfo))}">${svg('info')}</button>
 			</div>
 			${
 				hasControls
@@ -816,6 +959,11 @@ class GroheDeviceCard extends IobWebComponent {
 		if (!target || target.hasAttribute('disabled')) {
 			return;
 		}
+		if (target.dataset.info) {
+			// read-only: also while the appliance is offline
+			this.#showInfo().catch(err => console.warn(`<${TAG}>: ${err}`));
+			return;
+		}
 		if (target.dataset.tab) {
 			this.#tab = target.dataset.tab === 'controls' ? 'controls' : 'info';
 			this.render();
@@ -833,6 +981,96 @@ class GroheDeviceCard extends IobWebComponent {
 		} else if (target.dataset.action) {
 			this.#onAction(target.dataset.action).catch(err => console.warn(`<${TAG}>: ${err}`));
 		}
+	}
+
+	/**
+	 * @param {unknown} value minutes
+	 * @returns {string} e.g. `3 d 4 h` or `25 min`
+	 */
+	#duration(value) {
+		const n = num(value);
+		if (n === null) {
+			return '–';
+		}
+		const days = Math.floor(n / 1440);
+		const hours = Math.floor((n % 1440) / 60);
+		if (days) {
+			return `${days.toLocaleString(this.systemLang)} d${hours ? ` ${hours} h` : ''}`;
+		}
+		return hours ? `${hours} h ${Math.round(n % 60)} min` : `${Math.round(n)} min`;
+	}
+
+	/**
+	 * @param {unknown} value value of a state
+	 * @param {{kind: string, unit?: string, decimals?: number}} row row of the info dialog
+	 * @returns {string} formatted value, empty if the appliance has none
+	 */
+	#infoValue(value, row) {
+		if (value === null || value === undefined || value === '') {
+			return '';
+		}
+		switch (row.kind) {
+			case 'bool':
+				return this.text(value === true || value === 'true' ? T.yes : T.no);
+			case 'date':
+				return this.#date(value);
+			case 'minutes':
+				return this.#duration(value);
+			case 'num':
+				return num(value) === null
+					? ''
+					: `${this.#num(value, row.decimals ?? 0)}${row.unit ? ` ${row.unit}` : ''}`;
+			default:
+				return String(value);
+		}
+	}
+
+	/** Info dialog: general information that the card itself does not show */
+	async #showInfo() {
+		const base = this.#base;
+		const socket = this.socket;
+		if (!base || !socket) {
+			return;
+		}
+		const type = this.#type;
+		const sections = INFO_SECTIONS.filter(s => !s.types || s.types.includes(type));
+		const ids = sections.flatMap(s => s.rows.map(r => `${base}.${r.state}`));
+		const states = await Promise.all(ids.map(id => socket.getState(id).catch(() => null)));
+		/** @type {Record<string, unknown>} */
+		const values = Object.fromEntries(ids.map((id, i) => [id, states[i]?.val]));
+
+		const applianceId = base.slice(base.indexOf('.', base.indexOf('.') + 1) + 1);
+		const html = sections
+			.map((section, i) => {
+				const rows = section.rows
+					.map(r => [r.label, this.#infoValue(values[`${base}.${r.state}`], r)])
+					.filter(([, v]) => v !== '');
+				if (i === 0) {
+					rows.unshift(
+						[T.applianceId, applianceId],
+						[T.type, this.text(TYPES[/** @type {keyof TYPES} */ (type)]?.label || T.device)],
+					);
+				}
+				return rows.length
+					? `<h3>${esc(this.text(section.title))}</h3><table>${rows
+							.map(
+								([label, value]) =>
+									`<tr><td>${esc(this.text(/** @type {{en: string, de: string}} */ (label)))}</td><td>${esc(value)}</td></tr>`,
+							)
+							.join('')}</table>`
+					: '';
+			})
+			.join('');
+
+		const element = document.createElement('div');
+		// the element leaves the card, so it takes the theme with it
+		for (const [name, value] of Object.entries(getThemeCssVariables(this.theme))) {
+			element.style.setProperty(name, value);
+		}
+		element.attachShadow({ mode: 'open' }).innerHTML =
+			`<style>${INFO_STYLE}</style>${html || `<div class="empty">${esc(this.text(T.noInfo))}</div>`}`;
+		const name = this.text(this.objects[base]?.common?.name) || applianceId;
+		await this.openDialog({ title: name, element, width: 480 });
 	}
 
 	/**

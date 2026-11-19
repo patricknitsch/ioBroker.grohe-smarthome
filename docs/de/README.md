@@ -130,6 +130,7 @@ Hosts wie devices, vis-2 oder admin bieten sie in ihrer Palette an; sie sieht au
 | Bereich | Inhalt |
 |---|---|
 | Kopfzeile | Gerätebild, Name, Typ; Status-Symbole: Verbindung / WLAN-Qualität, Batterie (Sense), Ventil geschlossen (Sense Guard), Update verfügbar. Rot, wenn offline |
+| ⓘ-Button | Dialog mit Infos, die die Karte nicht zeigt: Geräte-ID, Typ, Online, WLAN-Qualität, Update, letzte Messung, letzte Meldung mit Kategorie und Zeitpunkt; Sense Guard: Ø Verbrauch pro Tag / Monat, letzte Entnahme, Druckmessung (Zeitpunkt, Druckabfall, Leckage), Snooze-Dauer; Blue: Wartung (Filter laut App, letzte Reinigung / CO₂- / Filterwechsel, Zähler) und Betrieb (Betriebs- und Pumpenzeit, Zapfzyklen, Wasserlaufzeiten, Standzeit, Stromausfälle). Die States werden beim Öffnen einmal gelesen; Zeilen ohne Wert entfallen. Funktioniert auch, wenn das Gerät offline ist |
 | Tab **Info** | die Werte der Device-Manager-Kachel (Sense: Temperatur, Luftfeuchte, Batterie; Sense Guard: Ventil, Wassertemperatur, Durchfluss, Druck, Tages- / Gesamtverbrauch, Druckabfall; Blue: CO₂ und Filter in % und Litern), letzte Messung und letzte Meldung |
 | Tab **Steuerung** (Sense Guard) | Ventil öffnen / schließen, Druckmessung starten (nur bei geschlossenem Ventil), Snooze starten (fragt die Dauer ab) / beenden, Entnahmelimit, Bewässerungsmodus (Zeiten und Tage in einem Dialog, in einem Aufruf gespeichert) |
 | Tab **Steuerung** (Blue) | Zapfart, Menge (± 50 ml), Zapfen; CO₂ / Filter nach Rückfrage zurücksetzen |

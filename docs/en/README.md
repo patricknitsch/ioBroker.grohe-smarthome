@@ -130,6 +130,7 @@ Hosts such as devices, vis-2 or admin offer it in their palette; it looks like t
 | Part | Content |
 |---|---|
 | Header | appliance icon, name, type; status icons: connection / WiFi quality, battery (Sense), valve closed (Sense Guard), update available. Red when offline |
+| ⓘ button | dialog with information the card does not show: appliance ID, type, online, WiFi quality, update, last measurement, latest notification with category and time; Sense Guard: average daily / monthly consumption, last withdrawal, pressure measurement (time, drop, leakage), snooze duration; Blue: maintenance (filter in the app, last cleaning / CO₂ / filter replacement, counters) and operation (operating and pump times, tap cycles, water running times, idle time, power cuts). The states are read once when the dialog opens; rows without a value are left out. Works while the appliance is offline |
 | **Info** tab | the values of the Device Manager tile (Sense: temperature, humidity, battery; Sense Guard: valve, water temperature, flow rate, pressure, daily / total consumption, pressure drop; Blue: CO₂ and filter in % and liters), last measurement and latest notification |
 | **Controls** tab (Sense Guard) | open / close valve, start pressure measurement (only while the valve is closed), start snooze (asks for the duration) / stop snooze, withdrawal amount limit, sprinkler mode (times and days in one dialog, saved in one call) |
 | **Controls** tab (Blue) | tap type, amount (± 50 ml), dispense; reset CO₂ / filter after a confirmation |
