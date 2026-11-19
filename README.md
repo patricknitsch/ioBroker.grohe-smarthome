@@ -43,7 +43,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.8.0 (2026-11-19)
 * (patricknitsch) Web component `iob-grohe-device-card` (ioBroker web-components): Grohe Sense, Sense Guard and Blue as a card in the look of the Device Manager, with an Info tab and a Controls tab, usable in devices, vis-2, admin and other hosts
 * (patricknitsch) Web component: info button with general appliance information (IDs, notification details, consumption averages, pressure measurement, Blue maintenance and operating data)
 * (patricknitsch) Update Dependencies
@@ -77,10 +77,6 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 * (copilot) Fixes Problems Error 404
 * (copilot) New functions for Grohe with Snooze, Withdrawal and Sprinkler
 * (copilot) Extend Documentation
-
-### 0.5.4 (2026-05-23)
-* (copilot) Add latest Message for Notifications
-* (copilot) Add Icons in Notifications
 
 **Older entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).**
 

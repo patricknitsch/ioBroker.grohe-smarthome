@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "grohe-smarthome",
-    "version": "0.7.2",
+    "version": "0.8.0",
     "news": {
+      "0.8.0": {
+        "en": "Web component `iob-grohe-device-card` (ioBroker web-components): Grohe Sense, Sense Guard and Blue as a card in the look of the Device Manager, with an Info tab and a Controls tab, usable in devices, vis-2, admin and other hosts\nWeb component: info button with general appliance information (IDs, notification details, consumption averages, pressure measurement, Blue maintenance and operating data)\nUpdate Dependencies",
+        "de": "Web-Komponente `iob-grohe-device-card` (ioBroker-Webkomponenten): Grohe Sense, Sense Guard und Blue als Karte im Gerätemanager, mit Info-Tabs und Steuerungen, nutzbar in Geräten, Vis-2, Admin und anderen Hosts\nWebkomponente: Infobutton mit allgemeinen Geräteinformationen (IDs, Hinweise, Durchschnittsverbrauch, Druckmessung, Blue Wartungs- und Betriebsdaten)\nAbhängigkeiten updaten",
+        "ru": "Веб-компонент `iob-grohe-device-card` (веб-компоненты IOBroker): Grohe Sense, Sense Guard и Blue в виде карты во внешнем виде диспетчера устройств со вкладками «Информация» и вкладкой «Управление», которые можно использовать на устройствах vis-2, администраторах и других хостах\nВеб-компонент: информационная кнопка с общей информацией об устройстве (идентификаторы, сведения об уведомлениях, средние показатели потребления, измерение давления, данные по техническому обслуживанию и эксплуатации Blue)\nОбновить зависимости",
+        "pt": "Componente web `iob-grohe-device-card`: Grohe Sense, Sense Guard e Blue como um cartão na aparência do Device Manager, com uma aba Info e uma aba Controls, utilizável em devices, vis-2, admin e outros hosts\nComponente Web: botão com informações gerais do aparelho (IDs, detalhes de notificação, médias de consumo, medição de pressão, dados azuis de manutenção e operação)\nAtualizar dependências",
+        "nl": "Webcomponent `iob-grohe-device-card` (IOBroker-webcomponenten): Grohe Sense, Sense Guard en Blue als kaart in het uiterlijk van de Device Manager, met een tabblad Info en een tabblad Controls, bruikbaar op apparaten, vis-2, admin en andere hosts\nWebcomponent: infoknop met algemene apparaatinformatie (ID's, meldingsgegevens, verbruiksgemiddelden, drukmeting, blauwe onderhouds- en bedrijfsgegevens)\nAfhankelijkheden bijwerken",
+        "fr": "Composant Web « iob-grohe-device-card » (composants Web IObroker) : Grohe Sense, Sense Guard et Blue sous forme de carte, dans le style du Device Manager, avec un onglet Info et un onglet Controls, utilisable sur les appareils, vis-2, admin et autres hôtes\nComposant Web : bouton info avec informations générales sur l'appareil (identifiants, notifications, consommation moyenne, mesure de pression, données de maintenance et de fonctionnement de Blue)\nMettre à jour les dépendances",
+        "it": "Componente web `iob-grohe-device-card`: Grohe Sense, Sense Guard e Blue come scheda in Device Manager, con una scheda Info e una scheda Controlli, utilizzabile nei dispositivi, vis-2, admin e altri host\nComponente web: pulsante info con informazioni generali sull'apparecchio (ID, notifiche, medie di consumo, misura della pressione, manutenzione blu e dati operativi)\nAggiorna dipendenze",
+        "es": "Componente web `iob-grohe-device-card` (ioBroker web-components): Grohe Sense, Sense Guard y Blue como tarjeta en el aspecto del administrador de dispositivos, con pestañas de información y controles, que se puede usar en dispositivos, vis-2, admin y otros hosts\nComponente web: botón de información con información general del aparato (ID, detalles de notificación, promedios de consumo, medición de presión, datos de mantenimiento y operación)\nActualizar dependencias",
+        "pl": "Komponent WWW `iob-grohe-device-card` (komponenty internetowe ioBroker): Grohe Sense, Sense Guard i Blue jako karta w wyglądzie Menedżera urządzeń, z zakładką Informacje i zakładką Sterowanie, używana w urządzeniach, vis-2, administratorach i innych hostach\nKomponent sieciowy: przycisk informacyjny z ogólnymi informacjami o urządzeniu (identyfikatory, szczegóły powiadomień, średnie zużycie, pomiar ciśnienia, niebieskie dane konserwacyjne i operacyjne)\nZależności aktualizacji",
+        "uk": "Веб-компонент `iob-grohe-device-card` (web-компоненти IObroker): Grohe Sense, Sense Guard і Blue як карта в зовнішньому вигляді Диспетчера пристроїв, з вкладкою Інформація та вкладкою Керування, придатними для використання в пристроях, vis-2, адміністраторах та інших хостах\nВеб-компонент: інформаційна кнопка із загальною інформацією про прилад (ідентифікатори, деталі сповіщень, середні показники споживання, вимірювання тиску, синій технічне обслуговування та експлуатаційні дані)\nОновити залежності",
+        "zh-cn": "网络组件 “iob-grohe-device-card”（ioBroker 网络组件）：设备管理器外观中的 Grohe Sense、Sense Guard 和 Blue 作为卡片，带有信息选项卡和控制选项卡，可用于设备、vis-2、管理员和其他主机\nWeb 组件：包含通用设备信息（ID、通知详细信息、平均消耗量、压力测量、蓝色维护和运行数据）的信息按钮\n更新依赖关系"
+      },
       "0.7.2": {
         "en": "Adapter no longer stays idle when the login fails on startup (e.g. no network at boot) – it retries with the regular backoff\nLog in again with email/password when Grohe rejects the refresh token during runtime, instead of failing until a restart\nStore renewed refresh tokens during runtime\nSense Guard: total water consumption is stored persistently (`consumption.totalWaterConsumptionSync`) – the history is fetched only once in calendar-year chunks, afterwards only the recent months once per day\nSense Guard: total water consumption keeps its last value when the Grohe API fails",
         "de": "Adapter ist nicht mehr inaktiv, wenn die Anmeldung fehlschlägt (z. B. kein Netz beim Booten) — er versucht es erneut\nLoggen Sie sich erneut mit E-Mail/Passwort ein, wenn Grohe das Refresh-Token zur Laufzeit ablehnt, statt es neu zu starten\nErneute Tokens zur Laufzeit speichern\nSense Guard: Der Gesamtwasserverbrauch wird permanent gespeichert (`Consumption.TotalWaterConsumptionSync`) — der Verlauf wird nur einmal pro Jahr abgerufen, danach nur die letzten Monate\nSense Guard: Der Gesamtwasserverbrauch bleibt auch bei Ausfall der Grohe API",
@@ -80,19 +93,6 @@
         "pl": "Zmień menedżera powiadomień do pracy z instancjami\nAktualizuj zależności",
         "uk": "Зміна диспетчера повідомлень для роботи з екземплярами\nОновлення залежності",
         "zh-cn": "修改通知管理器以配合实例\n更新依赖关系"
-      },
-      "0.5.2": {
-        "en": "Fix Header when Device offline\nAdd Icon and Online State on each Device\nUpdate Readme and Doc",
-        "de": "Fix Header, wenn Gerät offline\nFügen Sie Icon und Online-Staat auf jedem Gerät hinzu\nUpdate Readme und Doc",
-        "ru": "Исправьте заголовок, когда устройство отключено\nДобавить Icon и Online State на каждое устройство\nОбновление Readme и Doc",
-        "pt": "Corrigir o Cabeçalho quando o Dispositivo estiver offline\nAdicionar ícone e estado online em cada dispositivo\nAtualizar o Readme e o Doc",
-        "nl": "Header herstellen wanneer Apparaat offline is\nPictogram en Online Staat toevoegen aan elk apparaat\nReadme en Doc bijwerken",
-        "fr": "Correction de l'en-tête lorsque le périphérique est hors ligne\nAjouter l'icône et l'état en ligne sur chaque appareil\nMettre à jour Readme et Doc",
-        "it": "Fissare l'intestazione quando il dispositivo offline\nAggiungi Icon e Stato online su ogni dispositivo\nAggiornamento Readme e Doc",
-        "es": "Correr el encabezado cuando el dispositivo está fuera de línea\nAñadir Icon y estado en línea en cada dispositivo\nActualización Readme y Doc",
-        "pl": "Nagłówek naprawić, gdy urządzenie offline\nDodaj ikonę i stan online na każdym urządzeniu\nAktualizuj Readme i Doc",
-        "uk": "Виправлення заголовка при вимкненні пристрою\nДодайте іконку та онлайн-станцію на кожному пристрої\nОновлення Readme і Doc",
-        "zh-cn": "设备下线时修正标题\n在每个设备上添加图标和在线状态\n更新 Readme 和 Doc"
       }
     },
     "titleLang": {
@@ -147,7 +147,9 @@
     "adminUI": {
       "config": "json"
     },
-    "webComponents": ["webcomponents/device-card.json"],
+    "webComponents": [
+      "webcomponents/device-card.json"
+    ],
     "supportedMessages": {
       "deviceManager": true
     },

@@ -1,4 +1,8 @@
 # Older changes
+## 0.5.4 (2026-05-23)
+* (copilot) Add latest Message for Notifications
+* (copilot) Add Icons in Notifications
+
 ## 0.5.3 (2026-05-21)
 * (copilot) Modify notification manager to work with instances
 * (copilot) Update Dependencies
