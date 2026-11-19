@@ -124,7 +124,7 @@ The **Controls** tab is available for Grohe Sense Guard and Grohe Blue devices. 
 
 ## Web component
 
-The adapter brings the web component **Grohe appliance** (`<grohe-device-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)).
+The adapter brings the web component **Grohe appliance** (`<iob-grohe-device-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)).
 Hosts such as devices, vis-2 or admin offer it in their palette; it looks like the Device Manager card.
 
 | Part | Content |

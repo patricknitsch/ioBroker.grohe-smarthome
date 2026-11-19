@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
 	"manifestVersion": 1,
-	"tag": "grohe-device-card",
+	"tag": "iob-grohe-device-card",
 	"name": { "en": "Grohe appliance", "de": "Grohe Gerät" },
 	"description": {
 		"en": "Grohe Sense, Sense Guard or Blue: values, status and controls, like the Device Manager card",

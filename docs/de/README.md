@@ -124,7 +124,7 @@ Der **Steuerungs**-Tab ist für Grohe Sense Guard und Grohe Blue verfügbar. Die
 
 ## Web-Komponente
 
-Der Adapter bringt die Web-Komponente **Grohe Gerät** (`<grohe-device-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)) mit.
+Der Adapter bringt die Web-Komponente **Grohe Gerät** (`<iob-grohe-device-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)) mit.
 Hosts wie devices, vis-2 oder admin bieten sie in ihrer Palette an; sie sieht aus wie die Karte im Device Manager.
 
 | Bereich | Inhalt |
