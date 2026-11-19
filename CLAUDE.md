@@ -13,6 +13,9 @@ Guidelines for working on **ioBroker.grohe-smarthome**, an ioBroker adapter for 
 | `lib/device-manager.js` | Device Manager UI (`@iobroker/dm-utils`) |
 | `lib/notificationManager.js`, `lib/notificationMessages.js` | Push notifications and their localized texts |
 | `lib/apiDump.js` | Raw API structure dump for diagnostics |
+| `lib/web-components.js` | Backend of the web component: appliance list for its settings (`getDevices`) |
+| `src-webcomponents/` | Web component source (browser ESM); `npm run build` bundles it into `admin/webcomponents/` – commit the built bundle. `common.webComponents` lists plain manifest paths: devices 4.4 ignores the object short form, so don't run `iob-web-components sync-io-package` |
+| `admin/webcomponents/*` | Web component manifest (hand-written), icon and built module |
 | `admin/jsonConfig.json`, `admin/i18n/*.json` | Admin UI and its translations |
 | `docs/en/README.md`, `docs/de/README.md` | User documentation |
 | `README.md` | Overview and changelog |

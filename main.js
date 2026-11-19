@@ -12,6 +12,7 @@ const {
 	getLocalizedCategoryName,
 } = require('./lib/notificationMessages');
 const { dumpApiStructure } = require('./lib/apiDump');
+const { getDeviceOptions } = require('./lib/web-components');
 
 // Device type constants (same as GroheTypes in Python grohe package)
 const GROHE_SENSE = 101;
@@ -1682,6 +1683,16 @@ class GroheSmarthome extends utils.Adapter {
 	/* ================================================================== */
 
 	onMessage(obj) {
+		if (obj?.command === 'getDevices') {
+			// settings of the web component (selectSendTo)
+			getDeviceOptions(this)
+				.catch(e => {
+					this.log.warn(`Listing appliances failed: ${e?.message || e}`);
+					return [];
+				})
+				.then(options => obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback));
+			return;
+		}
 		if (this.deviceManagement) {
 			this.deviceManagement.handleAdapterMessage(obj);
 		}

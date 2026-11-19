@@ -9,6 +9,8 @@
 	"exclude": [
 		"**/build",
 		"node_modules/",
-		"widgets/"
+		"widgets/",
+		"src-webcomponents/",
+		"admin/webcomponents/"
 	]
 }

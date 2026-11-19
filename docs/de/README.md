@@ -122,6 +122,39 @@ Der **Steuerungs**-Tab ist für Grohe Sense Guard und Grohe Blue verfügbar. Die
 
 ---
 
+## Web-Komponente
+
+Der Adapter bringt die Web-Komponente **Grohe Gerät** (`<grohe-device-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)) mit.
+Hosts wie devices, vis-2 oder admin bieten sie in ihrer Palette an; sie sieht aus wie die Karte im Device Manager.
+
+| Bereich | Inhalt |
+|---|---|
+| Kopfzeile | Gerätebild, Name, Typ; Status-Symbole: Verbindung / WLAN-Qualität, Batterie (Sense), Ventil geschlossen (Sense Guard), Update verfügbar. Rot, wenn offline |
+| ⓘ-Button | Dialog mit Infos, die die Karte nicht zeigt: Geräte-ID, Typ, Online, WLAN-Qualität, Update, letzte Messung, letzte Meldung mit Kategorie und Zeitpunkt; Sense Guard: Ø Verbrauch pro Tag / Monat, letzte Entnahme, Druckmessung (Zeitpunkt, Druckabfall, Leckage), Snooze-Dauer; Blue: Wartung (Filter laut App, letzte Reinigung / CO₂- / Filterwechsel, Zähler) und Betrieb (Betriebs- und Pumpenzeit, Zapfzyklen, Wasserlaufzeiten, Standzeit, Stromausfälle). Die States werden beim Öffnen einmal gelesen; Zeilen ohne Wert entfallen. Funktioniert auch, wenn das Gerät offline ist |
+| Tab **Info** | die Werte der Device-Manager-Kachel (Sense: Temperatur, Luftfeuchte, Batterie; Sense Guard: Ventil, Wassertemperatur, Durchfluss, Druck, Tages- / Gesamtverbrauch, Druckabfall; Blue: CO₂ und Filter in % und Litern), letzte Messung und letzte Meldung |
+| Tab **Steuerung** (Sense Guard) | Ventil öffnen / schließen, Druckmessung starten (nur bei geschlossenem Ventil), Snooze starten (fragt die Dauer ab) / beenden, Entnahmelimit, Bewässerungsmodus (Zeiten und Tage in einem Dialog, in einem Aufruf gespeichert) |
+| Tab **Steuerung** (Blue) | Zapfart, Menge (± 50 ml), Zapfen; CO₂ / Filter nach Rückfrage zurücksetzen |
+
+| Einstellung | Bedeutung |
+|---|---|
+| Instanz | Adapter-Instanz (leer: `grohe-smarthome.0`) |
+| Gerät | Gerät der Instanz (leer: das erste); die Liste liefert der Adapter (`sendTo`-Befehl `getDevices`) |
+
+Befehle laufen über dieselben `controls.*`-States wie im Device Manager, der Adapter verarbeitet sie also wie gewohnt:
+erst die Werte (z. B. `controls.snooze.duration`, `controls.tapType`, `controls.tapAmount`), zuletzt der Auslöser. Die
+Karte stellt keine zusätzlichen Anfragen an die Grohe-Cloud und ändert die Polling-Strategie nicht. Ist ein Gerät
+offline, ist die Steuerung gesperrt; im Editor eines Hosts schreibt die Karte nichts.
+
+| Host | Hinweis |
+|---|---|
+| devices (≥ 4.3) | Bearbeitungsmodus → „Widget hinzufügen" → „Grohe Smarthome" → „Grohe Gerät"; am besten passt die Größe 2×2. Nach einem Update die Adapterdateien neu hochladen (`iobroker upload grohe-smarthome`) und die Seite neu laden |
+| Aura | in den Widget-Einstellungen **Klick auf die Komponente** auf **Komponente** stellen, sonst behält Aura die Klicks |
+
+Quelle: `src-webcomponents/`; `npm run build` bündelt sie nach `admin/webcomponents/device-card.js` (die gebaute Datei wird eingecheckt).
+`common.webComponents` in `io-package.json` enthält den einfachen Manifest-Pfad, weil devices 4.4 die Objekt-Kurzform ignoriert.
+
+---
+
 ## ioBroker-Staatsstruktur
 
 Geräte werden unterhalb des Adapter-Namespaces angelegt:
@@ -408,6 +441,9 @@ Der Fallback-Modus wird einmalig beim Start erkannt und für die gesamte Laufzei
 |---|---|
 | `main.js` | Adapter-Kern: Polling, State-Verwaltung, Befehlsverarbeitung, Device-Manager-Messages |
 | `lib/device-manager.js` | Device-Manager-Integration: Kacheln, Info-/Steuerungs-Tabs, Templates je Gerätetyp |
+| `lib/web-components.js` | Backend der Web-Komponente: Geräteliste für ihre Einstellungen (`getDevices`) |
+| `src-webcomponents/` | Quelle der Web-Komponente (Browser-ESM); `npm run build` bündelt sie nach `admin/webcomponents/` |
+| `admin/webcomponents/` | Manifest der Web-Komponente (handgeschrieben), Icon und gebautes Modul |
 | `lib/groheClient.js` | Grohe-API-Client: authentifizierte Requests, Token-Erneuerung / Neuanmeldung bei 401 |
 | `lib/waterConsumptionTracker.js` | Gespeicherter Gesamtwasserverbrauch der Sense Guard |
 | `lib/auth.js` | OAuth / Keycloak-Login und Token-Refresh |

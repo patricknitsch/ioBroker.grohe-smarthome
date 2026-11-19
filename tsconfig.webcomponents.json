@@ -1,0 +1,12 @@
+// Type check of the web components: browser code, bundled by tasks/build-webcomponents.mjs
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"lib": ["es2023", "dom", "dom.iterable"],
+		"module": "preserve",
+		"moduleResolution": "bundler",
+		"types": ["iobroker"]
+	},
+	"include": ["src-webcomponents/**/*.js"],
+	"exclude": []
+}
