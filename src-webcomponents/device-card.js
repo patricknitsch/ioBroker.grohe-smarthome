@@ -1,4 +1,4 @@
-// Web component <grohe-device-card>: one Grohe appliance (Sense, Sense Guard,
+// Web component <iob-grohe-device-card>: one Grohe appliance (Sense, Sense Guard,
 // Blue Home / Professional) as a card in the look of the Device Manager card:
 // header with icon, name and status icons, the values of the tile and, for
 // appliances with controls, a second tab with the controls of the details view.
@@ -15,7 +15,7 @@ import { svg } from './icons.js';
 /** @typedef {import('@iobroker/web-components').WebComponentSetting} Setting */
 
 const ADAPTER = 'grohe-smarthome';
-const TAG = 'grohe-device-card';
+const TAG = 'iob-grohe-device-card';
 /** How long a button shows that its command is being sent */
 const BUSY_MS = 2500;
 const TAP_STEP = 50;
@@ -516,7 +516,7 @@ function typeOf(obj) {
 	return String(obj?.native?.type || '');
 }
 
-/** Card of one Grohe appliance, registered as <grohe-device-card> */
+/** Card of one Grohe appliance, registered as <iob-grohe-device-card> */
 class GroheDeviceCard extends IobWebComponent {
 	/** @type {string} appliance found without a setting: the first of the instance */
 	#autoBase = '';

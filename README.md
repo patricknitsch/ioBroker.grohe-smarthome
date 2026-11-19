@@ -44,7 +44,7 @@ Ideas and Concept came from the Home-Assistant Integration **ha-grohe_smarthome*
 	### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
-* (patricknitsch) Web component `grohe-device-card` (ioBroker web-components): Grohe Sense, Sense Guard and Blue as a card in the look of the Device Manager, with an Info tab and a Controls tab, usable in devices, vis-2, admin and other hosts
+* (patricknitsch) Web component `iob-grohe-device-card` (ioBroker web-components): Grohe Sense, Sense Guard and Blue as a card in the look of the Device Manager, with an Info tab and a Controls tab, usable in devices, vis-2, admin and other hosts
 * (patricknitsch) Web component: info button with general appliance information (IDs, notification details, consumption averages, pressure measurement, Blue maintenance and operating data)
 
 ### 0.7.2 (2026-10-29)
