@@ -1,4 +1,4 @@
-// Type check of the web components: browser code, bundled by tasks/build-webcomponents.mjs
+// Type check of the web components: browser code, bundled by scripts/build-webcomponents.mjs
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {

@@ -6,7 +6,9 @@ version: 2
 updates:
 
   - package-ecosystem: 'npm'
-    directory: '/'
+    directories:
+      - '/'
+      - '/src-webcomponents'
     schedule:
       interval: 'weekly'
       day: 'monday'
