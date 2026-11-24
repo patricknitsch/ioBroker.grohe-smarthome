@@ -2,7 +2,7 @@
 // Blue Home / Professional) as a card in the look of the Device Manager card:
 // header with icon, name and status icons, the values of the tile and, for
 // appliances with controls, a second tab with the controls of the details view.
-// Bundled by tasks/build-webcomponents.mjs into admin/webcomponents/device-card.js;
+// Bundled by scripts/build-webcomponents.mjs into admin/webcomponents/device-card.js;
 // its manifest is next to it.
 //
 // Writes go through the same controls.* states as the Device Manager, so the
